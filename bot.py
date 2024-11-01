@@ -1,9 +1,21 @@
 import os
 import json
 import discord
+from flask import Flask
+from threading import Thread
 from discord.ext import commands
 from datetime import datetime
 from dotenv import load_dotenv
+
+app = Flask('')
+port = int(os.getenv('PORT', 10000))
+
+@app.route('/')
+def home():
+    return "Discord bot is running!"
+
+def run_server():
+    app.run(host='0.0.0.0', port=port)
 
 STORAGE_PATH = '/var/data' if os.path.exists('/var/data') else '.'  # Use /var/data on Render, local directory otherwise
 DATA_PATH = os.path.join(STORAGE_PATH, 'bird-rpg')
@@ -362,6 +374,14 @@ async def on_command_error(ctx, error):
         await ctx.send("❌ An unexpected error occurred. Please try again.")
 
 
-# Run the bot
-if __name__ == "__main__":
+def main():
+    # Start web server in a separate thread
+    server_thread = Thread(target=run_server)
+    server_thread.start()
+    
+    # Start the bot
+    load_dotenv()
     bot.run(os.getenv('DISCORD_TOKEN'))
+
+if __name__ == "__main__":
+    main()
