@@ -30,7 +30,7 @@ load_dotenv()
 DEBUG = True  # Set to True for testing, False for production
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix='!', intents=intents)
+bot = commands.Bot(command_prefix='!', intents=intents, help_command=None))
 
 # Debug logging
 def log_debug(message):
@@ -298,7 +298,7 @@ async def test_status(ctx):
     
     await ctx.send(status)
 
-@bot.command(name='nest_help')
+@bot.command(name='nest_help', aliases=['help']))
 async def help_command(ctx):
     help_text = """
 **🪹 Nest Building Commands:**
