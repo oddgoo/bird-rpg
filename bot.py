@@ -21,6 +21,8 @@ STORAGE_PATH = '/var/data' if os.path.exists('/var/data') else '.'  # Use /var/d
 DATA_PATH = os.path.join(STORAGE_PATH, 'bird-rpg')
 NESTS_FILE = os.path.join(DATA_PATH, 'nests.json')
 
+os.makedirs(DATA_PATH, exist_ok=True)
+
 # Load environment variables
 load_dotenv()
 
