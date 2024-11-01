@@ -298,7 +298,7 @@ async def test_status(ctx):
     
     await ctx.send(status)
 
-@bot.command(name='nest_help', aliases=['help']))
+@bot.command(name='nest_help', aliases=['help'])
 async def help_command(ctx):
     help_text = """
 **🪹 Nest Building Commands:**
