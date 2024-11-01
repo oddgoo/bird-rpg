@@ -30,7 +30,7 @@ load_dotenv()
 DEBUG = True  # Set to True for testing, False for production
 intents = discord.Intents.default()
 intents.message_content = True
-bot = commands.Bot(command_prefix='!', intents=intents, help_command=None))
+bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
 
 # Debug logging
 def log_debug(message):
