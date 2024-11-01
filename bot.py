@@ -32,8 +32,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 # Debug logging
 def log_debug(message):
-    if DEBUG:
-        print(f"[DEBUG] {datetime.now().strftime('%H:%M:%S')}: {message}")
+    print(f"[DEBUG] {datetime.now().strftime('%H:%M:%S')}: {message}")
 
 # File operations
 def load_data():
@@ -371,7 +370,7 @@ async def on_command_error(ctx, error):
         
     else:
         log_debug(f"Error: {str(error)}")
-        await ctx.send("❌ An unexpected error occurred. Please try again.")
+        await ctx.send("❌ An unexpected error occurred. Please try again.: " +  str(error) )
 
 
 def main():
