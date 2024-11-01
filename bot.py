@@ -5,6 +5,10 @@ from discord.ext import commands
 from datetime import datetime
 from dotenv import load_dotenv
 
+STORAGE_PATH = '/var/data' if os.path.exists('/var/data') else '.'  # Use /var/data on Render, local directory otherwise
+DATA_PATH = os.path.join(STORAGE_PATH, 'bird-rpg')
+NESTS_FILE = os.path.join(DATA_PATH, 'nests.json')
+
 # Load environment variables
 load_dotenv()
 
@@ -22,17 +26,20 @@ def log_debug(message):
 # File operations
 def load_data():
     try:
-        if os.path.exists('nests.json'):
-            with open('nests.json', 'r') as f:
+        if os.path.exists(NESTS_FILE):
+            with open(NESTS_FILE, 'r') as f:
                 data = json.load(f)
                 log_debug("Data loaded successfully")
                 return data
         log_debug("No existing data, creating new")
-        return {
+        default_data = {
             "personal_nests": {},
             "common_nest": {"twigs": 0, "seeds": 0},
             "daily_actions": {}
         }
+        # Save default data if it doesn't exist
+        save_data(default_data)
+        return default_data
     except Exception as e:
         log_debug(f"Error loading data: {e}")
         raise
@@ -40,13 +47,13 @@ def load_data():
 def save_data(data):
     try:
         # Create backup before saving
-        if os.path.exists('nests.json'):
-            backup_path = f"nests.json.backup.{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            with open('nests.json', 'r') as src, open(backup_path, 'w') as dst:
+        if os.path.exists(NESTS_FILE):
+            backup_file = f"{NESTS_FILE}.backup.{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            with open(NESTS_FILE, 'r') as src, open(backup_file, 'w') as dst:
                 dst.write(src.read())
-            log_debug(f"Backup created: {backup_path}")
+            log_debug(f"Backup created: {backup_file}")
         
-        with open('nests.json', 'w') as f:
+        with open(NESTS_FILE, 'w') as f:
             json.dump(data, f, indent=2)
         log_debug("Data saved successfully")
     except Exception as e:
