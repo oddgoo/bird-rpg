@@ -59,12 +59,13 @@ def load_data():
 
 def save_data(data):
     try:
-        # Create backup before saving
+        # Create backup before saving?
         if os.path.exists(NESTS_FILE):
-            backup_file = f"{NESTS_FILE}.backup.{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            with open(NESTS_FILE, 'r') as src, open(backup_file, 'w') as dst:
-                dst.write(src.read())
-            log_debug(f"Backup created: {backup_file}")
+            # backup_file = f"{NESTS_FILE}.backup.{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            # with open(NESTS_FILE, 'r') as src, open(backup_file, 'w') as dst:
+            #     dst.write(src.read())
+            # log_debug(f"Backup created: {backup_file}")
+            pass
         
         with open(NESTS_FILE, 'w') as f:
             json.dump(data, f, indent=2)
@@ -265,17 +266,6 @@ async def test_reset_daily(ctx):
     data["daily_actions"] = {}
     save_data(data)
     await ctx.send("🔄 Reset all daily actions for testing")
-
-@bot.command(name='test_next_day')
-async def test_next_day(ctx):
-    if not DEBUG:
-        await ctx.send("Debug mode is not enabled.")
-        return
-    log_debug("test_next_day called")
-    data = load_data()
-    data["daily_actions"] = {}
-    save_data(data)
-    await ctx.send("🌅 Simulated next day - all daily actions reset")
 
 @bot.command(name='test_status')
 async def test_status(ctx):
