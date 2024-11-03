@@ -27,7 +27,7 @@ os.makedirs(DATA_PATH, exist_ok=True)
 load_dotenv()
 
 # Bot configuration
-DEBUG = True  # Set to True for testing, False for production
+DEBUG = False  # Set to True for testing, False for production
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
