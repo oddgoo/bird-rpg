@@ -331,38 +331,18 @@ async def on_ready():
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.errors.CommandNotFound):
+        # Handle unknown commands
         command_used = ctx.message.content.split()[0][1:]  # Remove the ! prefix
-        available_commands = "🔍 Here are the available commands:\n\n"
-        
-        # Core commands
-        available_commands += "**Nest Building:**\n"
-        available_commands += "`!build_nest_own` - Add a twig to your personal nest\n"
-        available_commands += "`!build_nest_common` - Add a twig to the common nest\n"
-        available_commands += "`!add_seed_own` - Add a seed to your personal nest\n"
-        available_commands += "`!add_seed_common` - Add a seed to the common nest\n"
-        available_commands += "`!move_seeds_own <amount>` - Move seeds from your nest to common nest\n"
-        available_commands += "`!move_seeds_common <amount>` - Move seeds from common nest to your nest\n"
-        available_commands += "`!nests` - Show status of your nest and common nest\n"
-        available_commands += "`!nest_help` - Show detailed help\n"
-        
-        # Only show debug commands if DEBUG is True
-        if DEBUG:
-            available_commands += "\n**Debug Commands:**\n"
-            available_commands += "`!test_status` - Check your current status\n"
-            available_commands += "`!test_reset_daily` - Reset daily actions\n"
-            available_commands += "`!test_next_day` - Simulate next day\n"
-        
-        await ctx.send(f"❌ Command `!{command_used}` not recognized!\n\n{available_commands}")
-        
+        await ctx.send(f"❌ Command `!{command_used}` not recognized! Use `!nest_help` to see available commands.")
     elif isinstance(error, commands.errors.MissingRequiredArgument):
         await ctx.send("❌ Missing required argument! Check `!nest_help` for proper usage.")
-        
     elif isinstance(error, commands.errors.BadArgument):
         await ctx.send("❌ Invalid argument! Please provide a valid number.")
-        
     else:
-        log_debug(f"Error: {str(error)}")
-        await ctx.send("❌ An unexpected error occurred. Please try again.: " +  str(error) )
+        # Log the error details for debugging
+        log_debug(f"Unexpected error: {str(error)}")
+        # Send a generic error message to the user
+        await ctx.send("❌ An unexpected error occurred. Please try again later.")
 
 
 def main():
