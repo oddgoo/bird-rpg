@@ -401,13 +401,17 @@ def add_bonus_actions(data, user_id, amount):
     data["daily_actions"][user_id][f"actions_{today}"]["bonus"] += amount
 
 @bot.command(name='sing', aliases=['inspire'])
-async def sing(ctx, target_user: discord.Member):
-    log_debug(f"sing command called by {ctx.author.id} for user {target_user.id}")
-    data = load_data()
-
+async def sing(ctx, target_user: discord.Member = None):
     if target_user is None:
         await ctx.send("Please specify a user to sing to! Usage: !sing @user")
         return
+    
+    if target_user.bot:
+        await ctx.send("You can't sing to a bot! 🤖")
+        return
+        
+    log_debug(f"sing command called by {ctx.author.id} for user {target_user.id}")
+    data = load_data()
     
     # Check if trying to sing to self
     if ctx.author.id == target_user.id:
@@ -419,23 +423,26 @@ async def sing(ctx, target_user: discord.Member):
         await ctx.send(f"{target_user.display_name} has already been sung to today! 🎵")
         return
     
-    # Calculate time remaining in the day
-    now = datetime.now()
-    tomorrow = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
-    time_remaining = tomorrow - now
-    hours = time_remaining.seconds // 3600
-    minutes = (time_remaining.seconds % 3600) // 60
+    # Check if singer has actions remaining
+    remaining_actions = get_remaining_actions(data, ctx.author.id)
+    if remaining_actions <= 0:
+        await ctx.send(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
+        return
     
     # Record the song and add bonus actions
     record_song(data, target_user.id)
     add_bonus_actions(data, target_user.id, 3)
+    record_actions(data, ctx.author.id, 1)  # Use one action for singing
     
     save_data(data)
     
+    # Get remaining actions for feedback
+    remaining = get_remaining_actions(data, ctx.author.id)
+    
     # Send success message
     await ctx.send(f"🎵 {ctx.author.display_name}'s beautiful song has inspired {target_user.display_name}!\n"
-                    f"They now have 3 extra actions for the next {get_time_until_reset()}! 🎶")
-    
+                  f"They now have 3 extra actions for the next {get_time_until_reset()}! 🎶\n"
+                  f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today.")
 
 # Testing commands
 @bot.command(name='test_reset_daily')
