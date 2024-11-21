@@ -348,34 +348,76 @@ async def show_nests(ctx):
     
     status += "**📋 Today's Actions:**\n"
     status += f"Remaining actions: {remaining_actions}/{total_actions}"
-    if has_song:
-        status += " (Inspired by song! 🎵)"
+    
+    # Add song information
+    singers = get_singers_today(data, ctx.author.id)
+    if singers:
+        singer_count = len(singers)
+        status += f"\nInspired by {singer_count} {'song' if singer_count == 1 else 'songs'} today! 🎵"
+    
     status += f"\nTime until reset: {get_time_until_reset()} 🕒"
     
     await ctx.send(status)
 
 
-# Add new helper functions
 def has_been_sung_to(data, user_id):
+    """Check if user has been sung to by anyone today (used in status displays)"""
     user_id = str(user_id)
     today = datetime.now().strftime('%Y-%m-%d')
     
     if "daily_songs" not in data:
         data["daily_songs"] = {}
     
-    return user_id in data["daily_songs"].get(today, [])
+    return (today in data["daily_songs"] and 
+            user_id in data["daily_songs"][today] and 
+            len(data["daily_songs"][today][user_id]) > 0)
 
-def record_song(data, user_id):
-    user_id = str(user_id)
+def has_been_sung_to_by(data, singer_id, target_id):
+    """Check if target has been sung to by this specific singer today"""
+    singer_id = str(singer_id)
+    target_id = str(target_id)
     today = datetime.now().strftime('%Y-%m-%d')
     
     if "daily_songs" not in data:
         data["daily_songs"] = {}
     
     if today not in data["daily_songs"]:
-        data["daily_songs"][today] = []
+        return False
         
-    data["daily_songs"][today].append(user_id)
+    # New format: daily_songs[date][target_id] = [singer1_id, singer2_id, ...]
+    return target_id in data["daily_songs"][today] and singer_id in data["daily_songs"][today][target_id]
+
+
+def record_song(data, singer_id, target_id):
+    """Record that singer has sung to target today"""
+    singer_id = str(singer_id)
+    target_id = str(target_id)
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    if "daily_songs" not in data:
+        data["daily_songs"] = {}
+    
+    if today not in data["daily_songs"]:
+        data["daily_songs"][today] = {}
+        
+    if target_id not in data["daily_songs"][today]:
+        data["daily_songs"][today][target_id] = []
+        
+    data["daily_songs"][today][target_id].append(singer_id)
+
+
+def get_singers_today(data, target_id):
+    """Get list of who has sung to target today"""
+    target_id = str(target_id)
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    if "daily_songs" not in data:
+        return []
+        
+    if today not in data["daily_songs"]:
+        return []
+        
+    return data["daily_songs"][today].get(target_id, [])
 
 def add_bonus_actions(data, user_id, amount):
     user_id = str(user_id)
@@ -402,6 +444,8 @@ def add_bonus_actions(data, user_id, amount):
 
 @bot.command(name='sing', aliases=['inspire'])
 async def sing(ctx, target_user: discord.Member = None):
+    """Give another user 3 extra actions for the day. Each bird can only sing once to the same target per day."""
+    # Basic input validation
     if target_user is None:
         await ctx.send("Please specify a user to sing to! Usage: !sing @user")
         return
@@ -418,31 +462,47 @@ async def sing(ctx, target_user: discord.Member = None):
         await ctx.send("You can't sing to yourself! 🎵")
         return
     
-    # Check if target has already been sung to today
-    if has_been_sung_to(data, target_user.id):
-        await ctx.send(f"{target_user.display_name} has already been sung to today! 🎵")
+    # Check if singer has enough actions
+    singer_remaining_actions = get_remaining_actions(data, ctx.author.id)
+    if singer_remaining_actions <= 0:
+        await ctx.send(f"You don't have any actions left to sing! Come back in {get_time_until_reset()}! 🌙")
         return
     
-    # Check if singer has actions remaining
-    remaining_actions = get_remaining_actions(data, ctx.author.id)
-    if remaining_actions <= 0:
-        await ctx.send(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
+    # Check if singer has already sung to this target today
+    if has_been_sung_to_by(data, ctx.author.id, target_user.id):
+        await ctx.send(f"You've already sung to {target_user.display_name} today! 🎵")
         return
     
     # Record the song and add bonus actions
-    record_song(data, target_user.id)
+    record_song(data, ctx.author.id, target_user.id)
     add_bonus_actions(data, target_user.id, 3)
-    record_actions(data, ctx.author.id, 1)  # Use one action for singing
+    record_actions(data, ctx.author.id, 1)  # Singing costs 1 action
     
     save_data(data)
     
-    # Get remaining actions for feedback
-    remaining = get_remaining_actions(data, ctx.author.id)
+    # Get list of other singers for flavor text
+    #singers = get_singers_today(data, target_user.id)
+    #singer_count = len(singers)
     
-    # Send success message
-    await ctx.send(f"🎵 {ctx.author.display_name}'s beautiful song has inspired {target_user.display_name}!\n"
-                  f"They now have 3 extra actions for the next {get_time_until_reset()}! 🎶\n"
-                  f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today.")
+    # Get total available actions for target
+    today = datetime.now().strftime('%Y-%m-%d')
+    actions_data = data["daily_actions"].get(str(target_user.id), {}).get(f"actions_{today}", {"used": 0, "bonus": 0})
+    if isinstance(actions_data, (int, float)):
+        actions_data = {"used": actions_data, "bonus": 0}
+    total_actions = 3 + actions_data["bonus"]
+    remaining_actions = total_actions - actions_data["used"]
+    
+    # Get singer's remaining actions
+    singer_actions_left = get_remaining_actions(data, ctx.author.id)
+    
+    # Construct success message
+    message = [
+        f"🎵 {ctx.author.display_name}'s beautiful song has inspired {target_user.display_name}!",
+        f"They now have {remaining_actions}/{total_actions} actions available for the next {get_time_until_reset()}! 🎶",
+        f"(You have {singer_actions_left} {'action' if singer_actions_left == 1 else 'actions'} remaining)"
+    ]
+    
+    await ctx.send("\n".join(message))
 
 # Testing commands
 @bot.command(name='test_reset_daily')
@@ -498,28 +558,39 @@ async def test_sing(ctx, target_user: discord.Member):
     
     # Show current state before singing
     remaining_before = get_remaining_actions(data, target_user.id)
-    was_sung_to = has_been_sung_to(data, target_user.id)
+    was_sung_to = has_been_sung_to_by(data, ctx.author.id, target_user.id)  # Check specific singer
+    singer_remaining = get_remaining_actions(data, ctx.author.id)
     
     await ctx.send(f"TEST - Before singing:\n"
                   f"Target user remaining actions: {remaining_before}\n"
-                  f"Has been sung to: {was_sung_to}")
+                  f"Singer remaining actions: {singer_remaining}\n"
+                  f"Has been sung to by singer: {was_sung_to}")
     
-    # Perform sing operation
-    if has_been_sung_to(data, target_user.id):
-        await ctx.send(f"TEST - {target_user.display_name} has already been sung to today! 🎵")
+    # Check singer's actions
+    if singer_remaining <= 0:
+        await ctx.send(f"TEST - Singer has no actions remaining!")
         return
     
-    record_song(data, target_user.id)
+    # Check if already sung to by this singer
+    if was_sung_to:
+        await ctx.send(f"TEST - {target_user.display_name} has already been sung to by {ctx.author.display_name} today! 🎵")
+        return
+    
+    # Perform sing operation
+    record_song(data, ctx.author.id, target_user.id)
     add_bonus_actions(data, target_user.id, 3)
+    record_actions(data, ctx.author.id, 1)
     save_data(data)
     
     # Show state after singing
     remaining_after = get_remaining_actions(data, target_user.id)
-    is_sung_to = has_been_sung_to(data, target_user.id)
+    is_sung_to = has_been_sung_to_by(data, ctx.author.id, target_user.id)
+    singer_remaining_after = get_remaining_actions(data, ctx.author.id)
     
     await ctx.send(f"TEST - After singing:\n"
                   f"Target user remaining actions: {remaining_after}\n"
-                  f"Has been sung to: {is_sung_to}")
+                  f"Singer remaining actions: {singer_remaining_after}\n"
+                  f"Has been sung to by singer: {is_sung_to}")
 
 @bot.command(name='test_reset_songs')
 async def test_reset_songs(ctx):
@@ -555,12 +626,14 @@ async def test_show_all(ctx):
     # Show daily songs
     debug_info += "\nDaily Songs:\n"
     if today in data.get("daily_songs", {}):
-        debug_info += f"Users sung to today: {data['daily_songs'][today]}\n"
+        for target_id, singers in data["daily_songs"][today].items():
+            debug_info += f"User {target_id} was sung to by: {singers}\n"
     else:
         debug_info += "No songs today\n"
         
     debug_info += "```"
     await ctx.send(debug_info)
+
 
 # Update the help command to include test commands
 @bot.command(name='test_help')
@@ -618,11 +691,30 @@ async def on_ready():
     print(f'Bot is ready. Logged in as {bot.user.name}')
     print(f'Debug mode: {"ON" if DEBUG else "OFF"}')
     
+    # Run data migration on startup
+    try:
+        data = load_data()
+        
+        # Migrate old song data format to new format
+        if "daily_songs" in data:
+            for date, songs in data["daily_songs"].items():
+                if isinstance(songs, list):
+                    print(f"Migrating songs data for {date}...")
+                    new_format = {}
+                    for user_id in songs:
+                        new_format[user_id] = ["migration"]
+                    data["daily_songs"][date] = new_format
+                    
+            save_data(data)
+            print("Song data migration completed!")
+    except Exception as e:
+        print(f"Error during data migration: {e}")
+    
     if DEBUG:
         print("\nTest Commands Available:")
         print("!test_reset_daily - Reset all daily actions")
+        print("!test_reset_songs - Reset all daily songs")
         print("!test_status - Check your current status")
-
 # Error handling
 @bot.event
 async def on_command_error(ctx, error):
