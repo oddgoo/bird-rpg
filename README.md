@@ -6,6 +6,7 @@ activate venv: 'venv\Scripts\activate'
 pip install -r requirements.txt
 python bot.py
 
+
 bot permissions integer: Oauth2 permissions:
 
 *"Scopes":*
@@ -16,3 +17,14 @@ bot permissions integer: Oauth2 permissions:
 - Read Messages/View Channels
 - Send Messages
 - Read Message History
+
+# debug
+set DEBUG = True in your .env file to enable the Debug commands
+
+## TODO and Ideas
+- aliases / clear confusion between add and build
+- Hatching a new egg
+- Foraging for treasure
+- "could there be some kind of gifting system... and maybe you can get rewarded for gifting when a baby hatches. Or if someone sings to you, you can gift them a thing and you both get nest upgrade or osmething."
+- "hehe okay, maybe you can encourage the cockatoos/parrots to come, and there is some benefit. cockatoos and parrots are also infmaous for destroying shit. so idk. do with that what you will haha"
+- " special stones that can only be taken from defeated children"
