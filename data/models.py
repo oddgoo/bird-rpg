@@ -3,7 +3,15 @@ from datetime import datetime
 def get_personal_nest(data, user_id):
     user_id = str(user_id)
     if user_id not in data["personal_nests"]:
-        data["personal_nests"][user_id] = {"twigs": 0, "seeds": 0}
+        # Initialize with default values including name
+        data["personal_nests"][user_id] = {
+            "twigs": 0, 
+            "seeds": 0,
+            "name": "Unnamed Nest"
+        }
+    # Ensure existing nests have a name
+    if "name" not in data["personal_nests"][user_id]:
+        data["personal_nests"][user_id]["name"] = "Unnamed Nest"
     return data["personal_nests"][user_id]
 
 def get_common_nest(data):

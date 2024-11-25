@@ -68,6 +68,7 @@ class InfoCommands(commands.Cog):
             `!move_seeds_common <amount>` - Move seeds from common nest to your nest
             `!nests` - Show status of your nest and common nest
             `!sing <@user>` - Give another bird 3 extra actions for the day
+            `!name_nest <name>` - Give your nest a custom name
 
             **📋 Rules:**
             • You have 3 actions per day total
