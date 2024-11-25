@@ -36,13 +36,10 @@ class InfoCommands(commands.Cog):
         status = "**🏠 Your Nest Status:**\n"
         status += f"```\nTwigs: {personal_nest['twigs']} 🪹\n"
         status += f"Seeds: {personal_nest['seeds']} 🌰\n"
-        status += f"Space available: {personal_nest['twigs'] - personal_nest['seeds']} spots\n```\n"
         
         status += "**🌇 Common Nest Status:**\n"
-        status += f"```\nTwigs: {common_nest['twigs']} 🪺\n"
-        status += f"Seeds: {common_nest['seeds']} 🌰\n"
-        status += f"Space available: {common_nest['twigs'] - common_nest['seeds']} spots\n```\n"
-        
+        status += f"https://bird-rpg.onrender.com/"
+            
         status += "**📋 Today's Actions:**\n"
         status += f"Remaining actions: {remaining_actions}/{total_actions}"
         
