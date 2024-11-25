@@ -6,6 +6,13 @@ activate venv: 'venv\Scripts\activate'
 pip install -r requirements.txt
 python bot.py
 
+# debug
+set DEBUG = True in your .env file to enable the Debug commands
+
+# Run tests
+pytest ./tests
+
+# bot configuration
 
 bot permissions integer: Oauth2 permissions:
 
@@ -17,9 +24,6 @@ bot permissions integer: Oauth2 permissions:
 - Read Messages/View Channels
 - Send Messages
 - Read Message History
-
-# debug
-set DEBUG = True in your .env file to enable the Debug commands
 
 ## TODO and Ideas
 - aliases / clear confusion between add and build
