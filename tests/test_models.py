@@ -48,6 +48,26 @@ class TestNestOperations:
             nest["seeds"] -= 1
             common_nest["seeds"] += 1
 
+    def test_get_personal_nest_type_safety(self, mock_data):
+        """Test that personal nest handles different ID types correctly"""
+        # Test with different ID types
+        int_id = get_personal_nest(mock_data, 123)
+        str_id = get_personal_nest(mock_data, "123")
+        
+        assert int_id == str_id
+        assert isinstance(int_id["twigs"], int)
+        assert isinstance(int_id["seeds"], int)
+
+    def test_common_nest_initialization(self, mock_data):
+        """Test common nest is properly initialized"""
+        del mock_data["common_nest"]
+        mock_data["common_nest"] = None
+        
+        common_nest = get_common_nest(mock_data)
+        assert isinstance(common_nest, dict)
+        assert "twigs" in common_nest
+        assert "seeds" in common_nest
+
 class TestActionTracking:
     def test_initial_actions_available(self, mock_data):
         actions = get_remaining_actions(mock_data, "123")
@@ -113,6 +133,23 @@ class TestSongMechanics:
         record_song(mock_data, singer_id, target_id)
         assert has_been_sung_to_by(mock_data, singer_id, target_id), "User should be able to sing to themselves if allowed"
 
+    def test_empty_daily_songs(self, mock_data):
+        """Test behavior when daily_songs structure doesn't exist"""
+        del mock_data["daily_songs"]
+        
+        # Should handle missing structure gracefully
+        assert not has_been_sung_to(mock_data, "123")
+        assert not has_been_sung_to_by(mock_data, "456", "123")
+        assert get_singers_today(mock_data, "123") == []
+
+    def test_record_song_creates_structure(self, mock_data):
+        """Test that recording a song creates necessary data structure"""
+        del mock_data["daily_songs"]
+        
+        record_song(mock_data, "singer", "target")
+        
+        assert "daily_songs" in mock_data
+        assert len(mock_data["daily_songs"]) > 0
 
 class TestEdgeCases:
     def test_zero_remaining_actions(self, mock_data):
@@ -140,3 +177,35 @@ class TestEdgeCases:
         common_nest = get_common_nest(mock_data)
         common_nest["twigs"] = -10
         assert common_nest["twigs"] == -10, "Twigs should be allowed to be negative if not handled properly"
+
+class TestDataConsistency:
+    def test_action_counting_overflow(self, mock_data):
+        """Test handling of very large action counts"""
+        # Try to record an extremely large number of actions
+        record_actions(mock_data, "123", 1000000)
+        
+        actions_data = get_remaining_actions(mock_data, "123")
+        assert isinstance(actions_data, (int, float))
+        assert actions_data <= 3  # Should not exceed base actions
+
+    def test_concurrent_bonus_actions(self, mock_data):
+        """Test multiple bonus action additions"""
+        # Add bonus actions multiple times
+        add_bonus_actions(mock_data, "123", 1)
+        add_bonus_actions(mock_data, "123", 2)
+        add_bonus_actions(mock_data, "123", 3)
+        
+        remaining = get_remaining_actions(mock_data, "123")
+        assert remaining == 9  # 3 base + (1+2+3) bonus
+
+    def test_cross_day_boundary(self, mock_data):
+        """Test that actions reset properly across days"""
+        # Record actions for yesterday
+        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+        mock_data["daily_actions"]["123"] = {
+            f"actions_{yesterday}": {"used": 3, "bonus": 2}
+        }
+        
+        # Check today's actions
+        remaining = get_remaining_actions(mock_data, "123")
+        assert remaining == 3  # Should be fresh daily actions

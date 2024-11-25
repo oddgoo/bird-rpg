@@ -7,6 +7,8 @@ def get_personal_nest(data, user_id):
     return data["personal_nests"][user_id]
 
 def get_common_nest(data):
+    if "common_nest" not in data or data["common_nest"] is None:
+        data["common_nest"] = {"twigs": 0, "seeds": 0}
     return data["common_nest"]
 
 def get_remaining_actions(data, user_id):
