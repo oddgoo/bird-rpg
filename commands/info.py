@@ -35,7 +35,7 @@ class InfoCommands(commands.Cog):
         # Create status message
         status = "**🏠 Your Nest Status:**\n"
         status += f"```\nTwigs: {personal_nest['twigs']} 🪹\n"
-        status += f"Seeds: {personal_nest['seeds']} 🌰\n```\n\n"
+        status += f"Seeds: {personal_nest['seeds']} 🌰\n```\n"
         
         status += "**🌇 Common Nest Status:**\n"
         status += f"https://bird-rpg.onrender.com/ \n\n"
