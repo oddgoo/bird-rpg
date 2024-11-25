@@ -71,8 +71,10 @@ async def load_cogs(bot):
         'commands.seeds',
         'commands.singing',
         'commands.info',
-        'commands.testing'
+        'commands.testing',
+        'commands.customisation'  # Add this line
     ]
+
 
     for cog in COGS:
         try:

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🐦bird-rpg Village</title>
+    <style>
+        body {
+            font-family: "Chalkboard SE", sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fdf6e3;
+            color: #594e4a;
+        }
+        .nest-box {
+            background-color: #fff9ea;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border: 2px solid #e6d5ac;
+        }
+        .common-nest {
+            background-color: #fff3e0;
+            border: 2px dashed #ffb74d;
+        }
+        .timer-box {
+            background-color: #e8f5e9;
+            text-align: center;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 2px dashed #81c784;
+        }
+        h1 {
+            text-align: center;
+            color: #795548;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        h2 {
+            color: #795548;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .resource-count {
+            display: inline-block;
+            margin-right: 20px;
+            font-size: 1.2em;
+            background-color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .emoji {
+            font-size: 1.4em;
+            vertical-align: middle;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #fff3e0;
+            border-bottom: 2px dashed #e6d5ac;
+        }
+        tr:hover td {
+            background-color: #fff3e0;
+            transform: scale(1.01);
+            transition: all 0.2s ease;
+        }
+        td {
+            background-color: white;
+            word-wrap: break-word;
+            max-width: 200px;
+            white-space: normal;
+        }
+        td:first-child {
+            border-top-left-radius: 8px;
+            border-bottom-left-radius: 8px;
+        }
+        td:last-child {
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+        .space-available {
+            color: #4caf50;
+            font-style: italic;
+        }
+        .space-full {
+            color: #f44336;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌿 bird-rpg Village 🐦</h1>
+    
+    <div class="timer-box">
+        <h2>🌅 Next Day Begins In</h2>
+        <div style="font-size: 1.5em;">
+            ⏰ {{ time_until_reset }}
+        </div>
+    </div>
+    
+    <div class="nest-box common-nest">
+        <h2>🏰 Common Nest</h2>
+        <div class="resource-count">
+            <span class="emoji">🪺</span> Twigs: {{ common_nest.twigs }}
+        </div>
+        <div class="resource-count">
+            <span class="emoji">🌰</span> Seeds: {{ common_nest.seeds }}
+        </div>
+    </div>
+
+    <div class="nest-box">
+        <h2>Nests</h2>
+        <table>
+            <thead>
+                <tr>
+                    <!-- <th>Rank</th> -->
+                    <th>Nest Name</th>
+                    <th>Twigs 🪹</th>
+                    <th>Seeds 🌰</th>
+                    <!-- <th>Status</th> -->
+                </tr>
+            </thead>
+            <tbody>
+                {% for nest in personal_nests %}
+                <tr>
+                    <!-- <td>{% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}</td> -->
+                    <td>{{ nest.name}}</td>
+                    <td>{{ nest.twigs }} 🪹</td>
+                    <td>{{ nest.seeds }} 🌰</td>
+                    <!-- <td>
+                        {% if nest.space > 0 %}
+                            <span class="space-available">{{ nest.space }} spots free 📦</span>
+                        {% else %}
+                            <span class="space-full">Nest full! 📫</span>
+                        {% endif %}
+                    </td> -->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px; font-size: 0.9em; color: #795548;">
+        🌸 Made with love with/for MAGPIE 🌸
+    </div>
+</body>
+</html>
