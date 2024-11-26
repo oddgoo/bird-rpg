@@ -18,7 +18,7 @@ def mock_data():
 class TestNestOperations:
     def test_get_personal_nest_new_user(self, mock_data):
         nest = get_personal_nest(mock_data, "123")
-        assert nest == {"twigs": 0, "seeds": 0, "name": "Unnamed Nest"}
+        assert nest == {"twigs": 0, "seeds": 0, "name": "Some Bird's Nest"}
         assert "123" in mock_data["personal_nests"]
 
     def test_add_seeds_within_capacity(self, mock_data):

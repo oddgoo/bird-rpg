@@ -5,7 +5,7 @@
     <style>
         body {
             font-family: "Chalkboard SE", sans-serif;
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
             background-color: #fdf6e3;
@@ -47,7 +47,7 @@
         }
         .resource-count {
             display: inline-block;
-            margin-right: 20px;
+            margin: 0 10px;
             font-size: 1.2em;
             background-color: white;
             padding: 8px 15px;
@@ -58,98 +58,91 @@
             font-size: 1.4em;
             vertical-align: middle;
         }
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 8px;
+        .nests-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
         }
-        th, td {
-            padding: 12px;
-            text-align: left;
-        }
-        th {
-            background-color: #fff3e0;
-            border-bottom: 2px dashed #e6d5ac;
-        }
-        tr:hover td {
-            background-color: #fff3e0;
-            transform: scale(1.01);
-            transition: all 0.2s ease;
-        }
-        td {
+        .nest-card {
             background-color: white;
-            word-wrap: break-word;
-            max-width: 200px;
-            white-space: normal;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
         }
-        td:first-child {
-            border-top-left-radius: 8px;
-            border-bottom-left-radius: 8px;
+        .nest-card:hover {
+            transform: translateY(-5px);
         }
-        td:last-child {
-            border-top-right-radius: 8px;
-            border-bottom-right-radius: 8px;
+        .nest-name {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #795548;
         }
-        .space-available {
-            color: #4caf50;
-            font-style: italic;
+        .nest-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
-        .space-full {
-            color: #f44336;
-            font-style: italic;
+        .stat-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px dashed #e6d5ac;
+        }
+        .songs-given {
+            color: #2c79df;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <h1>🌿 bird-rpg Village 🐦</h1>
     
+    <div class="nest-box common-nest">
+        <h2 style="justify-content: center;">🏰 Common Nest</h2>
+        <div style="text-align: center;">
+            <div class="resource-count">
+                <span class="emoji">🪺</span> Twigs: {{ common_nest.twigs }}
+            </div>
+            <div class="resource-count">
+                <span class="emoji">🌰</span> Seeds: {{ common_nest.seeds }}
+            </div>
+        </div>
+    </div>
+
     <div class="timer-box">
-        <h2>🌅 Next Day Begins In</h2>
+        <h2 style="justify-content: center;">🌅 Next Day Begins In</h2>
         <div style="font-size: 1.5em;">
             ⏰ {{ time_until_reset }}
         </div>
     </div>
-    
-    <div class="nest-box common-nest">
-        <h2>🏰 Common Nest</h2>
-        <div class="resource-count">
-            <span class="emoji">🪺</span> Twigs: {{ common_nest.twigs }}
-        </div>
-        <div class="resource-count">
-            <span class="emoji">🌰</span> Seeds: {{ common_nest.seeds }}
-        </div>
-    </div>
 
     <div class="nest-box">
-        <h2>Nests</h2>
-        <table>
-            <thead>
-                <tr>
-                    <!-- <th>Rank</th> -->
-                    <th>Nest Name</th>
-                    <th>Twigs 🪹</th>
-                    <th>Seeds 🌰</th>
-                    <!-- <th>Status</th> -->
-                </tr>
-            </thead>
-            <tbody>
-                {% for nest in personal_nests %}
-                <tr>
-                    <!-- <td>{% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}</td> -->
-                    <td>{{ nest.name}}</td>
-                    <td>{{ nest.twigs }} 🪹</td>
-                    <td>{{ nest.seeds }} 🌰</td>
-                    <!-- <td>
-                        {% if nest.space > 0 %}
-                            <span class="space-available">{{ nest.space }} spots free 📦</span>
-                        {% else %}
-                            <span class="space-full">Nest full! 📫</span>
-                        {% endif %}
-                    </td> -->
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <h2 style="justify-content: center;">Nests</h2>
+        <div class="nests-grid">
+            {% for nest in personal_nests %}
+            <div class="nest-card">
+                <div class="nest-name">{{ nest.name }}</div>
+                <div class="nest-stats">
+                    <div class="stat-line">
+                        <span>🪹 Twigs</span>
+                        <span>{{ nest.twigs }}</span>
+                    </div>
+                    <div class="stat-line">
+                        <span>🌰 Seeds</span>
+                        <span>{{ nest.seeds }}</span>
+                    </div>
+                    <div class="stat-line">
+                        <span>🎵 Songs Given</span>
+                        <span class="songs-given">{{ nest.songs_given }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
 
     <div style="text-align: center; margin-top: 30px; font-size: 0.9em; color: #795548;">

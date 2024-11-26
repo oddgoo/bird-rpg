@@ -1,4 +1,5 @@
 from flask import render_template
+from datetime import datetime
 from data.storage import load_data
 from data.models import get_common_nest
 from utils.time_utils import get_time_until_reset
@@ -12,23 +13,29 @@ def get_home_page():
     # Get time until reset
     time_until_reset = get_time_until_reset()
     
-    # Get all personal nests and sort them by total resources
+    # Get all personal nests with singing data
     personal_nests = []
+    
     for user_id in data["personal_nests"]:
         nest = data["personal_nests"][user_id]
-        total_resources = nest["seeds"]
-        space_available = nest["twigs"] - nest["seeds"]
+        # Count how many times this user has sung to others across all dates
+        songs_given = 0
+        for date_songs in data.get("daily_songs", {}).values():
+            for target_songs in date_songs.values():
+                if str(user_id) in target_songs:
+                    songs_given += 1
+        
         personal_nests.append({
             "user_id": user_id,
-            "name": nest.get("name", "Unnamed Nest"),  # Use .get() with default value
+            "name": nest.get("name", "Some Bird's Nest"),
             "twigs": nest["twigs"],
             "seeds": nest["seeds"],
-            "total": total_resources,
-            "space": space_available
+            "songs_given": songs_given,
+            "space": nest["twigs"] - nest["seeds"]
         })
     
-    # Sort nests by total resources, descending
-    personal_nests.sort(key=lambda x: x["total"], reverse=True)
+    # Sort nests by songs given, descending
+    personal_nests.sort(key=lambda x: x["songs_given"], reverse=True)
     
     return render_template(
         'home.html',

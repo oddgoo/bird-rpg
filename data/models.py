@@ -7,11 +7,11 @@ def get_personal_nest(data, user_id):
         data["personal_nests"][user_id] = {
             "twigs": 0, 
             "seeds": 0,
-            "name": "Unnamed Nest"
+            "name": "Some Bird's Nest"
         }
     # Ensure existing nests have a name
     if "name" not in data["personal_nests"][user_id]:
-        data["personal_nests"][user_id]["name"] = "Unnamed Nest"
+        data["personal_nests"][user_id]["name"] = "Some Bird's Nest"
     return data["personal_nests"][user_id]
 
 def get_common_nest(data):
