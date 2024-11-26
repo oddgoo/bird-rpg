@@ -25,7 +25,7 @@ class CustomisationCommands(commands.Cog):
         nest = get_personal_nest(data, ctx.author.id)
         
         # Store the old name for the confirmation message
-        old_name = nest.get("name", "Unnamed Nest")
+        old_name = nest.get("name", "Some Bird's Nest")
         
         # Update the nest name
         nest["name"] = new_name
