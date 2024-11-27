@@ -67,7 +67,7 @@ class IncubationCommands(commands.Cog):
 
         # Check if target has an egg
         if "egg" not in target_nest or target_nest["egg"] is None:
-            await ctx.send(f"{'You don\'t' if target_user == ctx.author else f'{target_user.display_name} doesn\'t'} have an egg to brood! 🥚")
+            await ctx.send(f"{'You don’t' if target_user == ctx.author else f'{target_user.display_name} doesn\'t'} have an egg to brood! 🥚")
             return
 
         # Check if already brooded today
