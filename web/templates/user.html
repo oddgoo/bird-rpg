@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ nest.name }} | 🐦bird-rpg Village</title>
+    <style>
+        body {
+            font-family: "Chalkboard SE", sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fdf6e3;
+            color: #594e4a;
+        }
+        .nest-stats {
+            background-color: #fff3e0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-item {
+            display: inline-block;
+            margin: 0 15px;
+            background-color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .chicks-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .chick-item {
+            background-color: #fff9ea;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #795548;
+        }
+        h1 {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏠 {{ nest.name }}</h1>
+    
+    <div class="nest-stats">
+        <div class="stat-item">
+            <span>🪹 Twigs: {{ nest.twigs }}</span>
+        </div>
+        <div class="stat-item">
+            <span>🌰 Seeds: {{ nest.seeds }}</span>
+        </div>
+        <div class="stat-item">
+            <span>🎵 Songs Given: {{ nest.songs_given }}</span>
+        </div>
+    </div>
+
+    <h2>🐣 Hatched Chicks</h2>
+    {% if nest.chicks %}
+    <ul class="chicks-list">
+        {% for chick in nest.chicks %}
+        <li class="chick-item">
+            <strong>{{ chick.commonName }}</strong> (<em>{{ chick.scientificName }}</em>)
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="text-align: center;">This nest hasn't hatched any chicks yet! 🐣</p>
+    {% endif %}
+    
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="/">← Back to Village</a>
+    </div>
+</body>
+</html> 

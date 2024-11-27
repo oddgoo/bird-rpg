@@ -96,11 +96,28 @@
             color: #2c79df;
             font-weight: bold;
         }
+        .discovered-species {
+            background-color: #e0f7fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border: 2px solid #4dd0e1;
+            text-align: center;
+        }
+        .discovered-species h2 {
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
     <h1>🌿 bird-rpg Village 🐦</h1>
     
+    <div class="discovered-species">
+        <h2>🦜 Community Discovered Species</h2>
+        <p>{{ discovered_species_count }} / {{ total_bird_species }} species discovered</p>
+    </div>
+
     <div class="nest-box common-nest">
         <h2 style="justify-content: center;">🏰 Common Nest</h2>
         <div style="text-align: center;">
@@ -124,23 +141,25 @@
         <h2 style="justify-content: center;">Nests</h2>
         <div class="nests-grid">
             {% for nest in personal_nests %}
-            <div class="nest-card">
-                <div class="nest-name">{{ nest.name }}</div>
-                <div class="nest-stats">
-                    <div class="stat-line">
-                        <span>🪹 Twigs</span>
-                        <span>{{ nest.twigs }}</span>
-                    </div>
-                    <div class="stat-line">
-                        <span>🌰 Seeds</span>
-                        <span>{{ nest.seeds }}</span>
-                    </div>
-                    <div class="stat-line">
-                        <span>🎵 Songs Given</span>
-                        <span class="songs-given">{{ nest.songs_given }}</span>
+            <a href="/user/{{ nest.user_id }}" style="text-decoration: none;">
+                <div class="nest-card">
+                    <div class="nest-name">{{ nest.name }}</div>
+                    <div class="nest-stats">
+                        <div class="stat-line">
+                            <span>🪹 Twigs</span>
+                            <span>{{ nest.twigs }}</span>
+                        </div>
+                        <div class="stat-line">
+                            <span>🌰 Seeds</span>
+                            <span>{{ nest.seeds }}</span>
+                        </div>
+                        <div class="stat-line">
+                            <span>🎵 Songs Given</span>
+                            <span class="songs-given">{{ nest.songs_given }}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </a>
             {% endfor %}
         </div>
     </div>

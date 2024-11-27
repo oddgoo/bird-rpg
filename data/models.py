@@ -217,3 +217,20 @@ def select_random_bird_species():
             return species
         upto += species["rarityWeight"]
     return bird_species[-1]  # Fallback
+
+def get_discovered_species(data):
+    """Retrieve all unique bird species discovered by all users."""
+    discovered = set()
+    for nest in data.get("personal_nests", {}).values():
+        for chick in nest.get("chicks", []):
+            discovered.add( (chick["commonName"], chick["scientificName"]) )
+    return discovered
+
+def get_discovered_species_count(data):
+    """Return the count of all unique bird species discovered."""
+    return len(get_discovered_species(data))
+
+def get_total_bird_species(data):
+    """Return the total number of bird species available."""
+    bird_species = load_bird_species()
+    return len(bird_species)

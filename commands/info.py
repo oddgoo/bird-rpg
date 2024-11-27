@@ -4,7 +4,8 @@ from discord.ext import commands
 from data.storage import load_data
 from data.models import (
     get_personal_nest, get_common_nest, get_remaining_actions,
-    has_been_sung_to, get_singers_today
+    has_been_sung_to, get_singers_today,
+    get_discovered_species_count, get_total_bird_species, get_total_chicks
 )
 from utils.logging import log_debug
 from utils.time_utils import get_time_until_reset
@@ -32,22 +33,27 @@ class InfoCommands(commands.Cog):
             actions_data = {"used": actions_data, "bonus": 0}
         total_actions = 3 + actions_data["bonus"]
         
+        # Get community discovered species
+        total_bird_species = get_total_bird_species(data)
+        discovered_species_count = get_discovered_species_count(data)
+        
         # Create status message
-        status = "**🏠 Your Nest Status:**\n"
-        status += f"```\nTwigs: {personal_nest['twigs']} 🪹\n"
-        status += f"Seeds: {personal_nest['seeds']} 🌰\n```\n"
+        status = "**🏠 Your Nest:**\n"
+        status += f"```\nTwigs: {personal_nest['twigs']} 🪹 | Seeds: {personal_nest['seeds']} 🌰 \n"
+        status += f"Chicks: {get_total_chicks(personal_nest)} 🐦\n"
+        status += f"Remaining actions: {remaining_actions}/{total_actions}\n```\n"
         
-        status += "**🌇 Common Nest Status:**\n"
-        status += f"https://bird-rpg.onrender.com/ \n\n"
-            
-        status += "**📋 Today's Actions:**\n"
-        status += f"Remaining actions: {remaining_actions}/{total_actions}"
+        status += f"**🌇 View Your Nest:** https://bird-rpg.onrender.com/user/{ctx.author.id}\n"
+        status += "**🌇 Common Nest Status:** https://bird-rpg.onrender.com/\n\n"
         
+        # Add community discovered species tally
+        status += f"**🦜 Community Discovered Species:** {discovered_species_count} / {total_bird_species}\n\n"
+    
         # Add song information
         singers = get_singers_today(data, ctx.author.id)
         if singers:
             singer_count = len(singers)
-            status += f"\nInspired by {singer_count} {'song' if singer_count == 1 else 'songs'} today! 🎵"
+            status += f"Inspired by {singer_count} {'song' if singer_count == 1 else 'songs'} today! 🎵\n"
         
         status += f"\nTime until reset: {get_time_until_reset()} 🕒"
         
