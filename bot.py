@@ -72,7 +72,8 @@ async def load_cogs(bot):
         'commands.singing',
         'commands.info',
         'commands.testing',
-        'commands.customisation'  # Add this line
+        'commands.customisation',
+        'commands.incubation'
     ]
 
 

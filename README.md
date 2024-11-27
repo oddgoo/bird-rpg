@@ -32,3 +32,5 @@ bot permissions integer: Oauth2 permissions:
 - "could there be some kind of gifting system... and maybe you can get rewarded for gifting when a baby hatches. Or if someone sings to you, you can gift them a thing and you both get nest upgrade or osmething."
 - "hehe okay, maybe you can encourage the cockatoos/parrots to come, and there is some benefit. cockatoos and parrots are also infmaous for destroying shit. so idk. do with that what you will haha"
 - " special stones that can only be taken from defeated children"
+- server led notifications
+- make timezone Australia

@@ -35,7 +35,9 @@ def get_home_page():
             "twigs": nest["twigs"],
             "seeds": nest["seeds"],
             "songs_given": songs_given,
-            "space": nest["twigs"] - nest["seeds"]
+            "space": nest["twigs"] - nest["seeds"],
+            "chicks": len(nest.get("chicks", [])),
+            "has_egg": nest.get("egg") is not None
         })
     
     # Sort nests by songs given, descending

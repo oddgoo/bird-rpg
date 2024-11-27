@@ -1,5 +1,4 @@
 from datetime import datetime
-from data.storage import load_bird_species
 import json
 import os
 import random
@@ -184,6 +183,7 @@ def record_brooding(data, brooder_id, target_id):
     target_id = str(target_id)
     today = datetime.now().strftime('%Y-%m-%d')
     
+    # Record in daily_brooding structure
     if "daily_brooding" not in data:
         data["daily_brooding"] = {}
     
@@ -194,6 +194,11 @@ def record_brooding(data, brooder_id, target_id):
         data["daily_brooding"][today][target_id] = []
         
     data["daily_brooding"][today][target_id].append(brooder_id)
+    
+    # Also record in the egg's brooded_by list
+    nest = get_personal_nest(data, target_id)
+    if nest["egg"] and brooder_id not in nest["egg"]["brooded_by"]:
+        nest["egg"]["brooded_by"].append(brooder_id)
 
 def get_total_chicks(nest):
     """Return the number of chicks in the nest"""

@@ -5,7 +5,7 @@ from data.models import (
     record_actions, has_been_sung_to, has_been_sung_to_by,
     record_song, get_singers_today, add_bonus_actions,
     get_egg_cost, select_random_bird_species, record_brooding,
-    has_brooded_egg, get_total_chicks
+    has_brooded_egg, get_total_chicks, load_bird_species
 )
 import random
 
@@ -21,7 +21,13 @@ def mock_data():
 class TestNestOperations:
     def test_get_personal_nest_new_user(self, mock_data):
         nest = get_personal_nest(mock_data, "123")
-        assert nest == {"twigs": 0, "seeds": 0, "name": "Some Bird's Nest"}
+        assert nest == {
+            "twigs": 0,
+            "seeds": 0,
+            "name": "Some Bird's Nest",
+            "egg": None,
+            "chicks": []
+        }
         assert "123" in mock_data["personal_nests"]
 
     def test_add_seeds_within_capacity(self, mock_data):

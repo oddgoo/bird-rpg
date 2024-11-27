@@ -2,7 +2,7 @@ from discord.ext import commands
 import discord
 from datetime import datetime
 
-from data.storage import load_data, save_data, load_bird_species
+from data.storage import load_data, save_data
 from data.models import (
     get_personal_nest, get_remaining_actions, record_actions,
     has_brooded_egg, record_brooding, get_egg_cost,

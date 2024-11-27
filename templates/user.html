@@ -60,6 +60,13 @@
         <div class="stat-item">
             <span>🎵 Songs Given: {{ nest.songs_given }}</span>
         </div>
+        <div class="stat-item">
+            {% if nest.egg %}
+            <span>🥚 Egg Progress: {{ nest.egg.brooding_progress }}/10</span>
+            {% else %}
+            <span>🥚 No Egg</span>
+            {% endif %}
+        </div>
     </div>
 
     <h2>🐣 Hatched Chicks</h2>

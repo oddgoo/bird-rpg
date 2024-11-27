@@ -212,18 +212,17 @@ class TestCommands(commands.Cog):
         
         await ctx.send(
             f"🐣 **Forced Hatch!** {target_user.display_name}'s egg has hatched into a **{chick['commonName']}** ({chick['scientificName']})!\n"
-            f"Total Chicks: {get_total_chicks(nest)}"
         )
 
     @commands.command(name='test_reset_nest')
     async def test_reset_nest(self, ctx, target_user: discord.Member = None):
-        """Reset a user's nest to its initial state (for testing purposes)"""
+        """Reset a user's nest to an initial state (for testing purposes)"""
         target_user = target_user or ctx.author
         log_debug(f"test_reset_nest called by {ctx.author.id} for {target_user.id}")
         data = load_data()
         data["personal_nests"][str(target_user.id)] = {
-            "twigs": 0,
-            "seeds": 0,
+            "twigs": 90,
+            "seeds": 50,
             "name": "Some Bird's Nest",
             "egg": None,
             "chicks": []

@@ -29,7 +29,8 @@ def user_page(user_id):
         "twigs": nest["twigs"],
         "seeds": nest["seeds"],
         "chicks": nest.get("chicks", []),
-        "songs_given": songs_given
+        "songs_given": songs_given,
+        "egg": nest.get("egg", None)
     }
     
     return render_template('user.html', nest=nest_data)
