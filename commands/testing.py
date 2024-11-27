@@ -10,6 +10,7 @@ from data.models import (
     record_actions, get_common_nest, select_random_bird_species
 )
 from utils.logging import log_debug
+from utils.time_utils import get_current_date
 
 class TestCommands(commands.Cog):
     def __init__(self, bot):
@@ -42,7 +43,7 @@ class TestCommands(commands.Cog):
         status += f"🌰 Seeds: {personal_nest['seeds']}\n"
         status += "\n**Today's Actions:**\n"
 
-        today = datetime.now().strftime('%Y-%m-%d')
+        today = today = get_current_date()
         actions_data = data["daily_actions"].get(str(user_id), {}).get(f"actions_{today}", {"used": 0, "bonus": 0})
         if isinstance(actions_data, (int, float)):
             actions_data = {"used": actions_data, "bonus": 0}
@@ -109,7 +110,7 @@ class TestCommands(commands.Cog):
         """Show all relevant data for testing"""
         log_debug("test_show_all called")
         data = load_data()
-        today = datetime.now().strftime('%Y-%m-%d')
+        today = today = get_current_date()
         
         debug_info = "**🔍 Debug Information:**\n```\n"
         
@@ -161,7 +162,7 @@ class TestCommands(commands.Cog):
         log_debug("test_cleanup called")
         data = load_data()
         
-        today = datetime.now().strftime('%Y-%m-%d')
+        today = today = get_current_date()
         cutoff_date = (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d')
         
         # Clean up daily actions

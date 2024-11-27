@@ -8,7 +8,7 @@ from data.models import (
     get_discovered_species_count, get_total_bird_species, get_total_chicks
 )
 from utils.logging import log_debug
-from utils.time_utils import get_time_until_reset
+from utils.time_utils import get_time_until_reset, get_current_date
 from config.config import DEBUG
 
 
@@ -27,7 +27,7 @@ class InfoCommands(commands.Cog):
         remaining_actions = get_remaining_actions(data, ctx.author.id)
         
         # Get total actions available
-        today = datetime.now().strftime('%Y-%m-%d')
+        today = today = get_current_date()
         actions_data = data["daily_actions"].get(str(ctx.author.id), {}).get(f"actions_{today}", {"used": 0, "bonus": 0})
         if isinstance(actions_data, (int, float)):
             actions_data = {"used": actions_data, "bonus": 0}

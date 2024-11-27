@@ -8,6 +8,7 @@ from data.models import (
     has_brooded_egg, get_total_chicks, load_bird_species
 )
 import random
+from utils.time_utils import get_current_date
 
 @pytest.fixture
 def mock_data():
@@ -311,7 +312,7 @@ class TestIncubationModule:
         brooder_id = "456"
         nest = get_personal_nest(mock_data, user_id)
         nest["egg"] = {"brooding_progress": 5, "brooded_by": []}
-        today = datetime.now().strftime('%Y-%m-%d')
+        today = today = get_current_date()
         
         # First brooding attempt
         record_brooding(mock_data, brooder_id, user_id)

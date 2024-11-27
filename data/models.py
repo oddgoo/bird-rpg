@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 import os
 import random
+from utils.time_utils import get_current_date
 
 def get_personal_nest(data, user_id):
     user_id = str(user_id)
@@ -30,7 +31,7 @@ def get_common_nest(data):
 
 def get_remaining_actions(data, user_id):
     user_id = str(user_id)
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = today = get_current_date()
     
     if user_id not in data["daily_actions"]:
         data["daily_actions"][user_id] = {}
@@ -61,7 +62,7 @@ def get_remaining_actions(data, user_id):
 
 def record_actions(data, user_id, count):
     user_id = str(user_id)
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = get_current_date()
     
     if user_id not in data["daily_actions"]:
         data["daily_actions"][user_id] = {}
@@ -83,7 +84,7 @@ def record_actions(data, user_id, count):
 
 def has_been_sung_to(data, user_id):
     user_id = str(user_id)
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = today = get_current_date()
     
     if "daily_songs" not in data:
         data["daily_songs"] = {}
@@ -95,7 +96,7 @@ def has_been_sung_to(data, user_id):
 def has_been_sung_to_by(data, singer_id, target_id):
     singer_id = str(singer_id)
     target_id = str(target_id)
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = today = get_current_date()
     
     if "daily_songs" not in data:
         data["daily_songs"] = {}
@@ -109,7 +110,7 @@ def has_been_sung_to_by(data, singer_id, target_id):
 def record_song(data, singer_id, target_id):
     singer_id = str(singer_id)
     target_id = str(target_id)
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = today = get_current_date()
     
     if "daily_songs" not in data:
         data["daily_songs"] = {}
@@ -124,7 +125,7 @@ def record_song(data, singer_id, target_id):
 
 def get_singers_today(data, target_id):
     target_id = str(target_id)
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = today = get_current_date()
     
     if "daily_songs" not in data:
         return []
@@ -136,7 +137,7 @@ def get_singers_today(data, target_id):
 
 def add_bonus_actions(data, user_id, amount):
     user_id = str(user_id)
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = today = get_current_date()
     
     if user_id not in data["daily_actions"]:
         data["daily_actions"][user_id] = {}
@@ -166,7 +167,7 @@ def has_brooded_egg(data, brooder_id, target_id):
     """Check if brooder has brooded target's egg today"""
     brooder_id = str(brooder_id)
     target_id = str(target_id)
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = today = get_current_date()
     
     if "daily_brooding" not in data:
         data["daily_brooding"] = {}
@@ -181,7 +182,7 @@ def record_brooding(data, brooder_id, target_id):
     """Record that brooder has brooded target's egg today"""
     brooder_id = str(brooder_id)
     target_id = str(target_id)
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = today = get_current_date()
     
     # Record in daily_brooding structure
     if "daily_brooding" not in data:

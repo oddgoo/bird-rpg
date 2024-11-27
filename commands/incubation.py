@@ -9,7 +9,7 @@ from data.models import (
     get_total_chicks, select_random_bird_species
 )
 from utils.logging import log_debug
-from utils.time_utils import get_time_until_reset
+from utils.time_utils import get_time_until_reset, get_current_date
 
 class IncubationCommands(commands.Cog):
     def __init__(self, bot):
@@ -71,7 +71,7 @@ class IncubationCommands(commands.Cog):
             return
 
         # Check if already brooded today
-        today = datetime.now().strftime('%Y-%m-%d')
+        today = today = get_current_date()
         if has_brooded_egg(data, ctx.author.id, target_user.id):
             await ctx.send(f"You've already brooded this egg today! Come back in {get_time_until_reset()}! 🥚")
             return
