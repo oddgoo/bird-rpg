@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ nest.name }} | 🐦bird-rpg Village</title>
+    <style>
+        body {
+            font-family: "Chalkboard SE", sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fdf6e3;
+            color: #594e4a;
+        }
+        .nest-stats {
+            background-color: #fff3e0;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-item {
+            display: inline-block;
+            margin: 0 15px;
+            background-color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .chicks-list {
+            list-style-type: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .chick-item {
+            background: linear-gradient(145deg, #fff9ea, #fff3e0);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.2s;
+            aspect-ratio: 2.5/3.5;
+        }
+        .chick-item:hover {
+            transform: translateY(-5px);
+        }
+        .bird-image {
+            width: 80%;
+            height: 60%;
+            border-radius: 10px;
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+        .bird-info {
+            text-align: center;
+            width: 100%;
+            padding: 10px;
+        }
+        .bird-common-name {
+            font-size: 1.1em;
+            color: #795548;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        .bird-scientific-name {
+            font-style: italic;
+            color: #666;
+            font-size: 0.9em;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #795548;
+        }
+        h1 {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏠 {{ nest.name }}</h1>
+    
+    <div class="nest-stats">
+        <div class="stat-item">
+            <span>🪹 Twigs: {{ nest.twigs }}</span>
+        </div>
+        <div class="stat-item">
+            <span>🌰 Seeds: {{ nest.seeds }}</span>
+        </div>
+        <div class="stat-item">
+            <span>🎵 Songs Given: {{ nest.songs_given }}</span>
+        </div>
+        <div class="stat-item">
+            {% if nest.egg %}
+            <span>🥚 Egg Progress: {{ nest.egg.brooding_progress }}/10</span>
+            {% else %}
+            <span>🥚 No Egg</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <h2>🐣 Hatched Chicks</h2>
+    {% if nest.chicks %}
+    <ul class="chicks-list">
+        {% for chick in nest.chicks %}
+        <li class="chick-item">
+            <img 
+                class="bird-image" 
+                id="bird-{{ loop.index }}"
+                src="https://via.placeholder.com/100?text=🐦"
+                alt="{{ chick.commonName }}"
+            >
+            <div class="bird-info">
+                <div class="bird-common-name">{{ chick.commonName }}</div>
+                <div class="bird-scientific-name">{{ chick.scientificName }}</div>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="text-align: center;">This nest hasn't hatched any chicks yet! 🐣</p>
+    {% endif %}
+    
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="/">← Back to Village</a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            {% for chick in nest.chicks %}
+            fetch(`https://commons.wikimedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=original&titles={{ chick.scientificName|replace(' ', '_') }}&origin=*`)
+                .then(response => response.json())
+                .then(data => {
+                    const pages = data.query.pages;
+                    const pageId = Object.keys(pages)[0];
+                    if (pages[pageId].original) {
+                        const imageUrl = pages[pageId].original.source;
+                        document.getElementById('bird-{{ loop.index }}').src = imageUrl;
+                    }
+                })
+                .catch(error => console.error('Error fetching bird image:', error));
+            {% endfor %}
+        });
+    </script>
+</body>
+</html> 

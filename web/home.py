@@ -1,7 +1,11 @@
 from flask import render_template
 from datetime import datetime
 from data.storage import load_data
-from data.models import get_common_nest
+from data.models import (
+    get_common_nest, 
+    get_total_bird_species, 
+    get_discovered_species_count
+)
 from utils.time_utils import get_time_until_reset
 
 def get_home_page():
@@ -31,15 +35,23 @@ def get_home_page():
             "twigs": nest["twigs"],
             "seeds": nest["seeds"],
             "songs_given": songs_given,
-            "space": nest["twigs"] - nest["seeds"]
+            "space": nest["twigs"] - nest["seeds"],
+            "chicks": len(nest.get("chicks", [])),
+            "has_egg": nest.get("egg") is not None
         })
     
     # Sort nests by songs given, descending
     personal_nests.sort(key=lambda x: x["songs_given"], reverse=True)
     
+    # Get discovered species tally
+    total_bird_species = get_total_bird_species(data)
+    discovered_species_count = get_discovered_species_count(data)
+    
     return render_template(
         'home.html',
         common_nest=common_nest,
         personal_nests=personal_nests,
-        time_until_reset=time_until_reset
+        time_until_reset=time_until_reset,
+        total_bird_species=total_bird_species,
+        discovered_species_count=discovered_species_count
     )

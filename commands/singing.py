@@ -8,8 +8,7 @@ from data.models import (
     record_song, add_bonus_actions
 )
 from utils.logging import log_debug
-from utils.time_utils import get_time_until_reset
-
+from utils.time_utils import get_time_until_reset, get_current_date
 
 class SingingCommands(commands.Cog):
     def __init__(self, bot):
@@ -54,7 +53,7 @@ class SingingCommands(commands.Cog):
         save_data(data)
         
         # Get total available actions for target
-        today = datetime.now().strftime('%Y-%m-%d')
+        today = today = get_current_date()
         actions_data = data["daily_actions"].get(str(target_user.id), {}).get(f"actions_{today}", {"used": 0, "bonus": 0})
         if isinstance(actions_data, (int, float)):
             actions_data = {"used": actions_data, "bonus": 0}

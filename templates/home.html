@@ -20,8 +20,12 @@
             border: 2px solid #e6d5ac;
         }
         .common-nest {
-            background-color: #fff3e0;
-            border: 2px dashed #ffb74d;
+            background-color: #e0f7fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border: 2px solid #4dd0e1;
         }
         .timer-box {
             background-color: #e8f5e9;
@@ -96,13 +100,23 @@
             color: #2c79df;
             font-weight: bold;
         }
+        .discovered-species {
+            background-color: #fff3e0;
+            border: 2px dashed #ffb74d;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .discovered-species h2 {
+            margin-bottom: 15px;
+        }
     </style>
 </head>
 <body>
     <h1>🌿 bird-rpg Village 🐦</h1>
     
+
     <div class="nest-box common-nest">
-        <h2 style="justify-content: center;">🏰 Common Nest</h2>
+        <h2 style="justify-content: center;">🌇 Common Nest</h2>
         <div style="text-align: center;">
             <div class="resource-count">
                 <span class="emoji">🪺</span> Twigs: {{ common_nest.twigs }}
@@ -113,35 +127,50 @@
         </div>
     </div>
 
-    <div class="timer-box">
-        <h2 style="justify-content: center;">🌅 Next Day Begins In</h2>
-        <div style="font-size: 1.5em;">
-            ⏰ {{ time_until_reset }}
-        </div>
+    <div class="discovered-species">
+        <h2 style="justify-content: center;">🦜 Community Species</h2>
+        <p>{{ discovered_species_count }} / {{ total_bird_species }} species discovered</p>
     </div>
 
     <div class="nest-box">
         <h2 style="justify-content: center;">Nests</h2>
         <div class="nests-grid">
             {% for nest in personal_nests %}
-            <div class="nest-card">
-                <div class="nest-name">{{ nest.name }}</div>
-                <div class="nest-stats">
-                    <div class="stat-line">
-                        <span>🪹 Twigs</span>
-                        <span>{{ nest.twigs }}</span>
-                    </div>
-                    <div class="stat-line">
-                        <span>🌰 Seeds</span>
-                        <span>{{ nest.seeds }}</span>
-                    </div>
-                    <div class="stat-line">
-                        <span>🎵 Songs Given</span>
-                        <span class="songs-given">{{ nest.songs_given }}</span>
+            <a href="/user/{{ nest.user_id }}" style="text-decoration: none;">
+                <div class="nest-card">
+                    <div class="nest-name">{{ nest.name }}</div>
+                    <div class="nest-stats">
+                        <div class="stat-line">
+                            <span>🪹 Twigs</span>
+                            <span>{{ nest.twigs }}</span>
+                        </div>
+                        <div class="stat-line">
+                            <span>🌰 Seeds</span>
+                            <span>{{ nest.seeds }}</span>
+                        </div>
+                        <div class="stat-line">
+                            <span>🐥 Chicks</span>
+                            <span>{{ nest.chicks }}</span>
+                        </div>
+                        <div class="stat-line">
+                            <span>🥚 Eggs</span>
+                            <span>{{ '1' if nest.has_egg else '0' }}</span>
+                        </div>
+                        <div class="stat-line">
+                            <span>🎵 Songs Given</span>
+                            <span class="songs-given">{{ nest.songs_given }}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </a>
             {% endfor %}
+        </div>
+    </div>
+
+    <div class="timer-box">
+        <h2 style="justify-content: center;">🌅 Next Day Begins In</h2>
+        <div style="font-size: 1.5em;">
+            ⏰ {{ time_until_reset }}
         </div>
     </div>
 

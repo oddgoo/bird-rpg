@@ -3,8 +3,12 @@ from datetime import datetime, timedelta
 from data.models import (
     get_personal_nest, get_common_nest, get_remaining_actions,
     record_actions, has_been_sung_to, has_been_sung_to_by,
-    record_song, get_singers_today, add_bonus_actions
+    record_song, get_singers_today, add_bonus_actions,
+    get_egg_cost, select_random_bird_species, record_brooding,
+    has_brooded_egg, get_total_chicks, load_bird_species
 )
+import random
+from utils.time_utils import get_current_date
 
 @pytest.fixture
 def mock_data():
@@ -18,7 +22,13 @@ def mock_data():
 class TestNestOperations:
     def test_get_personal_nest_new_user(self, mock_data):
         nest = get_personal_nest(mock_data, "123")
-        assert nest == {"twigs": 0, "seeds": 0, "name": "Some Bird's Nest"}
+        assert nest == {
+            "twigs": 0,
+            "seeds": 0,
+            "name": "Some Bird's Nest",
+            "egg": None,
+            "chicks": []
+        }
         assert "123" in mock_data["personal_nests"]
 
     def test_add_seeds_within_capacity(self, mock_data):
@@ -209,3 +219,136 @@ class TestDataConsistency:
         # Check today's actions
         remaining = get_remaining_actions(mock_data, "123")
         assert remaining == 3  # Should be fresh daily actions
+
+class TestIncubationModule:
+    def test_lay_egg_success(self, mock_data):
+        """Test laying an egg with sufficient seeds and no existing egg"""
+        user_id = "123"
+        nest = get_personal_nest(mock_data, user_id)
+        nest["seeds"] = 50  # Sufficient seeds
+        assert "egg" not in nest or nest["egg"] is None
+        
+        egg_cost = get_egg_cost(nest)
+        nest["seeds"] -= egg_cost
+        nest["egg"] = {"brooding_progress": 0, "brooded_by": []}
+        
+        assert nest["seeds"] == 50 - egg_cost
+        assert nest["egg"]["brooding_progress"] == 0
+        assert nest["egg"]["brooded_by"] == []
+
+    def test_brood_egg_progress(self, mock_data):
+        """Test brooding an egg increments brooding progress"""
+        user_id = "123"
+        brooder_id = "456"
+        nest = get_personal_nest(mock_data, user_id)
+        nest["egg"] = {"brooding_progress": 5, "brooded_by": []}
+        mock_data["daily_actions"][brooder_id] = {"actions_2023-10-10": {"used": 0, "bonus": 0}}
+        
+        # Brooder broods the egg
+        record_brooding(mock_data, brooder_id, user_id)
+        nest["egg"]["brooding_progress"] += 1
+        record_actions(mock_data, brooder_id, 1)
+        
+        assert nest["egg"]["brooding_progress"] == 6
+        assert brooder_id in nest["egg"]["brooded_by"]
+
+    def test_hatch_egg(self, mock_data, mocker):
+        """Test that an egg hatches correctly into a chick"""
+        user_id = "123"
+        nest = get_personal_nest(mock_data, user_id)
+        nest["egg"] = {"brooding_progress": 10, "brooded_by": ["456"]}
+        initial_chicks = len(nest["chicks"])
+        
+        # Mock select_random_bird_species to return a fixed species
+        mock_species = {
+            "commonName": "Test Finch",
+            "scientificName": "Testus finchus"
+        }
+        mocker.patch('data.models.select_random_bird_species', return_value=mock_species)
+        
+        # Hatch the egg
+        bird_species = select_random_bird_species()
+        chick = {
+            "commonName": bird_species["commonName"],
+            "scientificName": bird_species["scientificName"]
+        }
+        nest["chicks"].append(chick)
+        nest["egg"] = None
+        
+        assert len(nest["chicks"]) == initial_chicks + 1
+        assert nest["chicks"][-1] == chick
+        assert nest["egg"] is None
+
+    def test_select_random_bird_species_weighted(self, mock_data):
+        """Test that bird species selection respects rarity weights"""
+        species = load_bird_species()
+        rarity_counts = {spec['commonName']: 0 for spec in species}
+        trials = 10000
+        for _ in range(trials):
+            selected = select_random_bird_species()
+            rarity_counts[selected['commonName']] += 1
+        
+        # Calculate expected proportions
+        total_weight = sum(spec['rarityWeight'] for spec in species)
+        expected_proportions = {
+            spec['commonName']: spec['rarityWeight'] / total_weight
+            for spec in species
+        }
+        
+        # Calculate actual proportions
+        actual_proportions = {
+            name: count / trials
+            for name, count in rarity_counts.items()
+        }
+        
+        # Allow a tolerance of ±1%
+        for name, expected in expected_proportions.items():
+            actual = actual_proportions[name]
+            assert abs(actual - expected) < 0.01, f"Rarity weight mismatch for {name}: expected ~{expected:.2f}, got {actual:.2f}"
+
+    def test_brooding_limit(self, mock_data):
+        """Test that a user cannot brood the same egg more than once per day"""
+        user_id = "123"
+        brooder_id = "456"
+        nest = get_personal_nest(mock_data, user_id)
+        nest["egg"] = {"brooding_progress": 5, "brooded_by": []}
+        today = today = get_current_date()
+        
+        # First brooding attempt
+        record_brooding(mock_data, brooder_id, user_id)
+        nest["egg"]["brooding_progress"] += 1
+        record_actions(mock_data, brooder_id, 1)
+        assert brooder_id in nest["egg"]["brooded_by"]
+        
+        # Second brooding attempt on the same day
+        has_brooded = has_brooded_egg(mock_data, brooder_id, user_id)
+        assert has_brooded, "Brooder should have already brooded the egg today"
+        
+        # Attempt to brood again should be prevented
+        if has_brooded:
+            with pytest.raises(Exception):
+                raise Exception("User has already brooded this egg today")
+
+    def test_chicks_bonus_actions(self, mock_data):
+        """Test that each chick grants 1 extra action per day"""
+        user_id = "123"
+        nest = get_personal_nest(mock_data, user_id)
+        nest["chicks"] = [
+            {"commonName": "Test Finch", "scientificName": "Testus finchus"},
+            {"commonName": "Another Finch", "scientificName": "Anotherus finchus"}
+        ]
+        
+        remaining_actions = get_remaining_actions(mock_data, user_id)
+        expected_actions = 3 + len(nest["chicks"])
+        assert remaining_actions == expected_actions, f"Expected {expected_actions} actions, got {remaining_actions}"
+
+    def test_get_total_chicks(self, mock_data):
+        """Test the get_total_chicks function"""
+        user_id = "123"
+        nest = get_personal_nest(mock_data, user_id)
+        nest["chicks"] = [
+            {"commonName": "Finch A", "scientificName": "Fincha fincha"},
+            {"commonName": "Finch B", "scientificName": "Finchb fincha"},
+            {"commonName": "Finch C", "scientificName": "Finchc fincha"}
+        ]
+        assert get_total_chicks(nest) == 3
