@@ -31,7 +31,8 @@ class InfoCommands(commands.Cog):
         actions_data = data["daily_actions"].get(str(ctx.author.id), {}).get(f"actions_{today}", {"used": 0, "bonus": 0})
         if isinstance(actions_data, (int, float)):
             actions_data = {"used": actions_data, "bonus": 0}
-        total_actions = 3 + actions_data["bonus"]
+        chick_bonus = get_total_chicks(personal_nest)
+        total_actions = 3 + actions_data["bonus"] + chick_bonus
         
         # Get community discovered species
         total_bird_species = get_total_bird_species(data)
