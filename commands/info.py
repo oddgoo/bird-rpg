@@ -69,13 +69,16 @@ class InfoCommands(commands.Cog):
             `!nests` - Show status of your nest and common nest
             `!sing <@user>` - Give another bird 3 extra actions for the day
             `!name_nest <name>` - Give your nest a custom name
+            `!lay_egg` - Lay an egg in your nest (costs seeds)
+            `!brood <@user>` - Brood an egg to help it hatch (yours if no user specified)
 
             **📋 Rules:**
-            • You have 3 actions per day total
-            • Each twig or seed added counts as one action
+            • You can increase your actions per day by having chicks in your nest
             • A nest can only hold as many seeds as it has twigs
             • Moving seeds doesn't count as an action
-            • Each bird can only sing to another bird once per day
+            • Each bird can sing to another bird once per day
+            • You can only brood an egg once per day
+            • The cost of laying an egg depends on the number of chicks in your nest
 
             Note: If [amount] is not specified, it defaults to 1
             """

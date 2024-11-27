@@ -7,7 +7,7 @@ from data.storage import load_data, save_data
 from data.models import (
     get_personal_nest, get_remaining_actions, add_bonus_actions,
     has_been_sung_to, has_been_sung_to_by, record_song,
-    record_actions, get_common_nest
+    record_actions, get_common_nest, select_random_bird_species
 )
 from utils.logging import log_debug
 
@@ -186,6 +186,50 @@ class TestCommands(commands.Cog):
         
         save_data(data)
         await ctx.send(f"Cleanup complete!\nRemoved {cleaned_actions} old action records and {cleaned_songs} old song records.")
+
+
+    @commands.command(name='test_hatch_egg')
+    async def test_hatch_egg(self, ctx, target_user: discord.Member = None):
+        """Force hatch an egg for a user (for testing purposes)"""
+        target_user = target_user or ctx.author
+        log_debug(f"test_hatch_egg called by {ctx.author.id} for {target_user.id}")
+        data = load_data()
+        nest = get_personal_nest(data, target_user.id)
+        
+        if not nest["egg"]:
+            await ctx.send(f"{target_user.display_name} does not have an egg to hatch! 🥚")
+            return
+        
+        nest["egg"]["brooding_progress"] = 10  # Force hatch
+        bird_species = select_random_bird_species()
+        chick = {
+            "commonName": bird_species["commonName"],
+            "scientificName": bird_species["scientificName"]
+        }
+        nest["chicks"].append(chick)
+        nest["egg"] = None
+        save_data(data)
+        
+        await ctx.send(
+            f"🐣 **Forced Hatch!** {target_user.display_name}'s egg has hatched into a **{chick['commonName']}** ({chick['scientificName']})!\n"
+            f"Total Chicks: {get_total_chicks(nest)}"
+        )
+
+    @commands.command(name='test_reset_nest')
+    async def test_reset_nest(self, ctx, target_user: discord.Member = None):
+        """Reset a user's nest to its initial state (for testing purposes)"""
+        target_user = target_user or ctx.author
+        log_debug(f"test_reset_nest called by {ctx.author.id} for {target_user.id}")
+        data = load_data()
+        data["personal_nests"][str(target_user.id)] = {
+            "twigs": 0,
+            "seeds": 0,
+            "name": "Some Bird's Nest",
+            "egg": None,
+            "chicks": []
+        }
+        save_data(data)
+        await ctx.send(f"✅ {target_user.display_name}'s nest has been reset to its initial state.")
 
 async def setup(bot):
     await bot.add_cog(TestCommands(bot))

@@ -1,0 +1,154 @@
+{
+    "bird_species": [
+      {
+        "commonName": "Australian White Ibis",
+        "scientificName": "Threskiornis molucca",
+        "rarityWeight": 10
+      },
+      {
+        "commonName": "Noisy Miner",
+        "scientificName": "Manorina melanocephala",
+        "rarityWeight": 10
+      },
+      {
+        "commonName": "Common Myna",
+        "scientificName": "Acridotheres tristis",
+        "rarityWeight": 10
+      },
+      {
+        "commonName": "Welcome Swallow",
+        "scientificName": "Hirundo neoxena",
+        "rarityWeight": 8
+      },
+      {
+        "commonName": "Willie Wagtail",
+        "scientificName": "Rhipidura leucophrys",
+        "rarityWeight": 8
+      },
+      {
+        "commonName": "Australian Magpie",
+        "scientificName": "Gymnorhina tibicen",
+        "rarityWeight": 8
+      },
+      {
+        "commonName": "Sulphur-crested Cockatoo",
+        "scientificName": "Cacatua galerita",
+        "rarityWeight": 8
+      },
+      {
+        "commonName": "Rainbow Lorikeet",
+        "scientificName": "Trichoglossus haematodus",
+        "rarityWeight": 8
+      },
+      {
+        "commonName": "Australian King Parrot",
+        "scientificName": "Alisterus scapularis",
+        "rarityWeight": 7
+      },
+      {
+        "commonName": "Galah",
+        "scientificName": "Eolophus roseicapilla",
+        "rarityWeight": 7
+      },
+      {
+        "commonName": "Laughing Kookaburra",
+        "scientificName": "Dacelo novaeguineae",
+        "rarityWeight": 7
+      },
+      {
+        "commonName": "Eastern Rosella",
+        "scientificName": "Platycercus eximius",
+        "rarityWeight": 6
+      },
+      {
+        "commonName": "Tawny Frogmouth",
+        "scientificName": "Podargus strigoides",
+        "rarityWeight": 6
+      },
+      {
+        "commonName": "Satin Bowerbird",
+        "scientificName": "Ptilonorhynchus violaceus",
+        "rarityWeight": 5
+      },
+      {
+        "commonName": "Regent Bowerbird",
+        "scientificName": "Sericulus chrysocephalus",
+        "rarityWeight": 5
+      },
+      {
+        "commonName": "Gang-gang Cockatoo",
+        "scientificName": "Callocephalon fimbriatum",
+        "rarityWeight": 5
+      },
+      {
+        "commonName": "Major Mitchell's Cockatoo",
+        "scientificName": "Lophochroa leadbeateri",
+        "rarityWeight": 4
+      },
+      {
+        "commonName": "Southern Cassowary",
+        "scientificName": "Casuarius casuarius",
+        "rarityWeight": 4
+      },
+      {
+        "commonName": "Albert's Lyrebird",
+        "scientificName": "Menura alberti",
+        "rarityWeight": 4
+      },
+      {
+        "commonName": "Superb Lyrebird",
+        "scientificName": "Menura novaehollandiae",
+        "rarityWeight": 4
+      },
+      {
+        "commonName": "Red Goshawk",
+        "scientificName": "Erythrotriorchis radiatus",
+        "rarityWeight": 3
+      },
+      {
+        "commonName": "Palm Cockatoo",
+        "scientificName": "Probosciger aterrimus",
+        "rarityWeight": 3
+      },
+      {
+        "commonName": "Black-throated Finch",
+        "scientificName": "Poephila cincta",
+        "rarityWeight": 3
+      },
+      {
+        "commonName": "Swift Parrot",
+        "scientificName": "Lathamus discolor",
+        "rarityWeight": 2
+      },
+      {
+        "commonName": "Gouldian Finch",
+        "scientificName": "Erythrura gouldiae",
+        "rarityWeight": 2
+      },
+      {
+        "commonName": "Helmeted Honeyeater",
+        "scientificName": "Lichenostomus melanops cassidix",
+        "rarityWeight": 2
+      },
+      {
+        "commonName": "Western Ground Parrot",
+        "scientificName": "Pezoporus flaviventris",
+        "rarityWeight": 1
+      },
+      {
+        "commonName": "Plains-wanderer",
+        "scientificName": "Pedionomus torquatus",
+        "rarityWeight": 1
+      },
+      {
+        "commonName": "Orange-bellied Parrot",
+        "scientificName": "Neophema chrysogaster",
+        "rarityWeight": 1
+      },
+      {
+        "commonName": "Night Parrot",
+        "scientificName": "Pezoporus occidentalis",
+        "rarityWeight": 1
+      }
+    ]
+  }
