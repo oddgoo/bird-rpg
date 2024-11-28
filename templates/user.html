@@ -35,7 +35,7 @@
             gap: 20px;
         }
         .chick-item {
-            background: linear-gradient(145deg, #fff9ea, #fff3e0);
+            background: white;
             border-radius: 15px;
             padding: 15px;
             margin-bottom: 20px;
@@ -43,11 +43,15 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
             aspect-ratio: 2.5/3.5;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
         .chick-item:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
         }
         .bird-image {
             width: 80%;
@@ -55,6 +59,10 @@
             border-radius: 10px;
             object-fit: cover;
             margin-bottom: 15px;
+            transition: transform 0.2s;
+        }
+        .chick-item:hover .bird-image {
+            transform: scale(1.05);
         }
         .bird-info {
             text-align: center;
@@ -78,6 +86,15 @@
         }
         h1 {
             margin-bottom: 30px;
+        }
+        .chick-link {
+            text-decoration: none;
+            color: inherit;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
     </style>
 </head>
@@ -107,17 +124,19 @@
     {% if nest.chicks %}
     <ul class="chicks-list">
         {% for chick in nest.chicks %}
-        <li class="chick-item">
-            <img 
-                class="bird-image" 
-                id="bird-{{ loop.index }}"
-                src="https://via.placeholder.com/100?text=🐦"
-                alt="{{ chick.commonName }}"
-            >
-            <div class="bird-info">
-                <div class="bird-common-name">{{ chick.commonName }}</div>
-                <div class="bird-scientific-name">{{ chick.scientificName }}</div>
-            </div>
+        <li class="chick-item" id="chick-item-{{ loop.index }}">
+            <a href="#" class="chick-link" target="_blank" id="chick-link-{{ loop.index }}">
+                <img 
+                    class="bird-image" 
+                    id="bird-{{ loop.index }}"
+                    src="https://via.placeholder.com/100?text=🐦"
+                    alt="{{ chick.commonName }}"
+                >
+                <div class="bird-info">
+                    <div class="bird-common-name">{{ chick.commonName }}</div>
+                    <div class="bird-scientific-name">{{ chick.scientificName }}</div>
+                </div>
+            </a>
         </li>
         {% endfor %}
     </ul>
@@ -141,6 +160,12 @@
                             const imageUrl = taxon.default_photo.medium_url;
                             document.getElementById('bird-{{ loop.index }}').src = imageUrl;
                         }
+                        const taxonUrl = `https://www.inaturalist.org/taxa/${taxon.id}`;
+                        document.getElementById('chick-link-{{ loop.index }}').href = taxonUrl;
+                    } else {
+                        console.warn(`No results found for {{ chick.scientificName }}`);
+                        document.getElementById('chick-link-{{ loop.index }}').removeAttribute('href');
+                        document.getElementById('chick-link-{{ loop.index }}').style.cursor = 'default';
                     }
                 })
                 .catch(error => console.error('Error fetching bird image from iNaturalist:', error));
