@@ -153,8 +153,14 @@
                             <span>{{ nest.chicks }}</span>
                         </div>
                         <div class="stat-line">
-                            <span>🥚 Eggs</span>
-                            <span>{{ '1' if nest.has_egg else '0' }}</span>
+                            <span>🥚 Egg progress</span>
+                            <span>
+                                {% if nest.has_egg %}
+                                    {{ nest.egg_progress }}/10
+                                {% else %}
+                                    No Egg
+                                {% endif %}
+                            </span>
                         </div>
                         <div class="stat-line">
                             <span>🎵 Songs Given</span>

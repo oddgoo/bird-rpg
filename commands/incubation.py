@@ -73,7 +73,7 @@ class IncubationCommands(commands.Cog):
         # Check if already brooded today
         today = today = get_current_date()
         if has_brooded_egg(data, ctx.author.id, target_user.id):
-            await ctx.send(f"You've already brooded this egg today! Come back in {get_time_until_reset()}! 🥚")
+            await ctx.send(f"You've already brooded at this nest today! Come back in {get_time_until_reset()}! 🥚")
             return
 
         # Record brooding
@@ -91,11 +91,13 @@ class IncubationCommands(commands.Cog):
             target_nest["chicks"].append(chick)
             target_nest["egg"] = None
             save_data(data)
-            await ctx.send(f"🐣 The egg has hatched into a gorgeous **{chick['commonName']}** ({chick['scientificName']})! {target_user.display_name} now has {get_total_chicks(target_nest)} {'chick' if get_total_chicks(target_nest) == 1 else 'chicks'}! 🐦")
+            await ctx.send(f"🐣 The egg has hatched into a gorgeous **{chick['commonName']}** ({chick['scientificName']})! {target_user.display_name} now has {get_total_chicks(target_nest)} {'chick' if get_total_chicks(target_nest) == 1 else 'chicks'}! 🐦\n"
+                          f"View them here: https://bird-rpg.onrender.com/user/{target_user.id}")
         else:
             save_data(data)
             remaining = 10 - target_nest["egg"]["brooding_progress"]
-            await ctx.send(f"You brooded the egg! {remaining} more {'brood' if remaining == 1 else 'broods'} needed until it hatches. 🥚")
+            remaining_actions = get_remaining_actions(data, ctx.author.id)
+            await ctx.send(f"You brooded at **{target_nest['name']}**! The egg needs {remaining} more {'brood' if remaining == 1 else 'broods'} until it hatches. 🥚\nYou have {remaining_actions} {'action' if remaining_actions == 1 else 'actions'} remaining today.")
 
 async def setup(bot):
     await bot.add_cog(IncubationCommands(bot))

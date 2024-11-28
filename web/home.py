@@ -29,6 +29,10 @@ def get_home_page():
                 if str(user_id) in target_songs:
                     songs_given += 1
         
+        # Get egg progress if present
+        egg_data = nest.get("egg")
+        egg_progress = egg_data["brooding_progress"] if egg_data else None
+        
         personal_nests.append({
             "user_id": user_id,
             "name": nest.get("name", "Some Bird's Nest"),
@@ -37,7 +41,8 @@ def get_home_page():
             "songs_given": songs_given,
             "space": nest["twigs"] - nest["seeds"],
             "chicks": len(nest.get("chicks", [])),
-            "has_egg": nest.get("egg") is not None
+            "has_egg": egg_data is not None,
+            "egg_progress": egg_progress
         })
     
     # Sort nests by songs given, descending
