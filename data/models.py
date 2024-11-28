@@ -56,7 +56,7 @@ def get_remaining_actions(data, user_id):
     nest = get_personal_nest(data, user_id)
     chick_bonus = get_total_chicks(nest)
     
-    base_actions = 3
+    base_actions = 4
     total_available = base_actions + actions_data["bonus"] + chick_bonus
     return total_available - actions_data["used"]
 
