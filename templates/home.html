@@ -109,6 +109,53 @@
         .discovered-species h2 {
             margin-bottom: 15px;
         }
+        .discovered-birds-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .bird-thumbnail {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            display: block;
+            text-decoration: none;
+        }
+        .bird-thumbnail:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        .bird-thumb-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .bird-thumb-tooltip {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.2s, bottom 0.2s;
+            pointer-events: none;
+        }
+        .bird-thumbnail:hover .bird-thumb-tooltip {
+            bottom: -25px;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -130,6 +177,25 @@
     <div class="discovered-species">
         <h2 style="justify-content: center;">🦜 Community Species</h2>
         <p>{{ discovered_species_count }} / {{ total_bird_species }} species discovered</p>
+        
+        {% if discovered_species %}
+        <div class="discovered-birds-grid">
+            {% for bird in discovered_species %}
+            <a href="https://www.inaturalist.org/taxa/search?q={{ bird.scientificName }}" 
+               class="bird-thumbnail" 
+               target="_blank"
+               id="bird-thumb-{{ loop.index }}">
+                <img 
+                    src="https://via.placeholder.com/100?text=🐦"
+                    alt="{{ bird.commonName }}"
+                    id="bird-img-{{ loop.index }}"
+                    class="bird-thumb-img"
+                >
+                <div class="bird-thumb-tooltip">{{ bird.commonName }}</div>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
 
     <div class="nest-box">
@@ -183,5 +249,26 @@
     <div style="text-align: center; margin-top: 30px; font-size: 0.9em; color: #795548;">
         🌸 Made with love with/for MAGPIE 🌸
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            {% for bird in discovered_species %}
+            fetch(`https://api.inaturalist.org/v1/taxa?q={{ bird.scientificName }}&limit=1`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.results && data.results.length > 0) {
+                        const taxon = data.results[0];
+                        if (taxon.default_photo) {
+                            const imageUrl = taxon.default_photo.medium_url;
+                            document.getElementById('bird-img-{{ loop.index }}').src = imageUrl;
+                        }
+                        const taxonUrl = `https://www.inaturalist.org/taxa/${taxon.id}`;
+                        document.getElementById('bird-thumb-{{ loop.index }}').href = taxonUrl;
+                    }
+                })
+                .catch(error => console.error('Error fetching bird image:', error));
+            {% endfor %}
+        });
+    </script>
 </body>
 </html>

@@ -20,9 +20,7 @@ def user_page(user_id):
 
     today = get_current_date()
 
-    # Get today's date for tracking daily actions
-    from datetime import datetime
-    today = datetime.now().strftime("%Y-%m-%d")
+    
     
     # Count songs given
     songs_given = 0
