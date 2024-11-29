@@ -96,6 +96,27 @@
             flex-direction: column;
             align-items: center;
         }
+        .interaction-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .interaction-item {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .interaction-item:hover {
+            transform: translateY(-2px);
+        }
+        .nest-link {
+            text-decoration: none;
+            color: #795548;
+        }
     </style>
 </head>
 <body>
@@ -144,6 +165,36 @@
     <p style="text-align: center;">This nest hasn't hatched any chicks yet! 🐣</p>
     {% endif %}
     
+    <h2>🎵 Today's Songs</h2>
+    {% if nest.songs_given_to %}
+    <div class="interaction-list">
+        {% for recipient_nest in nest.songs_given_to %}
+        <div class="interaction-item">
+            <a href="/user/{{ recipient_nest.user_id }}" class="nest-link">
+                🎵 {{ recipient_nest.name }}
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="text-align: center;">No songs given today! 🎵</p>
+    {% endif %}
+
+    <h2>🥚 Today's Brooding</h2>
+    {% if nest.brooded_nests %}
+    <div class="interaction-list">
+        {% for brooded_nest in nest.brooded_nests %}
+        <div class="interaction-item">
+            <a href="/user/{{ brooded_nest.user_id }}" class="nest-link">
+                🥚 {{ brooded_nest.name }}
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p style="text-align: center;">No eggs brooded today! 🥚</p>
+    {% endif %}
+
     <div style="text-align: center; margin-top: 20px;">
         <a href="/">← Back to Village</a>
     </div>
