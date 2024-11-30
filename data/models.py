@@ -3,6 +3,7 @@ import json
 import os
 import random
 from utils.time_utils import get_current_date
+from constants import BASE_DAILY_ACTIONS  # Updated import path
 
 def get_personal_nest(data, user_id):
     user_id = str(user_id)
@@ -31,7 +32,7 @@ def get_common_nest(data):
 
 def get_remaining_actions(data, user_id):
     user_id = str(user_id)
-    today = today = get_current_date()
+    today = get_current_date()
     
     if user_id not in data["daily_actions"]:
         data["daily_actions"][user_id] = {}
@@ -56,8 +57,7 @@ def get_remaining_actions(data, user_id):
     nest = get_personal_nest(data, user_id)
     chick_bonus = get_total_chicks(nest)
     
-    base_actions = 4
-    total_available = base_actions + actions_data["bonus"] + chick_bonus
+    total_available = BASE_DAILY_ACTIONS + actions_data["bonus"] + chick_bonus
     return total_available - actions_data["used"]
 
 def record_actions(data, user_id, count):
