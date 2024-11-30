@@ -1,6 +1,7 @@
 from discord.ext import commands
 import discord
 from datetime import datetime
+import aiohttp  # Import aiohttp for asynchronous HTTP requests
 
 from data.storage import load_data, save_data
 from data.models import (
@@ -71,7 +72,7 @@ class IncubationCommands(commands.Cog):
             return
 
         # Check if already brooded today
-        today = today = get_current_date()
+        today = get_current_date()
         if has_brooded_egg(data, ctx.author.id, target_user.id):
             await ctx.send(f"You've already brooded at this nest today! Come back in {get_time_until_reset()}! 🥚")
             return
@@ -91,13 +92,51 @@ class IncubationCommands(commands.Cog):
             target_nest["chicks"].append(chick)
             target_nest["egg"] = None
             save_data(data)
-            await ctx.send(f"🐣 The egg has hatched into a gorgeous **{chick['commonName']}** ({chick['scientificName']})! {target_user.display_name} now has {get_total_chicks(target_nest)} {'chick' if get_total_chicks(target_nest) == 1 else 'chicks'}! 🐦\n"
-                          f"View them here: https://bird-rpg.onrender.com/user/{target_user.id}")
+            
+            # Fetch image from iNaturalist
+            image_url, taxon_url = await self.fetch_bird_image(chick['scientificName'])
+
+            # Construct the hatching message with image
+            embed = discord.Embed(
+                title="🐣 Egg Hatched!",
+                description=f"The egg has hatched into a **{chick['commonName']}** (*{chick['scientificName']}*)!",
+                color=discord.Color.green()
+            )
+            if image_url:
+                embed.set_image(url=image_url)
+            embed.add_field(
+                name="Total Chicks",
+                value=f"{target_user.display_name} now has {get_total_chicks(target_nest)} {'chick' if get_total_chicks(target_nest) == 1 else 'chicks'}! 🐦",
+                inline=False
+            )
+            embed.add_field(
+                name="View Chicks",
+                value=f"[Click Here](https://bird-rpg.onrender.com/user/{target_user.id})",
+                inline=False
+            )
+            await ctx.send(embed=embed)
         else:
             save_data(data)
             remaining = 10 - target_nest["egg"]["brooding_progress"]
             remaining_actions = get_remaining_actions(data, ctx.author.id)
             await ctx.send(f"You brooded at **{target_nest['name']}**! The egg needs {remaining} more {'brood' if remaining == 1 else 'broods'} until it hatches. 🥚\nYou have {remaining_actions} {'action' if remaining_actions == 1 else 'actions'} remaining today.")
+
+    async def fetch_bird_image(self, scientific_name):
+        """Fetches the bird image URL and taxon URL from iNaturalist."""
+        api_url = f"https://api.inaturalist.org/v1/taxa?q={scientific_name}&limit=1"
+        async with aiohttp.ClientSession() as session:
+            try:
+                async with session.get(api_url) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        if data['results']:
+                            taxon = data['results'][0]
+                            image_url = taxon.get('default_photo', {}).get('medium_url')
+                            taxon_url = taxon.get('url')
+                            return image_url, taxon_url
+            except Exception as e:
+                log_debug(f"Error fetching image from iNaturalist: {e}")
+        return None, None
 
 async def setup(bot):
     await bot.add_cog(IncubationCommands(bot))
