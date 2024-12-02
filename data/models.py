@@ -241,7 +241,7 @@ def get_total_bird_species(data):
     bird_species = load_bird_species()
     return len(bird_species)
 
-def get_nest_building_bonus(nest):
+def get_nest_building_bonus(data, nest):
     """Check if user has Plains-wanderer(s) and it's their first build action"""
     today = get_current_date()
     

@@ -26,7 +26,7 @@ class BuildCommands(commands.Cog):
         amount = min(amount, remaining_actions)
         
         nest = get_personal_nest(data, ctx.author.id)
-        bonus_twigs = get_nest_building_bonus(nest)
+        bonus_twigs = get_nest_building_bonus(data, nest)
         total_twigs = amount + bonus_twigs
         
         nest["twigs"] += total_twigs
@@ -61,7 +61,7 @@ class BuildCommands(commands.Cog):
         amount = min(amount, remaining_actions)
         
         nest = get_personal_nest(data, ctx.author.id)
-        bonus_twigs = get_nest_building_bonus(nest)
+        bonus_twigs = get_nest_building_bonus(data, nest)
         total_twigs = amount + bonus_twigs
         
         data["common_nest"]["twigs"] += total_twigs

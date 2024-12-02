@@ -5,7 +5,8 @@ from data.models import (
     record_actions, has_been_sung_to, has_been_sung_to_by,
     record_song, get_singers_today, add_bonus_actions,
     get_egg_cost, select_random_bird_species, record_brooding,
-    has_brooded_egg, get_total_chicks, load_bird_species
+    has_brooded_egg, get_total_chicks, load_bird_species,
+    get_nest_building_bonus, get_singing_bonus
 )
 import random
 from utils.time_utils import get_current_date
@@ -436,14 +437,14 @@ class TestBirdEffects:
         ])
         
         # First build of the day
-        bonus_twigs = get_nest_building_bonus(nest)
+        bonus_twigs = get_nest_building_bonus(mock_data, nest)
         assert bonus_twigs == 10, "Should get +5 twigs bonus per Plains-wanderer on first build"
         
         # Record an action to simulate the build
         record_actions(mock_data, user_id, 1)
         
         # Second build of the day
-        bonus_twigs = get_nest_building_bonus(nest)
+        bonus_twigs = get_nest_building_bonus(mock_data, nest)
         assert bonus_twigs == 0, "Should not get bonus on subsequent builds"
 
     def test_singing_bonus_stacking(self, mock_data):
@@ -503,7 +504,7 @@ class TestBirdEffects:
             }
         ])
         
-        build_bonus = get_nest_building_bonus(nest)
+        build_bonus = get_nest_building_bonus(mock_data, nest)
         sing_bonus = get_singing_bonus(nest)
         
         assert build_bonus == 0, "Common birds should not give building bonus"
