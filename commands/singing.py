@@ -71,7 +71,7 @@ class SingingCommands(commands.Cog):
             for user, reason in skipped_targets:
                 message.append(f"• {user.display_name} ({reason})")
         else:
-            message = ["🎵 Successfully sang to:"]
+            message = ["🎵 Your beautiful song has inspired:"]
             message.append(", ".join([f"**{user.display_name}**" for user in successful_targets]))
             
             if skipped_targets:
