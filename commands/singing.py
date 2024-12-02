@@ -5,7 +5,7 @@ from discord.ext import commands
 from data.storage import load_data, save_data
 from data.models import (
     get_remaining_actions, record_actions, has_been_sung_to_by,
-    record_song, add_bonus_actions
+    record_song, add_bonus_actions, get_personal_nest, get_singing_bonus
 )
 from utils.logging import log_debug
 from utils.time_utils import get_time_until_reset, get_current_date
@@ -56,12 +56,15 @@ class SingingCommands(commands.Cog):
                 skipped_targets.append((target_user, "already sung to today"))
                 continue
             
+            singer_nest = get_personal_nest(data, ctx.author.id)
+            bonus_inspiration = get_singing_bonus(singer_nest)
+
             # Record the song and add bonus actions
             record_song(data, ctx.author.id, target_user.id)
-            add_bonus_actions(data, target_user.id, 3)
+            add_bonus_actions(data, target_user.id, 3 + bonus_inspiration)
             record_actions(data, ctx.author.id, 1)
             singer_remaining_actions -= 1
-            successful_targets.append(target_user)
+            successful_targets.append((target_user, bonus_inspiration))
 
         save_data(data)
         
@@ -71,8 +74,13 @@ class SingingCommands(commands.Cog):
             for user, reason in skipped_targets:
                 message.append(f"• {user.display_name} ({reason})")
         else:
-            message = ["🎵 Successfully sang to:"]
-            message.append(", ".join([f"**{user.display_name}**" for user in successful_targets]))
+            message = ["🎵 Your beautiful song has inspired:"]
+            for user, bonus in successful_targets:
+                base_msg = f"**{user.display_name}** (+3"
+                if bonus > 0:
+                    base_msg += f" +{bonus}✨"
+                base_msg += " actions)"
+                message.append(base_msg)
             
             if skipped_targets:
                 message.append("\n⚠️ Couldn't sing to:")

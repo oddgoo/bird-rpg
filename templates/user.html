@@ -44,7 +44,7 @@
             flex-direction: column;
             align-items: center;
             transition: transform 0.2s, box-shadow 0.2s;
-            aspect-ratio: 2.5/3.5;
+            aspect-ratio: 2.5/4;
             cursor: pointer;
             position: relative;
             overflow: hidden;
@@ -117,6 +117,20 @@
             text-decoration: none;
             color: #795548;
         }
+        .bird-rarity {
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .bird-effect {
+            line-height: 1.3;
+            max-height: 2.6em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
     </style>
 </head>
 <body>
@@ -156,6 +170,27 @@
                 <div class="bird-info">
                     <div class="bird-common-name">{{ chick.commonName }}</div>
                     <div class="bird-scientific-name">{{ chick.scientificName }}</div>
+                    <div class="bird-rarity" style="
+                        margin-top: 8px;
+                        font-size: 0.9em;
+                        color: {{ 
+                            'goldenrod' if chick.rarity == 'mythical' 
+                            else '#9c27b0' if chick.rarity == 'rare'
+                            else '#2196f3' if chick.rarity == 'uncommon'
+                            else '#4caf50' 
+                        }};">
+                        ✧ {{ chick.rarity|title }} ✧
+                    </div>
+                    {% if chick.effect %}
+                    <div class="bird-effect" style="
+                        margin-top: 8px;
+                        font-size: 0.85em;
+                        color: #666;
+                        font-style: italic;
+                        padding: 0 10px;">
+                        "{{ chick.effect }}"
+                    </div>
+                    {% endif %}
                 </div>
             </a>
         </li>

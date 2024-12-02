@@ -5,7 +5,8 @@ from data.models import (
     record_actions, has_been_sung_to, has_been_sung_to_by,
     record_song, get_singers_today, add_bonus_actions,
     get_egg_cost, select_random_bird_species, record_brooding,
-    has_brooded_egg, get_total_chicks, load_bird_species
+    has_brooded_egg, get_total_chicks, load_bird_species,
+    get_nest_building_bonus, get_singing_bonus
 )
 import random
 from utils.time_utils import get_current_date
@@ -416,3 +417,95 @@ class TestIncubationModule:
             {"commonName": "Finch C", "scientificName": "Finchc fincha"}
         ]
         assert get_total_chicks(nest) == 3
+
+class TestBirdEffects:
+    def test_plains_wanderer_building_bonus(self, mock_data):
+        """Test Plains-wanderer(s) give stacking +5 twigs on first build"""
+        user_id = "123"
+        nest = get_personal_nest(mock_data, user_id)
+        
+        # Add two Plains-wanderers to nest
+        nest["chicks"].extend([
+            {
+                "commonName": "Plains-wanderer",
+                "scientificName": "Pedionomus torquatus"
+            },
+            {
+                "commonName": "Plains-wanderer",
+                "scientificName": "Pedionomus torquatus"
+            }
+        ])
+        
+        # First build of the day
+        bonus_twigs = get_nest_building_bonus(mock_data, nest)
+        assert bonus_twigs == 10, "Should get +5 twigs bonus per Plains-wanderer on first build"
+        
+        # Record an action to simulate the build
+        record_actions(mock_data, user_id, 1)
+        
+        # Second build of the day
+        bonus_twigs = get_nest_building_bonus(mock_data, nest)
+        assert bonus_twigs == 0, "Should not get bonus on subsequent builds"
+
+    def test_singing_bonus_stacking(self, mock_data):
+        """Test Orange-bellied Parrot and Night Parrot singing bonuses stack"""
+        user_id = "123"
+        nest = get_personal_nest(mock_data, user_id)
+        
+        # Add both rare parrots to nest
+        nest["chicks"].extend([
+            {
+                "commonName": "Orange-bellied Parrot",
+                "scientificName": "Neophema chrysogaster"
+            },
+            {
+                "commonName": "Night Parrot",
+                "scientificName": "Pezoporus occidentalis"
+            }
+        ])
+        
+        bonus = get_singing_bonus(nest)
+        assert bonus == 4, "Should get +1 from Orange-bellied and +3 from Night Parrot"
+
+    def test_multiple_same_bird_effects(self, mock_data):
+        """Test multiple copies of same bird stack effects"""
+        user_id = "123"
+        nest = get_personal_nest(mock_data, user_id)
+        
+        # Add two Orange-bellied Parrots
+        nest["chicks"].extend([
+            {
+                "commonName": "Orange-bellied Parrot",
+                "scientificName": "Neophema chrysogaster"
+            },
+            {
+                "commonName": "Orange-bellied Parrot",
+                "scientificName": "Neophema chrysogaster"
+            }
+        ])
+        
+        bonus = get_singing_bonus(nest)
+        assert bonus == 2, "Multiple copies of same bird should stack effects (+1 each)"
+
+    def test_no_effect_birds(self, mock_data):
+        """Test birds without effects don't contribute bonuses"""
+        user_id = "123"
+        nest = get_personal_nest(mock_data, user_id)
+        
+        # Add some common birds
+        nest["chicks"].extend([
+            {
+                "commonName": "Australian White Ibis",
+                "scientificName": "Threskiornis molucca"
+            },
+            {
+                "commonName": "Noisy Miner",
+                "scientificName": "Manorina melanocephala"
+            }
+        ])
+        
+        build_bonus = get_nest_building_bonus(mock_data, nest)
+        sing_bonus = get_singing_bonus(nest)
+        
+        assert build_bonus == 0, "Common birds should not give building bonus"
+        assert sing_bonus == 0, "Common birds should not give singing bonus"
