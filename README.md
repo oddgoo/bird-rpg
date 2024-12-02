@@ -34,3 +34,10 @@ bot permissions integer: Oauth2 permissions:
 - " special stones that can only be taken from defeated children"
 - server led notifications
 - make timezone Australia
+-Brood all (number) - random command
+
+more creative messages
+
+ohh something seems wrong there, it didn't give them a full 3 extra actions. , the count there is correct, it was just the bot's output
+
+multiple sing
