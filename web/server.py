@@ -3,7 +3,7 @@ from threading import Thread
 from config.config import PORT
 from web.home import get_home_page
 from data.storage import load_data
-from data.models import get_personal_nest, get_total_chicks, get_total_bird_species
+from data.models import get_personal_nest, get_total_chicks, get_total_bird_species, load_bird_species
 from utils.time_utils import get_time_until_reset, get_current_date
 
 app = Flask('')
@@ -16,7 +16,17 @@ def home():
 def user_page(user_id):
     data = load_data()
     nest = get_personal_nest(data, user_id)
+    bird_species_data = {species["scientificName"]: species for species in load_bird_species()}
 
+    # Enrich chicks data with species info
+    enriched_chicks = []
+    for chick in nest.get("chicks", []):
+        species_info = bird_species_data.get(chick["scientificName"], {})
+        enriched_chicks.append({
+            **chick,
+            "rarity": species_info.get("rarity", "common"),
+            "effect": species_info.get("effect", "")
+        })
 
     today = get_current_date()
 
@@ -56,7 +66,7 @@ def user_page(user_id):
         "name": nest.get("name", "Some Bird's Nest"),
         "twigs": nest["twigs"],
         "seeds": nest["seeds"],
-        "chicks": nest.get("chicks", []),
+        "chicks": enriched_chicks,
         "songs_given": songs_given,
         "egg": nest.get("egg", None),
         "songs_given_to": songs_given_to,
