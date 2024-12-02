@@ -4,7 +4,7 @@ from data.storage import load_data
 from data.models import (
     get_common_nest, 
     get_total_bird_species, 
-    get_discovered_species_count
+    get_discovered_species_count, get_discovered_species
 )
 from utils.time_utils import get_time_until_reset
 
@@ -29,6 +29,10 @@ def get_home_page():
                 if str(user_id) in target_songs:
                     songs_given += 1
         
+        # Get egg progress if present
+        egg_data = nest.get("egg")
+        egg_progress = egg_data["brooding_progress"] if egg_data else None
+        
         personal_nests.append({
             "user_id": user_id,
             "name": nest.get("name", "Some Bird's Nest"),
@@ -37,7 +41,8 @@ def get_home_page():
             "songs_given": songs_given,
             "space": nest["twigs"] - nest["seeds"],
             "chicks": len(nest.get("chicks", [])),
-            "has_egg": nest.get("egg") is not None
+            "has_egg": egg_data is not None,
+            "egg_progress": egg_progress
         })
     
     # Sort nests by songs given, descending
@@ -47,11 +52,19 @@ def get_home_page():
     total_bird_species = get_total_bird_species(data)
     discovered_species_count = get_discovered_species_count(data)
     
+    discovered_species = []
+    for species in get_discovered_species(data):
+        discovered_species.append({
+            "commonName": species[0],
+            "scientificName": species[1]
+        })
+    
     return render_template(
         'home.html',
         common_nest=common_nest,
         personal_nests=personal_nests,
         time_until_reset=time_until_reset,
         total_bird_species=total_bird_species,
-        discovered_species_count=discovered_species_count
+        discovered_species_count=discovered_species_count,
+        discovered_species=discovered_species
     )

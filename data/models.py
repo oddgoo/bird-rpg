@@ -3,6 +3,7 @@ import json
 import os
 import random
 from utils.time_utils import get_current_date
+from constants import BASE_DAILY_ACTIONS  # Updated import path
 
 def get_personal_nest(data, user_id):
     user_id = str(user_id)
@@ -31,7 +32,7 @@ def get_common_nest(data):
 
 def get_remaining_actions(data, user_id):
     user_id = str(user_id)
-    today = today = get_current_date()
+    today = get_current_date()
     
     if user_id not in data["daily_actions"]:
         data["daily_actions"][user_id] = {}
@@ -56,8 +57,7 @@ def get_remaining_actions(data, user_id):
     nest = get_personal_nest(data, user_id)
     chick_bonus = get_total_chicks(nest)
     
-    base_actions = 3
-    total_available = base_actions + actions_data["bonus"] + chick_bonus
+    total_available = BASE_DAILY_ACTIONS + actions_data["bonus"] + chick_bonus
     return total_available - actions_data["used"]
 
 def record_actions(data, user_id, count):
@@ -240,3 +240,37 @@ def get_total_bird_species(data):
     """Return the total number of bird species available."""
     bird_species = load_bird_species()
     return len(bird_species)
+
+def get_nest_building_bonus(nest):
+    """Check if user has Plains-wanderer(s) and it's their first build action"""
+    today = get_current_date()
+    
+    # Count Plains-wanderers
+    plains_wanderer_count = sum(
+        1 for chick in nest.get("chicks", [])
+        if chick["scientificName"] == "Pedionomus torquatus"
+    )
+    
+    if plains_wanderer_count == 0:
+        return 0
+        
+    # Check if this is their first build action today
+    user_id = next(
+        uid for uid, user_nest in data["personal_nests"].items() 
+        if user_nest == nest
+    )
+    daily_actions = data["daily_actions"].get(user_id, {}).get(f"actions_{today}", {})
+    
+    if isinstance(daily_actions, dict) and daily_actions.get("used", 0) == 0:
+        return 5 * plains_wanderer_count  # +5 twigs per Plains-wanderer
+    return 0
+
+def get_singing_bonus(nest):
+    """Get total singing bonus from rare birds"""
+    bonus = 0
+    for chick in nest.get("chicks", []):
+        if chick["scientificName"] == "Neophema chrysogaster":  # Orange-bellied Parrot
+            bonus += 1
+        elif chick["scientificName"] == "Pezoporus occidentalis":  # Night Parrot
+            bonus += 3
+    return bonus

@@ -1,7 +1,7 @@
 from discord.ext import commands
 
 from data.storage import load_data, save_data
-from data.models import get_personal_nest, get_common_nest, get_remaining_actions, record_actions
+from data.models import get_personal_nest, get_common_nest, get_remaining_actions, record_actions, get_nest_building_bonus
 from utils.logging import log_debug
 from utils.time_utils import get_time_until_reset
 
@@ -26,14 +26,23 @@ class BuildCommands(commands.Cog):
         amount = min(amount, remaining_actions)
         
         nest = get_personal_nest(data, ctx.author.id)
-        nest["twigs"] += amount
+        bonus_twigs = get_nest_building_bonus(nest)
+        total_twigs = amount + bonus_twigs
+        
+        nest["twigs"] += total_twigs
         record_actions(data, ctx.author.id, amount)
         
         save_data(data)
         remaining = get_remaining_actions(data, ctx.author.id)
-        await ctx.send(f"Added {amount} {'twig' if amount == 1 else 'twigs'} to your nest! 🪹\n"
-                      f"Your nest now has {nest['twigs']} twigs and {nest['seeds']} seeds.\n"
-                      f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today.")
+        
+        message = f"Added {amount} {'twig' if amount == 1 else 'twigs'} to your nest!"
+        if bonus_twigs:
+            message += f"\n✨ Plains-wanderer's effect activated: +{bonus_twigs} bonus twigs!"
+        
+        message += f"\n🪹 Your nest now has {nest['twigs']} twigs and {nest['seeds']} seeds.\n"
+        message += f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today."
+        
+        await ctx.send(message)
 
     @commands.command(name='build_nest_common', aliases=['build_nests_common'])
     async def build_nest_common(self, ctx, amount: int = 1):
@@ -51,15 +60,25 @@ class BuildCommands(commands.Cog):
         
         amount = min(amount, remaining_actions)
         
-        data["common_nest"]["twigs"] += amount
+        nest = get_personal_nest(data, ctx.author.id)
+        bonus_twigs = get_nest_building_bonus(nest)
+        total_twigs = amount + bonus_twigs
+        
+        data["common_nest"]["twigs"] += total_twigs
         record_actions(data, ctx.author.id, amount)
         
         save_data(data)
         nest = data["common_nest"]
         remaining = get_remaining_actions(data, ctx.author.id)
-        await ctx.send(f"Added {amount} {'twig' if amount == 1 else 'twigs'} to the common nest! 🪺\n"
-                      f"The common nest now has {nest['twigs']} twigs and {nest['seeds']} seeds.\n"
-                      f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today.")
+        
+        message = f"Added {amount} {'twig' if amount == 1 else 'twigs'} to the common nest!"
+        if bonus_twigs:
+            message += f"\n✨ Plains-wanderer's effect activated: +{bonus_twigs} bonus twigs!"
+        
+        message += f"\n🪺 The common nest now has {nest['twigs']} twigs and {nest['seeds']} seeds.\n"
+        message += f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today."
+        
+        await ctx.send(message)
 
 async def setup(bot):
     await bot.add_cog(BuildCommands(bot))

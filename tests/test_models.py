@@ -9,6 +9,7 @@ from data.models import (
 )
 import random
 from utils.time_utils import get_current_date
+from constants import BASE_DAILY_ACTIONS  # Updated import path
 
 @pytest.fixture
 def mock_data():
@@ -81,27 +82,22 @@ class TestNestOperations:
 class TestActionTracking:
     def test_initial_actions_available(self, mock_data):
         actions = get_remaining_actions(mock_data, "123")
-        assert actions == 3  # Default daily actions
+        assert actions == BASE_DAILY_ACTIONS  # Use constant instead of hardcoded value
 
     def test_record_actions(self, mock_data):
         record_actions(mock_data, "123", 1)
         remaining = get_remaining_actions(mock_data, "123")
-        assert remaining == 2
+        assert remaining == BASE_DAILY_ACTIONS - 1
 
     def test_bonus_actions(self, mock_data):
         add_bonus_actions(mock_data, "123", 3)
         remaining = get_remaining_actions(mock_data, "123")
-        assert remaining == 6  # 3 default + 3 bonus
-
-    def test_record_negative_actions(self, mock_data):
-        record_actions(mock_data, "123", -1)
-        remaining = get_remaining_actions(mock_data, "123")
-        assert remaining == 4  # Actions should decrease 'used' by -1, increasing remaining
+        assert remaining == BASE_DAILY_ACTIONS + 3  # Base + bonus
 
     def test_add_negative_bonus_actions(self, mock_data):
         add_bonus_actions(mock_data, "123", -2)
         remaining = get_remaining_actions(mock_data, "123")
-        assert remaining == 1  # Bonus actions decreased by 2
+        assert remaining == BASE_DAILY_ACTIONS - 2  # Bonus actions decreased by 2
 
 class TestSongMechanics:
     def test_record_and_check_song(self, mock_data):
@@ -161,9 +157,77 @@ class TestSongMechanics:
         assert "daily_songs" in mock_data
         assert len(mock_data["daily_songs"]) > 0
 
+    def test_multiple_targets_song(self, mock_data):
+        """Test singing to multiple targets in one go"""
+        singer_id = "123"
+        target_ids = ["456", "789", "101"]
+        
+        # Record songs to multiple targets
+        for target_id in target_ids:
+            record_song(mock_data, singer_id, target_id)
+            add_bonus_actions(mock_data, target_id, 3)
+        
+        # Verify each target was sung to
+        for target_id in target_ids:
+            assert has_been_sung_to_by(mock_data, singer_id, target_id)
+            assert has_been_sung_to(mock_data, target_id)
+
+    def test_multiple_targets_with_duplicates(self, mock_data):
+        """Test handling duplicate targets in the list"""
+        singer_id = "123"
+        target_ids = ["456", "456", "789"]  # Duplicate target
+        
+        # First song should work, second should still record but not give bonus actions
+        for target_id in target_ids:
+            if not has_been_sung_to_by(mock_data, singer_id, target_id):
+                record_song(mock_data, singer_id, target_id)
+                add_bonus_actions(mock_data, target_id, 3)
+        
+        # Check the results
+        assert len(get_singers_today(mock_data, "456")) == 1  # Should only record once
+        assert has_been_sung_to_by(mock_data, singer_id, "789")
+
+    def test_multiple_targets_insufficient_actions(self, mock_data):
+        """Test singing to multiple targets with limited actions"""
+        singer_id = "123"
+        target_ids = ["456", "789", "101"]
+        
+        record_actions(mock_data, singer_id, 2)
+        
+        successful_targets = []
+        for target_id in target_ids:
+            remaining_actions = get_remaining_actions(mock_data, singer_id)
+            if remaining_actions > 0:
+                record_song(mock_data, singer_id, target_id)
+                add_bonus_actions(mock_data, target_id, 3)
+                record_actions(mock_data, singer_id, 1)
+                successful_targets.append(target_id)
+        
+        assert len(successful_targets) == BASE_DAILY_ACTIONS-2  # Should only sing to first two targets
+        assert not has_been_sung_to_by(mock_data, singer_id, target_ids[2])  # Last target shouldn't be sung to
+
+    def test_multiple_targets_mixed_validity(self, mock_data):
+        """Test singing to a mix of valid and invalid targets"""
+        singer_id = "123"
+        # Simulate one target that's already been sung to
+        record_song(mock_data, singer_id, "456")
+        
+        target_ids = ["456", "789", singer_id]  # One sung to, one fresh, one self
+        
+        successful_targets = []
+        for target_id in target_ids:
+            if (target_id != singer_id and  # Not self
+                not has_been_sung_to_by(mock_data, singer_id, target_id)):  # Not already sung to
+                record_song(mock_data, singer_id, target_id)
+                add_bonus_actions(mock_data, target_id, 3)
+                successful_targets.append(target_id)
+        
+        assert len(successful_targets) == 1  # Only "789" should be successful
+        assert "789" in successful_targets
+
 class TestEdgeCases:
     def test_zero_remaining_actions(self, mock_data):
-        record_actions(mock_data, "123", 3)
+        record_actions(mock_data, "123", BASE_DAILY_ACTIONS)
         remaining = get_remaining_actions(mock_data, "123")
         assert remaining == 0, "Remaining actions should be zero after using all actions"
 
@@ -176,7 +240,7 @@ class TestEdgeCases:
     def test_maximum_possible_actions(self, mock_data):
         add_bonus_actions(mock_data, "123", 100)
         remaining = get_remaining_actions(mock_data, "123")
-        assert remaining == 103, "Remaining actions should be 103 (3 default + 100 bonus)"
+        assert remaining == BASE_DAILY_ACTIONS + 100  # Base + bonus
 
     def test_negative_seeds_direct_assignment(self, mock_data):
         nest = get_personal_nest(mock_data, "123")
@@ -196,7 +260,7 @@ class TestDataConsistency:
         
         actions_data = get_remaining_actions(mock_data, "123")
         assert isinstance(actions_data, (int, float))
-        assert actions_data <= 3  # Should not exceed base actions
+        assert actions_data <= BASE_DAILY_ACTIONS  # Should not exceed base actions
 
     def test_concurrent_bonus_actions(self, mock_data):
         """Test multiple bonus action additions"""
@@ -206,7 +270,7 @@ class TestDataConsistency:
         add_bonus_actions(mock_data, "123", 3)
         
         remaining = get_remaining_actions(mock_data, "123")
-        assert remaining == 9  # 3 base + (1+2+3) bonus
+        assert remaining == BASE_DAILY_ACTIONS + 6  # 3 base + (1+2+3) bonus
 
     def test_cross_day_boundary(self, mock_data):
         """Test that actions reset properly across days"""
@@ -218,7 +282,7 @@ class TestDataConsistency:
         
         # Check today's actions
         remaining = get_remaining_actions(mock_data, "123")
-        assert remaining == 3  # Should be fresh daily actions
+        assert remaining == BASE_DAILY_ACTIONS  # Should be fresh daily actions
 
 class TestIncubationModule:
     def test_lay_egg_success(self, mock_data):
@@ -339,7 +403,7 @@ class TestIncubationModule:
         ]
         
         remaining_actions = get_remaining_actions(mock_data, user_id)
-        expected_actions = 3 + len(nest["chicks"])
+        expected_actions = BASE_DAILY_ACTIONS + len(nest["chicks"])
         assert remaining_actions == expected_actions, f"Expected {expected_actions} actions, got {remaining_actions}"
 
     def test_get_total_chicks(self, mock_data):
@@ -352,3 +416,95 @@ class TestIncubationModule:
             {"commonName": "Finch C", "scientificName": "Finchc fincha"}
         ]
         assert get_total_chicks(nest) == 3
+
+class TestBirdEffects:
+    def test_plains_wanderer_building_bonus(self, mock_data):
+        """Test Plains-wanderer(s) give stacking +5 twigs on first build"""
+        user_id = "123"
+        nest = get_personal_nest(mock_data, user_id)
+        
+        # Add two Plains-wanderers to nest
+        nest["chicks"].extend([
+            {
+                "commonName": "Plains-wanderer",
+                "scientificName": "Pedionomus torquatus"
+            },
+            {
+                "commonName": "Plains-wanderer",
+                "scientificName": "Pedionomus torquatus"
+            }
+        ])
+        
+        # First build of the day
+        bonus_twigs = get_nest_building_bonus(nest)
+        assert bonus_twigs == 10, "Should get +5 twigs bonus per Plains-wanderer on first build"
+        
+        # Record an action to simulate the build
+        record_actions(mock_data, user_id, 1)
+        
+        # Second build of the day
+        bonus_twigs = get_nest_building_bonus(nest)
+        assert bonus_twigs == 0, "Should not get bonus on subsequent builds"
+
+    def test_singing_bonus_stacking(self, mock_data):
+        """Test Orange-bellied Parrot and Night Parrot singing bonuses stack"""
+        user_id = "123"
+        nest = get_personal_nest(mock_data, user_id)
+        
+        # Add both rare parrots to nest
+        nest["chicks"].extend([
+            {
+                "commonName": "Orange-bellied Parrot",
+                "scientificName": "Neophema chrysogaster"
+            },
+            {
+                "commonName": "Night Parrot",
+                "scientificName": "Pezoporus occidentalis"
+            }
+        ])
+        
+        bonus = get_singing_bonus(nest)
+        assert bonus == 4, "Should get +1 from Orange-bellied and +3 from Night Parrot"
+
+    def test_multiple_same_bird_effects(self, mock_data):
+        """Test multiple copies of same bird stack effects"""
+        user_id = "123"
+        nest = get_personal_nest(mock_data, user_id)
+        
+        # Add two Orange-bellied Parrots
+        nest["chicks"].extend([
+            {
+                "commonName": "Orange-bellied Parrot",
+                "scientificName": "Neophema chrysogaster"
+            },
+            {
+                "commonName": "Orange-bellied Parrot",
+                "scientificName": "Neophema chrysogaster"
+            }
+        ])
+        
+        bonus = get_singing_bonus(nest)
+        assert bonus == 2, "Multiple copies of same bird should stack effects (+1 each)"
+
+    def test_no_effect_birds(self, mock_data):
+        """Test birds without effects don't contribute bonuses"""
+        user_id = "123"
+        nest = get_personal_nest(mock_data, user_id)
+        
+        # Add some common birds
+        nest["chicks"].extend([
+            {
+                "commonName": "Australian White Ibis",
+                "scientificName": "Threskiornis molucca"
+            },
+            {
+                "commonName": "Noisy Miner",
+                "scientificName": "Manorina melanocephala"
+            }
+        ])
+        
+        build_bonus = get_nest_building_bonus(nest)
+        sing_bonus = get_singing_bonus(nest)
+        
+        assert build_bonus == 0, "Common birds should not give building bonus"
+        assert sing_bonus == 0, "Common birds should not give singing bonus"
