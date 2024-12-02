@@ -3,152 +3,212 @@
       {
         "commonName": "Australian White Ibis",
         "scientificName": "Threskiornis molucca",
-        "rarityWeight": 8
+        "rarityWeight": 8,
+        "rarity": "common",
+        "effect": ""
       },
       {
         "commonName": "Noisy Miner",
         "scientificName": "Manorina melanocephala",
-        "rarityWeight": 8
+        "rarityWeight": 8,
+        "rarity": "common",
+        "effect": ""
       },
       {
         "commonName": "Common Myna",
         "scientificName": "Acridotheres tristis",
-        "rarityWeight": 8
+        "rarityWeight": 8,
+        "rarity": "common",
+        "effect": ""
       },
       {
         "commonName": "Welcome Swallow",
         "scientificName": "Hirundo neoxena",
-        "rarityWeight": 7
+        "rarityWeight": 7,
+        "rarity": "common",
+        "effect": ""
       },
       {
         "commonName": "Willie Wagtail",
         "scientificName": "Rhipidura leucophrys",
-        "rarityWeight": 7
+        "rarityWeight": 7,
+        "rarity": "common",
+        "effect": ""
       },
       {
         "commonName": "Australian Magpie",
         "scientificName": "Gymnorhina tibicen",
-        "rarityWeight": 7
+        "rarityWeight": 7,
+        "rarity": "common",
+        "effect": ""
       },
       {
         "commonName": "Sulphur-crested Cockatoo",
         "scientificName": "Cacatua galerita",
-        "rarityWeight": 7
+        "rarityWeight": 7,
+        "rarity": "common",
+        "effect": ""
       },
       {
         "commonName": "Rainbow Lorikeet",
         "scientificName": "Trichoglossus haematodus",
-        "rarityWeight": 7
+        "rarityWeight": 7,
+        "rarity": "common",
+        "effect": ""
       },
       {
         "commonName": "Australian King Parrot",
         "scientificName": "Alisterus scapularis",
-        "rarityWeight": 6
+        "rarityWeight": 6,
+        "rarity": "common",
+        "effect": ""
       },
       {
         "commonName": "Galah",
         "scientificName": "Eolophus roseicapilla",
-        "rarityWeight": 6
+        "rarityWeight": 6,
+        "rarity": "common",
+        "effect": ""
       },
       {
         "commonName": "Laughing Kookaburra",
         "scientificName": "Dacelo novaeguineae",
-        "rarityWeight": 6
+        "rarityWeight": 6,
+        "rarity": "common",
+        "effect": ""
       },
       {
         "commonName": "Eastern Rosella",
         "scientificName": "Platycercus eximius",
-        "rarityWeight": 5
+        "rarityWeight": 5,
+        "rarity": "common",
+        "effect": ""
       },
       {
         "commonName": "Tawny Frogmouth",
         "scientificName": "Podargus strigoides",
-        "rarityWeight": 5
+        "rarityWeight": 5,
+        "rarity": "common",
+        "effect": ""
       },
       {
         "commonName": "Satin Bowerbird",
         "scientificName": "Ptilonorhynchus violaceus",
-        "rarityWeight": 5
+        "rarityWeight": 5,
+        "rarity": "common",
+        "effect": ""
       },
       {
         "commonName": "Powerful Owl",
         "scientificName": "Ninox strenua",
-        "rarityWeight": 5
+        "rarityWeight": 5,
+        "rarity": "common",
+        "effect": ""
       },
       {
         "commonName": "Regent Bowerbird",
         "scientificName": "Sericulus chrysocephalus",
-        "rarityWeight": 4
+        "rarityWeight": 4,
+        "rarity": "uncommon",
+        "effect": ""
       },
       {
         "commonName": "Gang-gang Cockatoo",
         "scientificName": "Callocephalon fimbriatum",
-        "rarityWeight": 4
+        "rarityWeight": 4,
+        "rarity": "uncommon",
+        "effect": ""
       },
       {
         "commonName": "Major Mitchell's Cockatoo",
         "scientificName": "Lophochroa leadbeateri",
-        "rarityWeight": 4
+        "rarityWeight": 4,
+        "rarity": "uncommon",
+        "effect": ""
       },
       {
         "commonName": "Southern Cassowary",
         "scientificName": "Casuarius casuarius",
-        "rarityWeight": 4
+        "rarityWeight": 4,
+        "rarity": "uncommon",
+        "effect": ""
       },
       {
         "commonName": "Albert's Lyrebird",
         "scientificName": "Menura alberti",
-        "rarityWeight": 4
+        "rarityWeight": 4,
+        "rarity": "uncommon",
+        "effect": ""
       },
       {
         "commonName": "Superb Lyrebird",
         "scientificName": "Menura novaehollandiae",
-        "rarityWeight": 4
+        "rarityWeight": 4,
+        "rarity": "uncommon",
+        "effect": ""
       },
       {
         "commonName": "Red Goshawk",
         "scientificName": "Erythrotriorchis radiatus",
-        "rarityWeight": 3
+        "rarityWeight": 3,
+        "rarity": "uncommon",
+        "effect": ""
       },
       {
         "commonName": "Palm Cockatoo",
         "scientificName": "Probosciger aterrimus",
-        "rarityWeight": 3
+        "rarityWeight": 3,
+        "rarity": "uncommon",
+        "effect": ""
       },
       {
         "commonName": "Black-throated Finch",
         "scientificName": "Poephila cincta",
-        "rarityWeight": 3
+        "rarityWeight": 3,
+        "rarity": "uncommon",
+        "effect": ""
       },
       {
         "commonName": "Swift Parrot",
         "scientificName": "Lathamus discolor",
-        "rarityWeight": 2
+        "rarityWeight": 2,
+        "rarity": "uncommon",
+        "effect": ""
       },
       {
         "commonName": "Gouldian Finch",
         "scientificName": "Erythrura gouldiae",
-        "rarityWeight": 2
+        "rarityWeight": 2,
+        "rarity": "uncommon",
+        "effect": ""
       },
       {
         "commonName": "Helmeted Honeyeater",
         "scientificName": "Lichenostomus melanops cassidix",
-        "rarityWeight": 2
+        "rarityWeight": 2,
+        "rarity": "uncommon",
+        "effect": ""
       },
       {
         "commonName": "Plains-wanderer",
         "scientificName": "Pedionomus torquatus",
-        "rarityWeight": 1
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "Your first nest-building action of the day gives +5 twigs."
       },
       {
         "commonName": "Orange-bellied Parrot",
         "scientificName": "Neophema chrysogaster",
-        "rarityWeight": 1
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "All your songs give +1 inspiration."
       },
       {
         "commonName": "Night Parrot",
         "scientificName": "Pezoporus occidentalis",
-        "rarityWeight": 1
+        "rarityWeight": 0.5,
+        "rarity": "mythical",
+        "effect": "All your songs give +3 inspiration."
       }
     ]
   }
