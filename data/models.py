@@ -240,3 +240,37 @@ def get_total_bird_species(data):
     """Return the total number of bird species available."""
     bird_species = load_bird_species()
     return len(bird_species)
+
+def get_nest_building_bonus(nest):
+    """Check if user has Plains-wanderer(s) and it's their first build action"""
+    today = get_current_date()
+    
+    # Count Plains-wanderers
+    plains_wanderer_count = sum(
+        1 for chick in nest.get("chicks", [])
+        if chick["scientificName"] == "Pedionomus torquatus"
+    )
+    
+    if plains_wanderer_count == 0:
+        return 0
+        
+    # Check if this is their first build action today
+    user_id = next(
+        uid for uid, user_nest in data["personal_nests"].items() 
+        if user_nest == nest
+    )
+    daily_actions = data["daily_actions"].get(user_id, {}).get(f"actions_{today}", {})
+    
+    if isinstance(daily_actions, dict) and daily_actions.get("used", 0) == 0:
+        return 5 * plains_wanderer_count  # +5 twigs per Plains-wanderer
+    return 0
+
+def get_singing_bonus(nest):
+    """Get total singing bonus from rare birds"""
+    bonus = 0
+    for chick in nest.get("chicks", []):
+        if chick["scientificName"] == "Neophema chrysogaster":  # Orange-bellied Parrot
+            bonus += 1
+        elif chick["scientificName"] == "Pezoporus occidentalis":  # Night Parrot
+            bonus += 3
+    return bonus
