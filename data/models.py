@@ -159,9 +159,9 @@ def add_bonus_actions(data, user_id, amount):
 
 def get_egg_cost(nest):
     """Calculate the cost of laying an egg based on number of chicks"""
-    base_cost = 15
-    chick_count = get_total_chicks(nest)
-    return base_cost + (chick_count * 5)
+    base_cost = 20
+    #chick_count = get_total_chicks(nest) no scaling for now
+    return base_cost
 
 def has_brooded_egg(data, brooder_id, target_id):
     """Check if brooder has brooded target's egg today"""

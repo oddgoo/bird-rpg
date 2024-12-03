@@ -35,3 +35,7 @@ bot permissions integer: Oauth2 permissions:
 - server led notifications
 - make timezone Australia
 -Brood all (number) - random command
+
+ohh something seems wrong there, it didn't give them a full 3 extra actions. , the count there is correct, it was just the bot's output
+
+parrot to give +2 extra inspiration, not just 1
