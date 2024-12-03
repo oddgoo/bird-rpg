@@ -270,7 +270,7 @@ def get_singing_bonus(nest):
     bonus = 0
     for chick in nest.get("chicks", []):
         if chick["scientificName"] == "Neophema chrysogaster":  # Orange-bellied Parrot
-            bonus += 1
+            bonus += 3
         elif chick["scientificName"] == "Pezoporus occidentalis":  # Night Parrot
             bonus += 3
     return bonus

@@ -201,14 +201,14 @@
         "scientificName": "Neophema chrysogaster",
         "rarityWeight": 1,
         "rarity": "rare",
-        "effect": "All your songs give +1 inspiration."
+        "effect": "All your songs give +3 actions."
       },
       {
         "commonName": "Night Parrot",
         "scientificName": "Pezoporus occidentalis",
         "rarityWeight": 0.5,
         "rarity": "mythical",
-        "effect": "All your songs give +3 inspiration."
+        "effect": "All your songs give +3 actions."
       }
     ]
   }
