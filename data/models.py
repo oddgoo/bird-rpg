@@ -215,14 +215,8 @@ def load_bird_species():
 def select_random_bird_species():
     """Select a random bird species based on rarity weights"""
     bird_species = load_bird_species()
-    total_weight = sum(species["rarityWeight"] for species in bird_species)
-    rand = random.uniform(0, total_weight)
-    upto = 0
-    for species in bird_species:
-        if upto + species["rarityWeight"] >= rand:
-            return species
-        upto += species["rarityWeight"]
-    return bird_species[-1]  # Fallback
+    weights = [species["rarityWeight"] for species in bird_species]
+    return random.choices(bird_species, weights=weights, k=1)[0]
 
 def get_discovered_species(data):
     """Retrieve all unique bird species discovered by all users."""
