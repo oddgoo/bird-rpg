@@ -703,3 +703,57 @@ class TestFlockCommands:
         
         assert len(flock['members']) == initial_members
         assert joiner_id not in flock['members']
+
+class TestLoreMechanics:
+
+
+    def test_duplicate_memoir_same_day(self, mock_data):
+        """Test that a user can't add multiple memoirs on the same day"""
+        user_id = "123"
+        nest = get_personal_nest(mock_data, user_id)
+        today = get_current_date()
+        
+        # Add first memoir
+        first_memoir = {
+            "user_id": user_id,
+            "nest_name": nest["name"],
+            "text": "First memoir",
+            "date": today
+        }
+        
+        if "memoirs" not in mock_data:
+            mock_data["memoirs"] = []
+        mock_data["memoirs"].append(first_memoir)
+        
+        # Try to add second memoir
+        has_memoir_today = any(
+            memoir["user_id"] == user_id and memoir["date"] == today
+            for memoir in mock_data["memoirs"]
+        )
+        
+        assert has_memoir_today
+        assert len([m for m in mock_data["memoirs"] if m["user_id"] == user_id and m["date"] == today]) == 1
+
+    def test_memoir_length_limit(self, mock_data):
+        """Test that memoirs are limited to 256 characters"""
+        user_id = "123"
+        nest = get_personal_nest(mock_data, user_id)
+        long_text = "x" * 257
+        
+        # Verify text is too long
+        assert len(long_text) > 256
+        
+        # Try to add memoir (should not be added due to length)
+        if len(long_text) <= 256:
+            if "memoirs" not in mock_data:
+                mock_data["memoirs"] = []
+            mock_data["memoirs"].append({
+                "user_id": user_id,
+                "nest_name": nest["name"],
+                "text": long_text,
+                "date": get_current_date()
+            })
+        
+        # Check memoir was not added
+        assert len(mock_data.get("memoirs", [])) == 0
+

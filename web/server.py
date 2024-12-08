@@ -5,6 +5,8 @@ from web.home import get_home_page
 from data.storage import load_data
 from data.models import get_personal_nest, get_total_chicks, get_total_bird_species, load_bird_species
 from utils.time_utils import get_time_until_reset, get_current_date
+import json
+import os
 
 app = Flask('', static_url_path='/static', static_folder='static')
 
@@ -15,6 +17,17 @@ def home():
 @app.route('/help')
 def help_page():
     return render_template('help.html')
+
+@app.route('/wings-of-time')
+def wings_of_time():
+    lore_file = "data/lore.json"
+    if not os.path.exists(lore_file):
+        return render_template('wings-of-time.html', memoirs=[])
+    
+    with open(lore_file, 'r') as f:
+        lore_data = json.load(f)
+    
+    return render_template('wings-of-time.html', memoirs=lore_data["memoirs"])
 
 @app.route('/user/<user_id>')
 def user_page(user_id):
@@ -75,7 +88,9 @@ def user_page(user_id):
         "egg": nest.get("egg", None),
         "songs_given_to": songs_given_to,
         "brooded_nests": brooded_nests,
-        "garden_size": nest.get("garden_size", 0)
+        "garden_size": nest.get("garden_size", 0),
+        "garden_life": nest.get("garden_life", 0),
+        "inspiration": nest.get("inspiration", 0)
     }
     
     return render_template('user.html', nest=nest_data)

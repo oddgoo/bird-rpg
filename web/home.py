@@ -43,7 +43,9 @@ def get_home_page():
             "chicks": len(nest.get("chicks", [])),
             "has_egg": egg_data is not None,
             "egg_progress": egg_progress,
-            "garden_size": nest.get("garden_size", 0)
+            "garden_size": nest.get("garden_size", 0),
+            "garden_life": nest.get("garden_life", 0),
+            "inspiration": nest.get("inspiration", 0)
         })
     
     # Sort nests by songs given, descending
