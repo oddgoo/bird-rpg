@@ -2,6 +2,7 @@ from discord.ext import commands
 import discord
 from datetime import datetime
 import aiohttp  # Import aiohttp for asynchronous HTTP requests
+import random
 
 from data.storage import load_data, save_data
 from data.models import (
@@ -48,39 +49,22 @@ class IncubationCommands(commands.Cog):
                       f"The egg needs to be brooded 10 times to hatch.\n"
                       f"Your nest now has {nest['seeds']} seeds remaining.")
 
-    @commands.command(name='brood')
-    async def brood(self, ctx, target_user: discord.Member = None):
-        """Brood an egg to help it hatch"""
-        if target_user is None:
-            target_user = ctx.author
-
-        log_debug(f"brood called by {ctx.author.id} for {target_user.id}")
-        data = load_data()
-
-        # Check if brooder has actions
-        remaining_actions = get_remaining_actions(data, ctx.author.id)
-        if remaining_actions <= 0:
-            await ctx.send(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
-            return
-
+    async def process_brooding(self, ctx, target_user, data, remaining_actions):
+        """Helper function to process brooding for a single user"""
         # Get target's nest
         target_nest = get_personal_nest(data, target_user.id)
 
         # Check if target has an egg
         if "egg" not in target_nest or target_nest["egg"] is None:
-            await ctx.send(f"{'You don’t' if target_user == ctx.author else f'{target_user.display_name} doesn’t'} have an egg to brood! 🥚")
-            return
+            return None, f"{'You don`t' if target_user == ctx.author else target_user.display_name + ' doesn`t'} have an egg to brood"
 
         # Check if already brooded today
-        today = get_current_date()
         if has_brooded_egg(data, ctx.author.id, target_user.id):
-            await ctx.send(f"You've already brooded at this nest today! Come back in {get_time_until_reset()}! 🥚")
-            return
+            return None, f"Already brooded at {target_user.display_name}'s nest today"
 
         # Record brooding
         record_brooding(data, ctx.author.id, target_user.id)
         target_nest["egg"]["brooding_progress"] += 1
-        record_actions(data, ctx.author.id, 1)
 
         # Check if egg is ready to hatch
         if target_nest["egg"]["brooding_progress"] >= 10:
@@ -91,12 +75,130 @@ class IncubationCommands(commands.Cog):
             }
             target_nest["chicks"].append(chick)
             target_nest["egg"] = None
-            save_data(data)
-            
-            # Fetch image from iNaturalist
-            image_url, taxon_url = await self.fetch_bird_image(chick['scientificName'])
+            return ("hatch", chick, target_nest, target_user), None
+        else:
+            remaining = 10 - target_nest["egg"]["brooding_progress"]
+            return ("progress", remaining, target_nest, target_user), None
 
-            # Construct the hatching message with image
+    @commands.command(name='brood')
+    async def brood(self, ctx, *target_users: discord.Member):
+        """Brood eggs to help them hatch"""
+        if not target_users:
+            target_users = [ctx.author]
+
+        log_debug(f"brood called by {ctx.author.id} for users {[user.id for user in target_users]}")
+        data = load_data()
+
+        # Check if brooder has actions
+        remaining_actions = get_remaining_actions(data, ctx.author.id)
+        if remaining_actions <= 0:
+            await ctx.send(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
+            return
+
+        successful_targets = []
+        skipped_targets = []
+
+        # Process each target user
+        for target_user in target_users:
+            if remaining_actions <= 0:
+                skipped_targets.append((target_user, "no actions left"))
+                continue
+
+            result, error = await self.process_brooding(ctx, target_user, data, remaining_actions)
+            if error:
+                skipped_targets.append((target_user, error))
+            else:
+                successful_targets.append(result)
+                record_actions(data, ctx.author.id, 1)
+                remaining_actions -= 1
+
+        save_data(data)
+
+        # Send responses
+        for result in successful_targets:
+            if result[0] == "hatch":
+                _, chick, target_nest, target_user = result
+                # Fetch image and create embed
+                image_url, taxon_url = await self.fetch_bird_image(chick['scientificName'])
+                embed = discord.Embed(
+                    title="🐣 Egg Hatched!",
+                    description=f"The egg has hatched into a **{chick['commonName']}** (*{chick['scientificName']}*)!",
+                    color=discord.Color.green()
+                )
+                if image_url:
+                    embed.set_image(url=image_url)
+                embed.add_field(
+                    name="Total Chicks",
+                    value=f"{target_user.display_name} now has {get_total_chicks(target_nest)} {'chick' if get_total_chicks(target_nest) == 1 else 'chicks'}! 🐦",
+                    inline=False
+                )
+                embed.add_field(
+                    name="View Chicks",
+                    value=f"[Click Here](https://bird-rpg.onrender.com/user/{target_user.id})",
+                    inline=False
+                )
+                await ctx.send(embed=embed)
+            else:
+                _, remaining, target_nest, target_user = result
+                await ctx.send(f"You brooded at **{target_nest['name']}**! The egg needs {remaining} more {'brood' if remaining == 1 else 'broods'} until it hatches. 🥚")
+
+        if skipped_targets:
+            skip_message = ["⚠️ Couldn't brood for:"]
+            for user, reason in skipped_targets:
+                skip_message.append(f"• {user.display_name} ({reason})")
+            await ctx.send("\n".join(skip_message))
+
+        remaining_actions = get_remaining_actions(data, ctx.author.id)
+        await ctx.send(f"You have {remaining_actions} {'action' if remaining_actions == 1 else 'actions'} remaining today.")
+
+    @commands.command(name='brood_random')
+    async def brood_random(self, ctx):
+        """Brood a random nest that hasn't been brooded today"""
+        log_debug(f"brood_random called by {ctx.author.id}")
+        data = load_data()
+
+        # Check if brooder has actions
+        remaining_actions = get_remaining_actions(data, ctx.author.id)
+        if remaining_actions <= 0:
+            await ctx.send(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
+            return
+
+        # Find all nests with eggs that haven't been brooded by the user today
+        valid_targets = []
+        for user_id, user_data in data.items():
+            if "nest" not in user_data:
+                continue
+            
+            nest = user_data["nest"]
+            if "egg" in nest and nest["egg"] is not None:
+                if not has_brooded_egg(data, ctx.author.id, user_id):
+                    try:
+                        member = await ctx.guild.fetch_member(int(user_id))
+                        if member and not member.bot:
+                            valid_targets.append(member)
+                    except:
+                        continue
+
+        if not valid_targets:
+            await ctx.send("There are no nests available to brood! All nests either have no eggs or you've already brooded them today. 🥚")
+            return
+
+        # Select a random target and brood their egg
+        target_user = random.choice(valid_targets)
+        result, error = await self.process_brooding(ctx, target_user, data, remaining_actions)
+        
+        if error:
+            await ctx.send(f"Couldn't brood at {target_user.display_name}'s nest: {error}")
+            return
+
+        record_actions(data, ctx.author.id, 1)
+        save_data(data)
+
+        # Send appropriate response
+        if result[0] == "hatch":
+            _, chick, target_nest, target_user = result
+            # Fetch image and create embed
+            image_url, taxon_url = await self.fetch_bird_image(chick['scientificName'])
             embed = discord.Embed(
                 title="🐣 Egg Hatched!",
                 description=f"The egg has hatched into a **{chick['commonName']}** (*{chick['scientificName']}*)!",
@@ -116,8 +218,7 @@ class IncubationCommands(commands.Cog):
             )
             await ctx.send(embed=embed)
         else:
-            save_data(data)
-            remaining = 10 - target_nest["egg"]["brooding_progress"]
+            _, remaining, target_nest, target_user = result
             remaining_actions = get_remaining_actions(data, ctx.author.id)
             await ctx.send(f"You brooded at **{target_nest['name']}**! The egg needs {remaining} more {'brood' if remaining == 1 else 'broods'} until it hatches. 🥚\nYou have {remaining_actions} {'action' if remaining_actions == 1 else 'actions'} remaining today.")
 
