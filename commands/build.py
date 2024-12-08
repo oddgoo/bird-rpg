@@ -9,7 +9,7 @@ class BuildCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name='build_nest_own', aliases=['build_nests_own'])
+    @commands.command(name='add_twig', aliases=['build_nest_own'])
     async def build_nest_own(self, ctx, amount: int = 1):
         log_debug(f"build_nest_own called by {ctx.author.id} for {amount}")
         data = load_data()
@@ -44,7 +44,7 @@ class BuildCommands(commands.Cog):
         
         await ctx.send(message)
 
-    @commands.command(name='build_nest_common', aliases=['build_nests_common'])
+    @commands.command(name='add_twig_common', aliases=['build_nests_common','build_nest_common'])
     async def build_nest_common(self, ctx, amount: int = 1):
         log_debug(f"build_nest_common called by {ctx.author.id} for {amount}")
         data = load_data()

@@ -9,7 +9,7 @@ class SeedCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name='add_seed_own', aliases=['add_seeds_own'])
+    @commands.command(name='add_seed', aliases=['add_seeds','add_seeds_own','add_seed_own'])
     async def add_seed_own(self, ctx, amount: int = 1):
         log_debug(f"add_seed_own called by {ctx.author.id} for {amount}")
         data = load_data()
@@ -71,7 +71,7 @@ class SeedCommands(commands.Cog):
                       f"The common nest now has {common_nest['twigs']} twigs and {common_nest['seeds']} seeds.\n"
                       f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today.")
 
-    @commands.command(name='move_seeds_own')
+    @commands.command(name='borrow_seeds', aliases=['borrow_seed','move_seeds_common','move_seed_common'])
     async def move_seeds_own(self, ctx, amount: int):
         log_debug(f"move_seeds_own called by {ctx.author.id} for {amount} seeds")
         data = load_data()
@@ -99,7 +99,7 @@ class SeedCommands(commands.Cog):
                       f"Your nest: {nest['twigs']} twigs, {nest['seeds']} seeds\n"
                       f"Common nest: {common_nest['twigs']} twigs, {common_nest['seeds']} seeds")
 
-    @commands.command(name='move_seeds_common')
+    @commands.command(name='donate_seeds', aliases=['donate_seed','move_seeds_own'])
     async def move_seeds_common(self, ctx, amount: int):
         log_debug(f"move_seeds_common called by {ctx.author.id} for {amount} seeds")
         data = load_data()

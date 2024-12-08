@@ -26,7 +26,6 @@ bot permissions integer: Oauth2 permissions:
 - Read Message History
 
 ## TODO and Ideas
-- move help to web and categorise it
 - study grows garden:
 - Brood all (number) - random command
 - aliases / clear confusion between add and build
