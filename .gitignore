@@ -2,6 +2,7 @@
 .env
 
 # Bot data
+.bird-rpg/
 nests.json
 nests.json.backup*
 *.backup.*
