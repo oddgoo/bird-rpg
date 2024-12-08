@@ -165,16 +165,12 @@ class IncubationCommands(commands.Cog):
 
         # Find all nests with eggs that haven't been brooded by the user today
         valid_targets = []
-        for user_id, user_data in data.items():
-            if "nest" not in user_data:
-                continue
-            
-            nest = user_data["nest"]
+        for user_id, nest in data["personal_nests"].items():  # Changed to use personal_nests
             if "egg" in nest and nest["egg"] is not None:
                 if not has_brooded_egg(data, ctx.author.id, user_id):
                     try:
                         member = await ctx.guild.fetch_member(int(user_id))
-                        if member and not member.bot:
+                        if member and not member.bot and member.id != ctx.author.id:  # Added check to exclude self
                             valid_targets.append(member)
                     except:
                         continue

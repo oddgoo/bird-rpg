@@ -40,14 +40,15 @@ class FlockCommands(commands.Cog):
             # Update garden sizes and add bonus actions for all participants
             data = load_data()
             for member in flock['members']:
-                member_id = str(member.id)
-                if member_id not in data:
-                    data[member_id] = {'garden_size': 0}
-                if 'garden_size' not in data[member_id]:
-                    data[member_id]['garden_size'] = 0
+                # Get the member's nest using the helper function
+                nest = get_personal_nest(data, member.id)
                 
-                # Increment garden size and add bonus actions
-                data[member_id]['garden_size'] += 1
+                # Update garden size
+                if "garden_size" not in nest:
+                    nest["garden_size"] = 0
+                nest["garden_size"] += 1
+                
+                # Add bonus actions
                 add_bonus_actions(data, member.id, 5)  # Add 5 bonus actions like in singing
             save_data(data)
 

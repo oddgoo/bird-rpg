@@ -2,7 +2,6 @@
 .env
 
 # Bot data
-.bird-rpg/
 nests.json
 nests.json.backup*
 *.backup.*
@@ -18,6 +17,7 @@ ENV/
 *.so
 
 # IDE
+.bird-rpg/
 .idea/
 .vscode/
 *.swp
