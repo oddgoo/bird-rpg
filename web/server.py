@@ -1,16 +1,20 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory
 from threading import Thread
-from config.config import PORT
+from config.config import PORT, DEBUG
 from web.home import get_home_page
 from data.storage import load_data
 from data.models import get_personal_nest, get_total_chicks, get_total_bird_species, load_bird_species
 from utils.time_utils import get_time_until_reset, get_current_date
 
-app = Flask('')
+app = Flask('', static_url_path='/static', static_folder='static')
 
 @app.route('/')
 def home():
     return get_home_page()
+
+@app.route('/help')
+def help_page():
+    return render_template('help.html')
 
 @app.route('/user/<user_id>')
 def user_page(user_id):
@@ -76,6 +80,8 @@ def user_page(user_id):
     return render_template('user.html', nest=nest_data)
 
 def run_server():
+    app.jinja_env.auto_reload = DEBUG  # Enable template auto-reload
+    app.config['TEMPLATES_AUTO_RELOAD'] = DEBUG  # Set template auto-reload config
     app.run(host='0.0.0.0', port=PORT)
 
 def start_server():

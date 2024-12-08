@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center mb-4 text-2xl text-yellow-900 font-mystical font-bold">CODEX OF COMMANDS</h1>
+
+    <!-- Nest Building Section -->
+    <div class="rounded-xl p-6 mb-6 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+        <div class="border border-amber-300/50 rounded-lg p-4 bg-white/80">
+            <h2 class="text-2xl text-yellow-900 font-mystical font-bold mb-4">🏗️ Nest Building</h2>
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-xl text-orange-700 font-mystical">Commands</h3>
+                    <ul class="list-group list-group-flush space-y-2">
+                        <li class="bg-white/90 p-2 rounded"><code>!build_nest_own [amount]</code> - Add twigs to your personal nest</li>
+                        <li class="bg-white/90 p-2 rounded"><code>!build_nest_common [amount]</code> - Add twigs to the common nest</li>
+                        <li class="bg-white/90 p-2 rounded"><code>!add_seed_own [amount]</code> - Add seeds to your personal nest</li>
+                        <li class="bg-white/90 p-2 rounded"><code>!add_seed_common [amount]</code> - Add seeds to the common nest</li>
+                        <li class="bg-white/90 p-2 rounded"><code>!move_seeds_own [amount]</code> - Move seeds from your nest to common nest</li>
+                        <li class="bg-white/90 p-2 rounded"><code>!move_seeds_common [amount]</code> - Move seeds from common nest to your nest</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl text-orange-700 font-mystical">Rules</h3>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>A nest can only hold as many seeds as it has twigs</li>
+                        <li>Moving seeds between nests doesn't count as an action</li>
+                        <li>If no amount is specified in commands, it defaults to 1</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customisation Section -->
+    <div class="rounded-xl p-6 mb-6 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+        <div class="border border-amber-300/50 rounded-lg p-4 bg-white/80">
+            <h2 class="text-2xl text-yellow-900 font-mystical font-bold mb-4">✨ Customisation</h2>
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-xl text-orange-700 font-mystical">Commands</h3>
+                    <ul class="list-group list-group-flush space-y-2">
+                        <li class="bg-white/90 p-2 rounded"><code>!name_nest [name]</code> - Give your nest a custom name</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl text-orange-700 font-mystical">Rules</h3>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>You can change your nest's name as often as you like</li>
+                        <li>Names must be appropriate and family-friendly</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Social Section -->
+    <div class="rounded-xl p-6 mb-6 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+        <div class="border border-amber-300/50 rounded-lg p-4 bg-white/80">
+            <h2 class="text-2xl text-yellow-900 font-mystical font-bold mb-4">🎵 Social Interactions</h2>
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-xl text-orange-700 font-mystical">Commands</h3>
+                    <ul class="list-group list-group-flush space-y-2">
+                        <li class="bg-white/90 p-2 rounded"><code>!sing @user</code> - Give another bird 3 extra actions for the day</li>
+                        <li class="bg-white/90 p-2 rounded"><code>!nests</code> - Show status of your nest and the common nest</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl text-orange-700 font-mystical">Rules</h3>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>Each bird can sing to another bird once per day</li>
+                        <li>Singing helps other birds by giving them extra actions</li>
+                        <li>You can view how many birds have sung to you in your nest status</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incubation Section -->
+    <div class="rounded-xl p-6 mb-6 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+        <div class="border border-amber-300/50 rounded-lg p-4 bg-white/80">
+            <h2 class="text-2xl text-yellow-900 font-mystical font-bold mb-4">🥚 Incubation & Chicks</h2>
+            <div class="space-y-4">
+                <div>
+                    <h3 class="text-xl text-orange-700 font-mystical">Commands</h3>
+                    <ul class="list-group list-group-flush space-y-2">
+                        <li class="bg-white/90 p-2 rounded"><code>!lay_egg</code> - Lay an egg in your nest (costs seeds)</li>
+                        <li class="bg-white/90 p-2 rounded"><code>!brood [@user]</code> - Brood an egg to help it hatch (yours if no user specified)</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-xl text-orange-700 font-mystical">Rules</h3>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>You can only brood an egg once per day</li>
+                        <li>You can help others by brooding their eggs</li>
+                        <li>An egg needs to be brooded 10 times to hatch</li>
+                        <li>Having chicks increases your daily action limit</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- General Info -->
+    <div class="rounded-xl p-6 mb-6 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+        <div class="border border-amber-300/50 rounded-lg p-4 bg-white/80">
+            <h2 class="text-2xl text-yellow-900 font-mystical font-bold mb-4">ℹ️ General</h2>
+            <ul class="list-disc pl-5 space-y-1">
+                <li>You start with 3 actions per day</li>
+                <li>Additional actions can be gained from:
+                    <ul class="list-disc pl-5 mt-1">
+                        <li>Having chicks in your nest</li>
+                        <li>Receiving songs from other birds</li>
+                        <li>More to come!</li>
+                    </ul>
+                </li>
+                <li>The game resets daily, refreshing your available actions</li>
+                <li>Work together with other birds to discover all bird species!</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mt-4"></div>
+    <a href="/" class="text-orange-700 hover:underline font-bold text-white">← Back</a>
+</div>
+{% endblock %}

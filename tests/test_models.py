@@ -365,6 +365,8 @@ class TestIncubationModule:
             name: count / trials
             for name, count in rarity_counts.items()
         }
+
+        print(actual_proportions)
         
         # Allow a tolerance of ±1%
         for name, expected in expected_proportions.items():
@@ -465,7 +467,7 @@ class TestBirdEffects:
         ])
         
         bonus = get_singing_bonus(nest)
-        assert bonus == 4, "Should get +1 from Orange-bellied and +3 from Night Parrot"
+        assert bonus == 6, "Should get +3 from Orange-bellied and +3 from Night Parrot"
 
     def test_multiple_same_bird_effects(self, mock_data):
         """Test multiple copies of same bird stack effects"""
@@ -485,7 +487,7 @@ class TestBirdEffects:
         ])
         
         bonus = get_singing_bonus(nest)
-        assert bonus == 2, "Multiple copies of same bird should stack effects (+1 each)"
+        assert bonus == 6, "Multiple copies of same bird should stack effects (+1 each)"
 
     def test_no_effect_birds(self, mock_data):
         """Test birds without effects don't contribute bonuses"""

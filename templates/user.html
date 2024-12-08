@@ -1,262 +1,142 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ nest.name }} | 🐦bird-rpg Village</title>
-    <style>
-        body {
-            font-family: "Chalkboard SE", sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fdf6e3;
-            color: #594e4a;
-        }
-        .nest-stats {
-            background-color: #fff3e0;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        .stat-item {
-            display: inline-block;
-            margin: 0 15px;
-            background-color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .chicks-list {
-            list-style-type: none;
-            padding: 0;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
-        }
-        .chick-item {
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: transform 0.2s, box-shadow 0.2s;
-            aspect-ratio: 2.5/4;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-        .chick-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        }
-        .bird-image {
-            width: 80%;
-            height: 60%;
-            border-radius: 10px;
-            object-fit: cover;
-            margin-bottom: 15px;
-            transition: transform 0.2s;
-        }
-        .chick-item:hover .bird-image {
-            transform: scale(1.05);
-        }
-        .bird-info {
-            text-align: center;
-            width: 100%;
-            padding: 10px;
-        }
-        .bird-common-name {
-            font-size: 1.1em;
-            color: #795548;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-        .bird-scientific-name {
-            font-style: italic;
-            color: #666;
-            font-size: 0.9em;
-        }
-        h1, h2 {
-            text-align: center;
-            color: #795548;
-        }
-        h1 {
-            margin-bottom: 30px;
-        }
-        .chick-link {
-            text-decoration: none;
-            color: inherit;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .interaction-list {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
-        }
-        .interaction-item {
-            background: white;
-            padding: 10px 20px;
-            border-radius: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-        }
-        .interaction-item:hover {
-            transform: translateY(-2px);
-        }
-        .nest-link {
-            text-decoration: none;
-            color: #795548;
-        }
-        .bird-rarity {
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .bird-effect {
-            line-height: 1.3;
-            max-height: 2.6em;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-        }
-    </style>
-</head>
-<body>
-    <h1>🏠 {{ nest.name }}</h1>
-    
-    <div class="nest-stats">
-        <div class="stat-item">
-            <span>🪹 Twigs: {{ nest.twigs }}</span>
-        </div>
-        <div class="stat-item">
-            <span>🌰 Seeds: {{ nest.seeds }}</span>
-        </div>
-        <div class="stat-item">
-            <span>🎵 Songs Given: {{ nest.songs_given }}</span>
-        </div>
-        <div class="stat-item">
-            {% if nest.egg %}
-            <span>🥚 Egg Progress: {{ nest.egg.brooding_progress }}/10</span>
-            {% else %}
-            <span>🥚 No Egg</span>
-            {% endif %}
+{% extends 'base.html' %}
+
+{% block title %}{{ nest.name }} | bird-rpg Village{% endblock %}
+
+{% block content %}
+<h2 class="text-center text-4xl text-yellow-900 mb-8 font-mystical font-bold">🏠 {{ nest.name }}</h2>
+
+<div class="rounded-xl p-6 mb-8 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+    <div class="border border-amber-300/50 rounded-lg p-4 bg-white/50">
+        <div class="flex flex-wrap justify-center gap-4">
+            <div class="inline-block bg-white px-5 py-2 rounded-full shadow-sm">
+                <span>🪹 Twigs: {{ nest.twigs }}</span>
+            </div>
+            <div class="inline-block bg-white px-5 py-2 rounded-full shadow-sm">
+                <span>🌰 Seeds: {{ nest.seeds }}</span>
+            </div>
+            <div class="inline-block bg-white px-5 py-2 rounded-full shadow-sm">
+                <span>🎵 Songs Given: {{ nest.songs_given }}</span>
+            </div>
+            <div class="inline-block bg-white px-5 py-2 rounded-full shadow-sm">
+                {% if nest.egg %}
+                <span>🥚 Egg Progress: {{ nest.egg.brooding_progress }}/10</span>
+                {% else %}
+                <span>🥚 No Egg</span>
+                {% endif %}
+            </div>
         </div>
     </div>
+</div>
 
-    <h2>🐣 Hatched Chicks</h2>
-    {% if nest.chicks %}
-    <ul class="chicks-list">
-        {% for chick in nest.chicks %}
-        <li class="chick-item" id="chick-item-{{ loop.index }}">
-            <a href="#" class="chick-link" target="_blank" id="chick-link-{{ loop.index }}">
-                <img 
-                    class="bird-image" 
-                    id="bird-{{ loop.index }}"
-                    src="https://via.placeholder.com/100?text=🐦"
-                    alt="{{ chick.commonName }}"
-                >
-                <div class="bird-info">
-                    <div class="bird-common-name">{{ chick.commonName }}</div>
-                    <div class="bird-scientific-name">{{ chick.scientificName }}</div>
-                    <div class="bird-rarity" style="
-                        margin-top: 8px;
-                        font-size: 0.9em;
-                        color: {{ 
-                            'goldenrod' if chick.rarity == 'mythical' 
-                            else '#9c27b0' if chick.rarity == 'rare'
-                            else '#2196f3' if chick.rarity == 'uncommon'
-                            else '#4caf50' 
-                        }};">
-                        ✧ {{ chick.rarity|title }} ✧
-                    </div>
-                    {% if chick.effect %}
-                    <div class="bird-effect" style="
-                        margin-top: 8px;
-                        font-size: 0.85em;
-                        color: #666;
-                        font-style: italic;
-                        padding: 0 10px;">
-                        "{{ chick.effect }}"
-                    </div>
-                    {% endif %}
-                </div>
-            </a>
-        </li>
-        {% endfor %}
-    </ul>
-    {% else %}
-    <p style="text-align: center;">This nest hasn't hatched any chicks yet! 🐣</p>
-    {% endif %}
-    
-    <h2>🎵 Today's Songs</h2>
-    {% if nest.songs_given_to %}
-    <div class="interaction-list">
-        {% for recipient_nest in nest.songs_given_to %}
-        <div class="interaction-item">
-            <a href="/user/{{ recipient_nest.user_id }}" class="nest-link">
-                🎵 {{ recipient_nest.name }}
-            </a>
-        </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <p style="text-align: center;">No songs given today! 🎵</p>
-    {% endif %}
-
-    <h2>🥚 Today's Brooding</h2>
-    {% if nest.brooded_nests %}
-    <div class="interaction-list">
-        {% for brooded_nest in nest.brooded_nests %}
-        <div class="interaction-item">
-            <a href="/user/{{ brooded_nest.user_id }}" class="nest-link">
-                🥚 {{ brooded_nest.name }}
-            </a>
-        </div>
-        {% endfor %}
-    </div>
-    {% else %}
-    <p style="text-align: center;">No eggs brooded today! 🥚</p>
-    {% endif %}
-
-    <div style="text-align: center; margin-top: 20px;">
-        <a href="/">← Back to Village</a>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
+<div class="rounded-xl p-6 mb-8 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+    <div class="border border-amber-300/50 rounded-lg p-4">
+        <h2 class="text-2xl text-center text-yellow-900 mb-4 font-mystical font-bold">🐣 Hatched Chicks</h2>
+        {% if nest.chicks %}
+        <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {% for chick in nest.chicks %}
-            fetch(`https://api.inaturalist.org/v1/taxa?q={{ chick.scientificName }}&limit=1`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.results && data.results.length > 0) {
-                        const taxon = data.results[0];
-                        if (taxon.default_photo) {
-                            const imageUrl = taxon.default_photo.medium_url;
-                            document.getElementById('bird-{{ loop.index }}').src = imageUrl;
-                        }
-                        const taxonUrl = `https://www.inaturalist.org/taxa/${taxon.id}`;
-                        document.getElementById('chick-link-{{ loop.index }}').href = taxonUrl;
-                    } else {
-                        console.warn(`No results found for {{ chick.scientificName }}`);
-                        document.getElementById('chick-link-{{ loop.index }}').removeAttribute('href');
-                        document.getElementById('chick-link-{{ loop.index }}').style.cursor = 'default';
-                    }
-                })
-                .catch(error => console.error('Error fetching bird image from iNaturalist:', error));
+            <li class="bg-white rounded-xl p-4 shadow-md flex flex-col items-center transition-transform transform hover:-translate-y-1 cursor-pointer relative overflow-hidden aspect-[5/7]">
+                <a href="#" class="flex flex-col items-center no-underline w-full h-full" target="_blank" id="chick-link-{{ loop.index }}">
+                    <img 
+                        class="w-4/5 h-3/5 rounded-lg object-cover mb-4 transition-transform duration-200"
+                        id="bird-{{ loop.index }}"
+                        src="https://via.placeholder.com/100?text=🐦"
+                        alt="{{ chick.commonName }}"
+                    >
+                    <div class="text-center">
+                        <div class="text-lg font-bold text-orange-700">{{ chick.commonName }}</div>
+                        <div class="italic text-gray-600 text-sm">{{ chick.scientificName }}</div>
+                        <div class="mt-2 uppercase tracking-wide font-medium 
+                            {% if chick.rarity == 'mythical' %}
+                                text-yellow-700
+                            {% elif chick.rarity == 'rare' %}
+                                text-purple-600
+                            {% elif chick.rarity == 'uncommon' %}
+                                text-blue-500
+                            {% else %}
+                                text-green-500
+                            {% endif %}">
+                            ✧ {{ chick.rarity|title }} ✧
+                        </div>
+                        {% if chick.effect %}
+                        <div class="mt-2 italic text-gray-600 text-xs px-2">
+                            "{{ chick.effect }}"
+                        </div>
+                        {% endif %}
+                    </div>
+                </a>
+            </li>
             {% endfor %}
-        });
-    </script>
-</body>
-</html> 
+        </ul>
+        {% else %}
+        <p class="text-center">This nest hasn't hatched any chicks yet! 🐣</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="rounded-xl p-6 mb-8 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+    <div class="border border-amber-300/50 rounded-lg p-4">
+        <h2 class="text-2xl text-center text-yellow-900 mb-4 font-mystical font-bold">🎵 Today's Songs</h2>
+        {% if nest.songs_given_to %}
+        <div class="flex flex-wrap justify-center gap-4">
+            {% for recipient_nest in nest.songs_given_to %}
+            <div class="bg-white px-5 py-2 rounded-full shadow-sm transition-transform transform hover:-translate-y-0.5">
+                <a href="/user/{{ recipient_nest.user_id }}" class="no-underline text-orange-700">
+                    🎵 {{ recipient_nest.name }}
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-center">No songs given today! 🎵</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="rounded-xl p-6 mb-8 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+    <div class="border border-amber-300/50 rounded-lg p-4">
+        <h2 class="text-2xl text-center text-yellow-900 mb-4 font-mystical font-bold">🥚 Today's Brooding</h2>
+        {% if nest.brooded_nests %}
+        <div class="flex flex-wrap justify-center gap-4">
+            {% for brooded_nest in nest.brooded_nests %}
+            <div class="bg-white px-5 py-2 rounded-full shadow-sm transition-transform transform hover:-translate-y-0.5">
+                <a href="/user/{{ brooded_nest.user_id }}" class="no-underline text-orange-700">
+                    🥚 {{ brooded_nest.name }}
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-center">No eggs brooded today! 🥚</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="text-center mt-4">
+    <a href="/" class="text-orange-700 hover:underline font-bold text-white">← Back</a>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% for chick in nest.chicks %}
+        fetch(`https://api.inaturalist.org/v1/taxa?q={{ chick.scientificName }}&limit=1`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.results && data.results.length > 0) {
+                    const taxon = data.results[0];
+                    if (taxon.default_photo) {
+                        const imageUrl = taxon.default_photo.medium_url;
+                        document.getElementById('bird-{{ loop.index }}').src = imageUrl;
+                    }
+                    const taxonUrl = `https://www.inaturalist.org/taxa/${taxon.id}`;
+                    document.getElementById('chick-link-{{ loop.index }}').href = taxonUrl;
+                } else {
+                    console.warn(`No results found for {{ chick.scientificName }}`);
+                    document.getElementById('chick-link-{{ loop.index }}').removeAttribute('href');
+                    document.getElementById('chick-link-{{ loop.index }}').style.cursor = 'default';
+                }
+            })
+            .catch(error => console.error('Error fetching bird image from iNaturalist:', error));
+        {% endfor %}
+    });
+</script>
+{% endblock %} 

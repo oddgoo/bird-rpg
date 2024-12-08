@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}bird-rpg Village{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+   
+    <!-- Add Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mystical: ['Cinzel Decorative', 'cursive'],
+                        scroll: ['Cormorant', 'serif'],
+                    },
+                    fontSize: {
+                        'base': '1.2rem',      // Bigger base font size
+                        'lg': '1.4rem',        // Larger text
+                        'xl': '1.6rem',        // Extra large text
+                        '2xl': '1.8rem',       // Double extra large
+                        '3xl': '2.2rem',       // Triple extra large
+                        '4xl': '2.6rem',       // Quadruple extra large
+                    },
+                },
+            },
+        }
+    </script>
+
+   <style>
+        body {
+            background-image: url('/static/images/cloud-bg.jpg');
+            background-repeat: repeat;
+        }
+        
+        /* Updated magpie backgrounds for better responsiveness */
+        .magpie-left {
+            position: fixed;
+            top: -10%;
+            left: -10%;
+            width: min(70%, 800px);  /* Use the smaller of 70% or 600px */
+            height: 100vh;
+            background-image: url('/static/images/magpie-bg.png');
+            background-position: left center;
+            background-repeat: no-repeat;
+            background-size: contain;  /* Changed from cover to contain */
+            z-index: -1;
+            opacity: 0.55;
+            pointer-events: none;  /* Prevent interference with content */
+        }
+        
+        .magpie-right {
+            position: fixed;
+            top: -10%;
+            right: -10%;
+            width: min(70%, 800px);  /* Use the smaller of 70% or 600px */
+            height: 100vh;
+            background-image: url('/static/images/magpie-bg.png');
+            background-position: right center;
+            background-repeat: no-repeat;
+            background-size: contain;  /* Changed from cover to contain */
+            z-index: -1;
+            opacity: 0.55;
+            transform: scaleX(-1);
+            pointer-events: none;  /* Prevent interference with content */
+        }
+
+        /* Add media query for smaller screens */
+        @media (max-width: 768px) {
+            .magpie-left, .magpie-right {
+                width: min(50%, 300px);  /* Smaller width on mobile */
+            }
+        }
+    </style>
+
+</head>
+<body class="max-w-7xl mx-auto p-5 text-gray-800 font-scroll text-lg">
+    <!-- Add the magpie background divs -->
+    <div class="magpie-left"></div>
+    <div class="magpie-right"></div>
+
+    <div class="flex justify-center mb-8">
+        <a href="/">
+            <img src="/static/images/logo.png" alt="bird-rpg Village" class="h-32 hover:opacity-80 transition-opacity">
+        </a>
+    </div>
+
+    {% include 'components/navbar.html' %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="text-center mt-8 text-sm text-white">
+        🌸 Made with love with/for MAGPIE 🌸
+    </footer>
+</body>
+</html>

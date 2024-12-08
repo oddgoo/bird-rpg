@@ -66,38 +66,9 @@ class InfoCommands(commands.Cog):
 
     @commands.command(name='nest_help', aliases=['help'])
     async def help_command(self, ctx):
-        help_text = """
-            **🪹 Nest Building Commands:**
-            `!build_nest_own [amount]` - Add twigs to your personal nest 
-            `!build_nest_common [amount]` - Add twigs to the common nest
-            `!add_seed_own [amount]` - Add seeds to your personal nest
-            `!add_seed_common [amount]` - Add seeds to the common nest
-
-            `!nests` - Show status of your nest and common nest
-            `!sing <@user>` - Give another bird 3 extra actions for the day
-            `!name_nest <name>` - Give your nest a custom name
-            `!lay_egg` - Lay an egg in your nest (costs seeds)
-            `!brood <@user>` - Brood an egg to help it hatch (yours if no user specified)
-
-            `!move_seeds_own <amount>` - Move seeds from your nest to common nest
-            `!move_seeds_common <amount>` - Move seeds from common nest to your nest
-
-            **📋 Rules:**
-            • You can increase your actions per day by having chicks in your nest
-            • A nest can only hold as many seeds as it has twigs
-            • Moving seeds doesn't count as an action
-            • Each bird can sing to another bird once per day
-            • You can only brood an egg once per day (but you can brood others' eggs!)
-            • The cost of laying an egg depends on the number of chicks in your nest
-
-            Note: If [amount] is not specified, it defaults to 1
-            """
-        
-        if DEBUG:
-            help_text += """
-                **🔧 Testing Commands:**
-                `!test_help`
-                """
+        help_text = "**🪹 Bird RPG Help**\n"
+        help_text += "Visit the help page for a complete guide to all commands and game mechanics:\n"
+        help_text += "https://bird-rpg.onrender.com/help\n\n"
         
         await ctx.send(help_text)
 

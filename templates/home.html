@@ -1,274 +1,115 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>🐦bird-rpg Village</title>
-    <style>
-        body {
-            font-family: "Chalkboard SE", sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fdf6e3;
-            color: #594e4a;
-        }
-        .nest-box {
-            background-color: #fff9ea;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            border: 2px solid #e6d5ac;
-        }
-        .common-nest {
-            background-color: #e0f7fa;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            border: 2px solid #4dd0e1;
-        }
-        .timer-box {
-            background-color: #e8f5e9;
-            text-align: center;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 25px;
-            border: 2px dashed #81c784;
-        }
-        h1 {
-            text-align: center;
-            color: #795548;
-            font-size: 2.5em;
-            margin-bottom: 30px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
-        h2 {
-            color: #795548;
-            margin-top: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .resource-count {
-            display: inline-block;
-            margin: 0 10px;
-            font-size: 1.2em;
-            background-color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .emoji {
-            font-size: 1.4em;
-            vertical-align: middle;
-        }
-        .nests-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            padding: 20px;
-        }
-        .nest-card {
-            background-color: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: transform 0.2s ease;
-        }
-        .nest-card:hover {
-            transform: translateY(-5px);
-        }
-        .nest-name {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #795548;
-        }
-        .nest-stats {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .stat-line {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px 0;
-            border-bottom: 1px dashed #e6d5ac;
-        }
-        .songs-given {
-            color: #2c79df;
-            font-weight: bold;
-        }
-        .discovered-species {
-            background-color: #fff3e0;
-            border: 2px dashed #ffb74d;
-            margin-bottom: 25px;
-            text-align: center;
-        }
-        .discovered-species h2 {
-            margin-bottom: 15px;
-        }
-        .discovered-birds-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 15px;
-            padding: 20px;
-            max-width: 800px;
-            margin: 0 auto;
-        }
-        .bird-thumbnail {
-            position: relative;
-            width: 80px;
-            height: 80px;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-            display: block;
-            text-decoration: none;
-        }
-        .bird-thumbnail:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-        }
-        .bird-thumb-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .bird-thumb-tooltip {
-            position: absolute;
-            bottom: -30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            white-space: nowrap;
-            opacity: 0;
-            transition: opacity 0.2s, bottom 0.2s;
-            pointer-events: none;
-        }
-        .bird-thumbnail:hover .bird-thumb-tooltip {
-            bottom: -25px;
-            opacity: 1;
-        }
-    </style>
-</head>
-<body>
-    <h1>🌿 bird-rpg Village 🐦</h1>
-    
+{% extends 'base.html' %}
 
-    <div class="nest-box common-nest">
-        <h2 style="justify-content: center;">🌇 Common Nest</h2>
-        <div style="text-align: center;">
-            <div class="resource-count">
-                <span class="emoji">🪺</span> Twigs: {{ common_nest.twigs }}
+{% block content %}
+
+<div class="rounded-xl p-6 mb-6 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+    <div class="border border-amber-300/50 rounded-lg p-4 bg-white/50">
+        <h2 class="flex justify-center items-center gap-2 text-2xl text-yellow-900 font-mystical font-bold">Common Nest</h2>
+        <div class="text-center mt-4">
+            <div class="inline-block mx-2 text-lg bg-white px-4 py-2 rounded-full shadow-lg">
+                <span class="text-2xl align-middle">🪺</span> Twigs: {{ common_nest.twigs }}
             </div>
-            <div class="resource-count">
-                <span class="emoji">🌰</span> Seeds: {{ common_nest.seeds }}
+            <div class="inline-block mx-2 text-lg bg-white px-4 py-2 rounded-full shadow-lg">
+                <span class="text-2xl align-middle">🌰</span> Seeds: {{ common_nest.seeds }}
             </div>
         </div>
     </div>
+</div>
 
-    <div class="discovered-species">
-        <h2 style="justify-content: center;">🦜 Community Species</h2>
-        <p>{{ discovered_species_count }} / {{ total_bird_species }} species discovered</p>
+<div class="border-4 border-yellow-900 rounded-xl mb-6 text-center p-6" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+    <div class="border border-amber-300/30 rounded-lg p-4">
+        <h2 class="text-2xl text-center text-yellow-900 mb-4 font-mystical font-bold">Community Species</h2>
+        <p class="mb-4">{{ discovered_species_count }} / {{ total_bird_species }} species discovered</p>
         
         {% if discovered_species %}
-        <div class="discovered-birds-grid">
+        <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-1 p-2 max-w-5xl mx-auto">
             {% for bird in discovered_species %}
             <a href="https://www.inaturalist.org/taxa/search?q={{ bird.scientificName }}" 
-               class="bird-thumbnail" 
+               class="relative w-20 h-20 rounded-lg overflow-hidden shadow-md transition-transform transform hover:-translate-y-1"
                target="_blank"
                id="bird-thumb-{{ loop.index }}">
                 <img 
                     src="https://via.placeholder.com/100?text=🐦"
                     alt="{{ bird.commonName }}"
                     id="bird-img-{{ loop.index }}"
-                    class="bird-thumb-img"
+                    class="w-full h-full object-cover"
                 >
-                <div class="bird-thumb-tooltip">{{ bird.commonName }}</div>
+                <div class="absolute bottom-[-20px] left-1/2 transform -translate-x-1/2 bg-black bg-opacity-80 text-white text-[10px] px-1 py-0.5 rounded opacity-0 transition-opacity duration-200">
+                    {{ bird.commonName }}
+                </div>
             </a>
             {% endfor %}
         </div>
         {% endif %}
     </div>
+</div>
 
-    <div class="nest-box">
-        <h2 style="justify-content: center;">Nests</h2>
-        <div class="nests-grid">
-            {% for nest in personal_nests %}
-            <a href="/user/{{ nest.user_id }}" style="text-decoration: none;">
-                <div class="nest-card">
-                    <div class="nest-name">{{ nest.name }}</div>
-                    <div class="nest-stats">
-                        <div class="stat-line">
-                            <span>🪹 Twigs</span>
-                            <span>{{ nest.twigs }}</span>
-                        </div>
-                        <div class="stat-line">
-                            <span>🌰 Seeds</span>
-                            <span>{{ nest.seeds }}</span>
-                        </div>
-                        <div class="stat-line">
-                            <span>🐥 Chicks</span>
-                            <span>{{ nest.chicks }}</span>
-                        </div>
-                        <div class="stat-line">
-                            <span>🥚 Egg progress</span>
-                            <span>
-                                {% if nest.has_egg %}
-                                    {{ nest.egg_progress }}/10
-                                {% else %}
-                                    No Egg
-                                {% endif %}
-                            </span>
-                        </div>
-                        <div class="stat-line">
-                            <span>🎵 Songs Given</span>
-                            <span class="songs-given">{{ nest.songs_given }}</span>
-                        </div>
+<div class="rounded-xl p-6 mb-6 shadow-lg border-2 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+    <h2 class="flex justify-center items-center gap-2 text-2xl text-yellow-900 font-mystical font-bold">Nests</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-4">
+        {% for nest in personal_nests %}
+        <a href="/user/{{ nest.user_id }}" class="no-underline">
+            <div class="bg-white/80 backdrop-blur-sm rounded-lg p-5 shadow-md transition-transform transform hover:-translate-y-1 border border-amber-200/50 hover:border-amber-300/70">
+                <div class="text-md font-bold font-mystical text-orange-700">{{ nest.name }}</div>
+                <div class="flex flex-col space-y-2">
+                    <div class="flex justify-between border-b border-dashed border-yellow-200 py-1">
+                        <span>🪹 Twigs</span>
+                        <span>{{ nest.twigs }}</span>
+                    </div>
+                    <div class="flex justify-between border-b border-dashed border-yellow-200 py-1">
+                        <span>🌰 Seeds</span>
+                        <span>{{ nest.seeds }}</span>
+                    </div>
+                    <div class="flex justify-between border-b border-dashed border-yellow-200 py-1">
+                        <span>🐥 Chicks</span>
+                        <span>{{ nest.chicks }}</span>
+                    </div>
+                    <div class="flex justify-between border-b border-dashed border-yellow-200 py-1">
+                        <span>🥚 Egg progress</span>
+                        <span>
+                            {% if nest.has_egg %}
+                                {{ nest.egg_progress }}/10
+                            {% else %}
+                                No Egg
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center py-1">
+                        <span>🎵 Songs Given</span>
+                        <span class="font-bold text-blue-700">{{ nest.songs_given }}</span>
                     </div>
                 </div>
-            </a>
-            {% endfor %}
-        </div>
+            </div>
+        </a>
+        {% endfor %}
     </div>
+</div>
 
-    <div class="timer-box">
-        <h2 style="justify-content: center;">🌅 Next Day Begins In</h2>
-        <div style="font-size: 1.5em;">
-            ⏰ {{ time_until_reset }}
-        </div>
+<div class="text-center p-4 rounded-lg mb-6 border-amber-300/70" style="background-repeat: repeat;">
+    <h2 class="flex justify-center items-center gap-2 text-2xl text-center text-white font-mystical font-bold">🌅 Next Day Begins In</h2>
+    <div class="text-2xl mt-2 text-white font-bold">
+        {{ time_until_reset }}
     </div>
+</div>
 
-    <div style="text-align: center; margin-top: 30px; font-size: 0.9em; color: #795548;">
-        🌸 Made with love with/for MAGPIE 🌸
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            {% for bird in discovered_species %}
-            fetch(`https://api.inaturalist.org/v1/taxa?q={{ bird.scientificName }}&limit=1`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.results && data.results.length > 0) {
-                        const taxon = data.results[0];
-                        if (taxon.default_photo) {
-                            const imageUrl = taxon.default_photo.medium_url;
-                            document.getElementById('bird-img-{{ loop.index }}').src = imageUrl;
-                        }
-                        const taxonUrl = `https://www.inaturalist.org/taxa/${taxon.id}`;
-                        document.getElementById('bird-thumb-{{ loop.index }}').href = taxonUrl;
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% for bird in discovered_species %}
+        fetch(`https://api.inaturalist.org/v1/taxa?q={{ bird.scientificName }}&limit=1`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.results && data.results.length > 0) {
+                    const taxon = data.results[0];
+                    if (taxon.default_photo) {
+                        const imageUrl = taxon.default_photo.medium_url;
+                        document.getElementById('bird-img-{{ loop.index }}').src = imageUrl;
                     }
-                })
-                .catch(error => console.error('Error fetching bird image:', error));
-            {% endfor %}
-        });
-    </script>
-</body>
-</html>
+                    const taxonUrl = `https://www.inaturalist.org/taxa/${taxon.id}`;
+                    document.getElementById('bird-thumb-{{ loop.index }}').href = taxonUrl;
+                }
+            })
+            .catch(error => console.error('Error fetching bird image:', error));
+        {% endfor %}
+    });
+</script>
+{% endblock %}

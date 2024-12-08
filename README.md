@@ -26,16 +26,27 @@ bot permissions integer: Oauth2 permissions:
 - Read Message History
 
 ## TODO and Ideas
+- move help to web and categorise it
+- study grows garden:
+- Brood all (number) - random command
 - aliases / clear confusion between add and build
-- Hatching a new egg
-- Foraging for treasure
-- "could there be some kind of gifting system... and maybe you can get rewarded for gifting when a baby hatches. Or if someone sings to you, you can gift them a thing and you both get nest upgrade or osmething."
-- "hehe okay, maybe you can encourage the cockatoos/parrots to come, and there is some benefit. cockatoos and parrots are also infmaous for destroying shit. so idk. do with that what you will haha"
-- " special stones that can only be taken from defeated children"
-- server led notifications
-- make timezone Australia
--Brood all (number) - random command
+- log book
 
-ohh something seems wrong there, it didn't give them a full 3 extra actions. , the count there is correct, it was just the bot's output
+```
+    A: !host_study
+    bird-rpg-bot: A has started a study session! Join in the next 10 minutes to be part of the group
+    B: !join_study @A
+    bird-rpg-bot: B has joined the study group!
+
+    ...70 minutes pass..
+
+    bird-rpg-bot: the study session has ended! Mahli-Ann and Cuauh have grown their gardens (and/or common garden) by x
+```
+
+- uncommon birds to get small bonuses
+- Foraging for treasure
+- "hehe okay, maybe you can encourage the cockatoos/parrots to come, and there is some benefit."
+- Swooping: " special stones that can only be taken from defeated children"
+- server-led notifications
 
 parrot to give +2 extra inspiration, not just 1
