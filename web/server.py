@@ -74,7 +74,8 @@ def user_page(user_id):
         "songs_given": songs_given,
         "egg": nest.get("egg", None),
         "songs_given_to": songs_given_to,
-        "brooded_nests": brooded_nests
+        "brooded_nests": brooded_nests,
+        "garden_size": nest.get("garden_size", 0)
     }
     
     return render_template('user.html', nest=nest_data)

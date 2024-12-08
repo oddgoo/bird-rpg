@@ -18,6 +18,9 @@
                 <span>🎵 Songs Given: {{ nest.songs_given }}</span>
             </div>
             <div class="inline-block bg-white px-5 py-2 rounded-full shadow-sm">
+                <span>🌱 Garden Size: {{ nest.garden_size }}</span>
+            </div>
+            <div class="inline-block bg-white px-5 py-2 rounded-full shadow-sm">
                 {% if nest.egg %}
                 <span>🥚 Egg Progress: {{ nest.egg.brooding_progress }}/10</span>
                 {% else %}

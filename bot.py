@@ -73,7 +73,8 @@ async def load_cogs(bot):
         'commands.info',
         'commands.testing',
         'commands.customisation',
-        'commands.incubation'
+        'commands.incubation',
+        'commands.flock'
     ]
 
 

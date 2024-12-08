@@ -28,18 +28,6 @@ bot permissions integer: Oauth2 permissions:
 ## TODO and Ideas
 - study grows garden:
 - log book
-- Brood all (number) - random command
-
-```
-    A: !host_study
-    bird-rpg-bot: A has started a study session! Join in the next 10 minutes to be part of the group
-    B: !join_study @A
-    bird-rpg-bot: B has joined the study group!
-
-    ...70 minutes pass..
-
-    bird-rpg-bot: the study session has ended! Mahli-Ann and Cuauh have grown their gardens (and/or common garden) by x
-```
 - uncommon birds to get small bonuses
 - Foraging for treasure
 - Swooping: " special stones that can only be taken from defeated children"

@@ -511,3 +511,195 @@ class TestBirdEffects:
         
         assert build_bonus == 0, "Common birds should not give building bonus"
         assert sing_bonus == 0, "Common birds should not give singing bonus"
+
+class TestMultiBrooding:
+    def test_multi_brooding_different_nests(self, mock_data):
+        """Test brooding multiple different nests in one go"""
+        brooder_id = "123"
+        target_ids = ["456", "789", "101"]
+        
+        # Setup nests with eggs
+        for target_id in target_ids:
+            nest = get_personal_nest(mock_data, target_id)
+            nest["egg"] = {"brooding_progress": 5, "brooded_by": []}
+        
+        # Record brooding for each target
+        successful_broods = []
+        for target_id in target_ids:
+            if not has_brooded_egg(mock_data, brooder_id, target_id):
+                record_brooding(mock_data, brooder_id, target_id)
+                nest = get_personal_nest(mock_data, target_id)
+                nest["egg"]["brooding_progress"] += 1
+                record_actions(mock_data, brooder_id, 1)
+                successful_broods.append(target_id)
+        
+        assert len(successful_broods) == 3, "Should successfully brood all three nests"
+        for target_id in target_ids:
+            nest = get_personal_nest(mock_data, target_id)
+            assert nest["egg"]["brooding_progress"] == 6, f"Nest {target_id} should have 6 brooding progress"
+            assert brooder_id in nest["egg"]["brooded_by"], f"Brooder should be recorded in nest {target_id}"
+
+    def test_multi_brooding_insufficient_actions(self, mock_data):
+        """Test multi-brooding with limited actions available"""
+        brooder_id = "123"
+        target_ids = ["456", "789", "101"]
+        
+        # Setup nests with eggs
+        for target_id in target_ids:
+            nest = get_personal_nest(mock_data, target_id)
+            nest["egg"] = {"brooding_progress": 5, "brooded_by": []}
+        
+        # Set remaining actions to 2
+        mock_data["daily_actions"][brooder_id] = {
+            f"actions_{get_current_date()}": {"used": BASE_DAILY_ACTIONS - 2, "bonus": 0}
+        }
+        
+        successful_broods = []
+        for target_id in target_ids:
+            remaining_actions = get_remaining_actions(mock_data, brooder_id)
+            if remaining_actions > 0 and not has_brooded_egg(mock_data, brooder_id, target_id):
+                record_brooding(mock_data, brooder_id, target_id)
+                nest = get_personal_nest(mock_data, target_id)
+                nest["egg"]["brooding_progress"] += 1
+                record_actions(mock_data, brooder_id, 1)
+                successful_broods.append(target_id)
+        
+        assert len(successful_broods) == 2, "Should only brood two nests due to action limit"
+        assert get_remaining_actions(mock_data, brooder_id) == 0, "Should have no actions remaining"
+
+class TestRandomBrooding:
+    def test_random_brooding_selection(self, mock_data):
+        """Test random brooding selects from valid targets"""
+        brooder_id = "123"
+        target_ids = ["456", "789", "101"]
+        
+        # Setup nests with eggs
+        for target_id in target_ids:
+            nest = get_personal_nest(mock_data, target_id)
+            nest["egg"] = {"brooding_progress": 5, "brooded_by": []}
+        
+        # Record brooding for one target to make it invalid
+        record_brooding(mock_data, brooder_id, target_ids[0])
+        
+        # Get valid targets
+        valid_targets = []
+        for target_id in target_ids:
+            if not has_brooded_egg(mock_data, brooder_id, target_id):
+                valid_targets.append(target_id)
+        
+        assert len(valid_targets) == 2, "Should have two valid targets remaining"
+        assert target_ids[0] not in valid_targets, "Already brooded target should not be valid"
+
+    def test_random_brooding_no_targets(self, mock_data):
+        """Test random brooding with no valid targets"""
+        brooder_id = "123"
+        target_ids = ["456", "789"]
+        
+        # Setup nests with eggs and mark them as brooded
+        for target_id in target_ids:
+            nest = get_personal_nest(mock_data, target_id)
+            nest["egg"] = {"brooding_progress": 5, "brooded_by": []}
+            record_brooding(mock_data, brooder_id, target_id)
+        
+        # Get valid targets
+        valid_targets = []
+        for target_id in target_ids:
+            if not has_brooded_egg(mock_data, brooder_id, target_id):
+                valid_targets.append(target_id)
+        
+        assert len(valid_targets) == 0, "Should have no valid targets"
+
+class TestFlockCommands:
+    def test_flock_session_creation(self, mock_data):
+        """Test creating a new flock session"""
+        leader_id = "123"
+        active_flocks = {}
+        
+        # Create new flock session
+        active_flocks[leader_id] = {
+            'leader': leader_id,
+            'members': [leader_id],
+            'start_time': datetime.now(),
+            'joining_deadline': datetime.now() + timedelta(minutes=10)
+        }
+        
+        assert leader_id in active_flocks
+        assert len(active_flocks[leader_id]['members']) == 1
+        assert active_flocks[leader_id]['leader'] == leader_id
+
+    def test_flock_session_joining(self, mock_data):
+        """Test joining an existing flock session"""
+        leader_id = "123"
+        joiner_id = "456"
+        active_flocks = {}
+        
+        # Create flock session
+        active_flocks[leader_id] = {
+            'leader': leader_id,
+            'members': [leader_id],
+            'start_time': datetime.now(),
+            'joining_deadline': datetime.now() + timedelta(minutes=10)
+        }
+        
+        # Join flock
+        flock = active_flocks[leader_id]
+        flock['members'].append(joiner_id)
+        
+        assert len(flock['members']) == 2
+        assert joiner_id in flock['members']
+
+    def test_flock_session_rewards(self, mock_data):
+        """Test flock session completion rewards"""
+        leader_id = "123"
+        member_id = "456"
+        active_flocks = {
+            leader_id: {
+                'leader': leader_id,
+                'members': [leader_id, member_id],
+                'start_time': datetime.now(),
+                'joining_deadline': datetime.now() + timedelta(minutes=10)
+            }
+        }
+        
+        # Simulate session completion and reward distribution
+        for member in active_flocks[leader_id]['members']:
+            member_str = str(member)
+            if member_str not in mock_data:
+                mock_data[member_str] = {'garden_size': 0}
+            if 'garden_size' not in mock_data[member_str]:
+                mock_data[member_str]['garden_size'] = 0
+            
+            # Increment garden size and add bonus actions
+            mock_data[member_str]['garden_size'] += 1
+            add_bonus_actions(mock_data, member, 5)
+        
+        # Verify rewards
+        for member in active_flocks[leader_id]['members']:
+            member_str = str(member)
+            assert mock_data[member_str]['garden_size'] == 1
+            assert get_remaining_actions(mock_data, member) == BASE_DAILY_ACTIONS + 5
+
+    def test_flock_session_deadline(self, mock_data):
+        """Test flock session joining deadline"""
+        leader_id = "123"
+        joiner_id = "456"
+        active_flocks = {}
+        
+        # Create expired flock session
+        active_flocks[leader_id] = {
+            'leader': leader_id,
+            'members': [leader_id],
+            'start_time': datetime.now() - timedelta(minutes=15),
+            'joining_deadline': datetime.now() - timedelta(minutes=5)
+        }
+        
+        flock = active_flocks[leader_id]
+        assert datetime.now() > flock['joining_deadline']
+        
+        # Attempt to join after deadline
+        initial_members = len(flock['members'])
+        if datetime.now() <= flock['joining_deadline']:
+            flock['members'].append(joiner_id)
+        
+        assert len(flock['members']) == initial_members
+        assert joiner_id not in flock['members']
