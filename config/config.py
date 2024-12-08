@@ -9,6 +9,7 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 STORAGE_PATH = '/var/data' if os.path.exists('/var/data') else '.'
 DATA_PATH = os.path.join(STORAGE_PATH, 'bird-rpg')
 NESTS_FILE = os.path.join(DATA_PATH, 'nests.json')
+LORE_FILE = os.path.join(DATA_PATH, "lore.json")
 
 # Web server configuration
 PORT = int(os.getenv('PORT', 10000))

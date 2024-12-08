@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime
 from discord.ext import commands
-from data.storage import load_data, save_data
+from data.storage import load_data, save_data, load_lore, save_lore
 from data.models import get_personal_nest
 from utils.time_utils import get_current_date
 from utils.logging import log_debug
@@ -10,10 +10,6 @@ from utils.logging import log_debug
 class LoreCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.lore_file = "data/lore.json"
-        if not os.path.exists(self.lore_file):
-            with open(self.lore_file, "w") as f:
-                json.dump({"memoirs": []}, f)
 
     @commands.command(name="memoir")
     async def add_memoir(self, ctx, *, text: str):
@@ -27,13 +23,14 @@ class LoreCommands(commands.Cog):
         nest = get_personal_nest(data, ctx.author.id)
         today = get_current_date()
         
+        # Load lore data
+        lore_data = load_lore()
+        
         # Check if user already posted today
-        with open(self.lore_file, "r") as f:
-            lore_data = json.load(f)
-            for memoir in lore_data["memoirs"]:
-                if memoir["user_id"] == str(ctx.author.id) and memoir["date"] == today:
-                    await ctx.send("You have already shared a memoir today. Return tomorrow to share more of your story!")
-                    return
+        for memoir in lore_data["memoirs"]:
+            if memoir["user_id"] == str(ctx.author.id) and memoir["date"] == today:
+                await ctx.send("You have already shared a memoir today. Return tomorrow to share more of your story!")
+                return
 
         # Add memoir
         new_memoir = {
@@ -44,9 +41,7 @@ class LoreCommands(commands.Cog):
         }
         
         lore_data["memoirs"].append(new_memoir)
-        
-        with open(self.lore_file, "w") as f:
-            json.dump(lore_data, f, indent=4)
+        save_lore(lore_data)
 
         # Add garden life
         if "inspiration" not in nest:

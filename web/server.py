@@ -2,7 +2,7 @@ from flask import Flask, render_template, send_from_directory
 from threading import Thread
 from config.config import PORT, DEBUG
 from web.home import get_home_page
-from data.storage import load_data
+from data.storage import load_data, load_lore
 from data.models import get_personal_nest, get_total_chicks, get_total_bird_species, load_bird_species
 from utils.time_utils import get_time_until_reset, get_current_date
 import json
@@ -20,13 +20,7 @@ def help_page():
 
 @app.route('/wings-of-time')
 def wings_of_time():
-    lore_file = "data/lore.json"
-    if not os.path.exists(lore_file):
-        return render_template('wings-of-time.html', memoirs=[])
-    
-    with open(lore_file, 'r') as f:
-        lore_data = json.load(f)
-    
+    lore_data = load_lore()
     return render_template('wings-of-time.html', memoirs=lore_data["memoirs"])
 
 @app.route('/user/<user_id>')
