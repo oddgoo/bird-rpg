@@ -30,7 +30,7 @@ class FlockCommands(commands.Cog):
             'end_time': datetime.now() + timedelta(minutes=60)
         }
 
-        await ctx.send(f"🍅 {ctx.author.mention} has started a pomodoro flock! The tomato goddess is pleased! Join anytime during the next hour with `!join_flock {ctx.author.mention}` to be part of the group")
+        await ctx.send(f"🍅 {ctx.author.mention} has started a pomodoro flock! The tomato goddess is pleased! Join anytime during the next hour with `!join_flock {ctx.author.mention}` to be part of the group (then head to the #pomobirdo channel).")
 
         # Wait for session to complete
         await asyncio.sleep(3600)  # 60 minutes
