@@ -13,9 +13,14 @@ class FlockCommands(commands.Cog):
     @commands.command()
     async def start_flock(self, ctx):
         """Start a pomodoro flock session"""
-        if ctx.author.id in self.active_flocks.values():
-            await ctx.send("❌ You're already in an active flock session!")
-            return
+        # Check if user is already in any flock (as leader or member)
+        for flock_id, flock in self.active_flocks.items():
+            if flock['leader'] == ctx.author:
+                await ctx.send("❌ You're already leading a flock session!")
+                return
+            if ctx.author in flock['members']:
+                await ctx.send("❌ You're already in an active flock session!")
+                return
 
         # Create new flock session
         self.active_flocks[ctx.author.id] = {

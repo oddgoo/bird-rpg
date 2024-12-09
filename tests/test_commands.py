@@ -295,3 +295,40 @@ class TestFlockCommands:
         flock = flock_cog.active_flocks[leader.id]
         assert mock_ctx.author not in flock['members']
 
+    @pytest.mark.asyncio
+    async def test_start_flock_already_leading(self, flock_cog, mock_ctx, mock_data):
+        """Test starting a flock when already leading one"""
+        # Set up an existing flock led by the same user
+        flock_cog.active_flocks[mock_ctx.author.id] = {
+            'leader': mock_ctx.author,
+            'members': [mock_ctx.author],
+            'start_time': datetime.now(),
+            'end_time': datetime.now() + timedelta(minutes=60)
+        }
+
+        await flock_cog.start_flock.callback(flock_cog, mock_ctx)
+
+        # Check error message
+        mock_ctx.send.assert_called_once()
+        assert "already leading a flock session" in mock_ctx.send.call_args[0][0]
+
+    @pytest.mark.asyncio
+    async def test_start_flock_already_member(self, flock_cog, mock_ctx, mock_data):
+        """Test starting a flock when already a member in another flock"""
+        # Create another user as the leader
+        leader = mock_ctx.add_member(456, "Leader")
+        
+        # Set up an existing flock where test user is a member
+        flock_cog.active_flocks[leader.id] = {
+            'leader': leader,
+            'members': [leader, mock_ctx.author],
+            'start_time': datetime.now(),
+            'end_time': datetime.now() + timedelta(minutes=60)
+        }
+
+        await flock_cog.start_flock.callback(flock_cog, mock_ctx)
+
+        # Check error message
+        mock_ctx.send.assert_called_once()
+        assert "already in an active flock session" in mock_ctx.send.call_args[0][0]
+
