@@ -22,20 +22,16 @@ class FlockCommands(commands.Cog):
             'leader': ctx.author,
             'members': [ctx.author],
             'start_time': datetime.now(),
-            'joining_deadline': datetime.now() + timedelta(minutes=10)
+            'end_time': datetime.now() + timedelta(minutes=60)
         }
 
-        await ctx.send(f"🍅 {ctx.author.mention} has started a pomodoro flock! The tomato goddess is pleased! Join in the next 10 minutes with `!join_flock {ctx.author.mention}` to be part of the group")
+        await ctx.send(f"🍅 {ctx.author.mention} has started a pomodoro flock! The tomato goddess is pleased! Join anytime during the next hour with `!join_flock {ctx.author.mention}` to be part of the group")
 
-        # Wait for joining period to end, then start the session
-        await asyncio.sleep(600)  # 10 minutes
+        # Wait for session to complete
+        await asyncio.sleep(3600)  # 60 minutes
+        
         if ctx.author.id in self.active_flocks:
             flock = self.active_flocks[ctx.author.id]
-            members_mentions = ' '.join([member.mention for member in flock['members']])
-            await ctx.send(f"🍅 The flock session is starting! {members_mentions} Go to the #video-chat channel to join and focus. The session will end in 60 minutes.")
-
-            # Wait for session to complete
-            await asyncio.sleep(3600)  # 60 minutes
             
             # Update garden sizes and add bonus actions for all participants
             data = load_data()
@@ -66,8 +62,8 @@ class FlockCommands(commands.Cog):
 
         flock = self.active_flocks[leader.id]
         
-        if datetime.now() > flock['joining_deadline']:
-            await ctx.send("❌ The joining period for this flock has ended!")
+        if datetime.now() > flock['end_time']:
+            await ctx.send("❌ This flock session has already ended!")
             return
 
         if ctx.author in flock['members']:
@@ -80,7 +76,8 @@ class FlockCommands(commands.Cog):
 
         # Add member to flock
         flock['members'].append(ctx.author)
-        await ctx.send(f"🍅 {ctx.author.mention} has joined {leader.mention}'s pomodoro flock! Get ready to focus together!")
+        time_remaining = (flock['end_time'] - datetime.now()).total_seconds() / 60
+        await ctx.send(f"🍅 {ctx.author.mention} has joined {leader.mention}'s pomodoro flock! {time_remaining:.0f} minutes remaining in the session. Get ready to focus together!")
 
 async def setup(bot):
     await bot.add_cog(FlockCommands(bot))

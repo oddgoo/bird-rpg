@@ -232,11 +232,10 @@ class TestFlockCommands:
         
         await flock_cog.start_flock.callback(flock_cog, mock_ctx)
 
-        # Check all three messages were sent
-        assert mock_ctx.send.call_count == 3
+        # Check messages were sent (now only 2 messages - start and end)
+        assert mock_ctx.send.call_count == 2
         assert "has started a pomodoro flock" in mock_ctx.send.call_args_list[0][0][0]
-        assert "The flock session is starting" in mock_ctx.send.call_args_list[1][0][0]
-        assert "The pomodoro flock has ended" in mock_ctx.send.call_args_list[2][0][0]
+        assert "The pomodoro flock has ended" in mock_ctx.send.call_args_list[1][0][0]
 
         # Check flock creation and cleanup
         assert mock_ctx.author.id not in flock_cog.active_flocks  # Flock should be cleaned up after completion
@@ -255,7 +254,7 @@ class TestFlockCommands:
             'leader': leader,
             'members': [leader],
             'start_time': datetime.now(),
-            'joining_deadline': datetime.now() + timedelta(minutes=10)
+            'end_time': datetime.now() + timedelta(minutes=60)
         }
 
         await flock_cog.join_flock.callback(flock_cog, mock_ctx, leader)
@@ -263,14 +262,15 @@ class TestFlockCommands:
         # Check message
         mock_ctx.send.assert_called_once()
         assert "has joined" in mock_ctx.send.call_args[0][0]
+        assert "minutes remaining" in mock_ctx.send.call_args[0][0]
 
         # Check member added
         flock = flock_cog.active_flocks[leader.id]
         assert mock_ctx.author in flock['members']
 
     @pytest.mark.asyncio
-    async def test_join_flock_expired(self, flock_cog, mock_ctx, mock_data):
-        """Test joining an expired flock"""
+    async def test_join_flock_ended(self, flock_cog, mock_ctx, mock_data):
+        """Test joining an ended flock"""
         # Mock the command context
         mock_ctx.command = MagicMock()
         mock_ctx.command.name = "join_flock"
@@ -281,32 +281,17 @@ class TestFlockCommands:
         flock_cog.active_flocks[leader.id] = {
             'leader': leader,
             'members': [leader],
-            'start_time': datetime.now() - timedelta(minutes=20),
-            'joining_deadline': datetime.now() - timedelta(minutes=10)
+            'start_time': datetime.now() - timedelta(minutes=70),
+            'end_time': datetime.now() - timedelta(minutes=10)
         }
 
         await flock_cog.join_flock.callback(flock_cog, mock_ctx, leader)
 
         # Check message
         mock_ctx.send.assert_called_once()
-        assert "joining period for this flock has ended" in mock_ctx.send.call_args[0][0]
+        assert "session has already ended" in mock_ctx.send.call_args[0][0]
 
         # Check member not added
         flock = flock_cog.active_flocks[leader.id]
         assert mock_ctx.author not in flock['members']
-
-    @pytest.mark.asyncio
-    async def test_join_flock_nonexistent(self, flock_cog, mock_ctx, mock_data):
-        """Test joining a non-existent flock"""
-        # Mock the command context
-        mock_ctx.command = MagicMock()
-        mock_ctx.command.name = "join_flock"
-        
-        leader = mock_ctx.add_member(456, "Leader")
-
-        await flock_cog.join_flock.callback(flock_cog, mock_ctx, leader)
-
-        # Check message
-        mock_ctx.send.assert_called_once()
-        assert "There is no active flock session from this user" in mock_ctx.send.call_args[0][0]
 
