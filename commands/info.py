@@ -41,6 +41,7 @@ class InfoCommands(commands.Cog):
         # Create status message
         status = "**🏠 Your Nest:**\n"
         status += f"```\nTwigs: {personal_nest['twigs']} 🪹 | Seeds: {personal_nest['seeds']} 🌰 \n"
+        status += f"Inspiration: {personal_nest.get('inspiration', 0)} ✨ | Garden Size: {personal_nest.get('garden_size', 0)} 🌱\n"
         status += f"Chicks: {get_total_chicks(personal_nest)} 🐦\n"
         if personal_nest['egg']:
             status += f"Egg Progress: {personal_nest['egg']['brooding_progress']}/10 🥚\n"
@@ -49,10 +50,7 @@ class InfoCommands(commands.Cog):
         status += f"Remaining actions: {remaining_actions}/{total_actions}\n```\n"
         
         status += f"**🪹 View Your Nest:** https://bird-rpg.onrender.com/user/{ctx.author.id}\n"
-        status += "**🌇 Common Nest Status:** https://bird-rpg.onrender.com/\n\n"
-        
-        # Add community discovered species tally
-        status += f"**🦜 Community Discovered Species:** {discovered_species_count} / {total_bird_species}\n"
+        status += "**🌇 Community status:** https://bird-rpg.onrender.com/\n\n"
     
         # Add song information
         singers = get_singers_today(data, ctx.author.id)

@@ -1,0 +1,83 @@
+[
+  {
+    "commonName": "Wattle",
+    "scientificName": "Acacia pycnantha",
+    "rarityWeight": 8,
+    "rarity": "common",
+    "effect": "",
+    "habitat": "Woodlands, forests",
+    "seedCost": 10
+  },
+  {
+    "commonName": "Kangaroo Paw",
+    "scientificName": "Anigozanthos flavidus",
+    "rarityWeight": 7,
+    "rarity": "common",
+    "effect": "",
+    "habitat": "Coastal areas, heathlands",
+    "seedCost": 10
+  },
+  {
+    "commonName": "Bottlebrush",
+    "scientificName": "Callistemon citrinus",
+    "rarityWeight": 7,
+    "rarity": "common",
+    "effect": "",
+    "habitat": "Gardens, coastal regions",
+    "seedCost": 10
+  },
+  {
+    "commonName": "Waratah",
+    "scientificName": "Telopea speciosissima",
+    "rarityWeight": 5,
+    "rarity": "uncommon",
+    "effect": "",
+    "habitat": "Coastal areas of NSW",
+    "seedCost": 40
+  },
+  {
+    "commonName": "Sturt's Desert Pea",
+    "scientificName": "Swainsona formosa",
+    "rarityWeight": 4,
+    "rarity": "uncommon",
+    "effect": "",
+    "habitat": "Arid regions",
+    "seedCost": 40
+  },
+  {
+    "commonName": "Flannel Flower",
+    "scientificName": "Actinotus helianthi",
+    "rarityWeight": 4,
+    "rarity": "uncommon",
+    "effect": "",
+    "habitat": "Coastal heath, woodlands",
+    "seedCost": 40
+  },
+  {
+    "commonName": "Wollemi Pine",
+    "scientificName": "Wollemia nobilis",
+    "rarityWeight": 2,
+    "rarity": "rare",
+    "effect": "Writing a Memoir also increases the capacity of your garden",
+    "habitat": "Remote canyon systems",
+    "seedCost": 100
+  },
+  {
+    "commonName": "Western Underground Orchid",
+    "scientificName": "Rhizanthella gardneri",
+    "rarityWeight": 1,
+    "rarity": "rare",
+    "effect": "Your songs give +2 actions",
+    "habitat": "Underground in Western Australia",
+    "seedCost": 100
+  },
+  {
+    "commonName": "Queen of Sheba Orchid",
+    "scientificName": "Thelymitra speciosa",
+    "rarityWeight": 0.5,
+    "rarity": "mythical",
+    "effect": "Your eggs start with 5 broods",
+    "habitat": "Southwest Western Australia",
+    "seedCost": 250
+  }
+]

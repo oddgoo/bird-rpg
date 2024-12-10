@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+
+{% block title %}Codex | bird-rpg Village{% endblock %}
+
+{% block content %}
+<h2 class="text-center text-4xl text-yellow-900 mb-8 font-mystical font-bold">📚 The Codex</h2>
+
+<!-- Birds Section -->
+<div class="rounded-xl p-6 mb-8 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+    <div class="border border-amber-300/50 rounded-lg p-4">
+        <h2 class="text-2xl text-center text-yellow-900 mb-4 font-mystical font-bold">🦜 Birds</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for bird in birds %}
+            <div class="bg-white rounded-xl p-4 shadow-md flex flex-col items-center transition-transform transform hover:-translate-y-1 relative overflow-hidden aspect-[5/7] {% if bird.scientificName not in discovered_birds %}opacity-50{% else %}cursor-pointer{% endif %}">
+                {% if bird.scientificName in discovered_birds %}
+                <a href="#" class="flex flex-col items-center no-underline w-full h-full" target="_blank" id="bird-link-{{ loop.index }}">
+                {% else %}
+                <div class="flex flex-col items-center w-full h-full">
+                {% endif %}
+                    <img 
+                        class="w-4/5 h-3/5 rounded-lg object-cover mb-4 transition-transform duration-200"
+                        id="bird-{{ loop.index }}"
+                        src="{% if bird.scientificName in discovered_birds %}https://via.placeholder.com/100?text=🐦{% else %}/static/images/unknown.png{% endif %}"
+                        alt="{{ bird.commonName }}"
+                    >
+                    <div class="text-center">
+                        <div class="text-lg font-bold text-orange-700">{{ bird.commonName }}</div>
+                        <div class="italic text-gray-600 text-sm">{{ bird.scientificName }}</div>
+                        <div class="mt-2 uppercase tracking-wide font-medium 
+                            {% if bird.rarity == 'mythical' %}
+                                text-yellow-700
+                            {% elif bird.rarity == 'rare' %}
+                                text-purple-600
+                            {% elif bird.rarity == 'uncommon' %}
+                                text-blue-500
+                            {% else %}
+                                text-green-500
+                            {% endif %}">
+                            ✧ {{ bird.rarity|title }} ✧
+                        </div>
+                        {% if bird.scientificName in discovered_birds and bird.effect %}
+                        <div class="mt-2 italic text-gray-600 text-xs px-2">
+                            "{{ bird.effect }}"
+                        </div>
+                        {% endif %}
+                    </div>
+                {% if bird.scientificName in discovered_birds %}
+                </a>
+                {% else %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Plants Section -->
+<div class="rounded-xl p-6 mb-8 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+    <div class="border border-amber-300/50 rounded-lg p-4">
+        <h2 class="text-2xl text-center text-yellow-900 mb-4 font-mystical font-bold">🌿 Plants</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {% for plant in plants %}
+            <div class="bg-white rounded-xl p-4 shadow-md flex flex-col items-center transition-transform transform hover:-translate-y-1 relative overflow-hidden aspect-[5/7] {% if plant.scientificName not in discovered_plants %}opacity-50{% else %}cursor-pointer{% endif %}">
+                {% if plant.scientificName in discovered_plants %}
+                <a href="#" class="flex flex-col items-center no-underline w-full h-full" target="_blank" id="plant-link-{{ loop.index }}">
+                {% else %}
+                <div class="flex flex-col items-center w-full h-full">
+                {% endif %}
+                    <img 
+                        class="w-4/5 h-3/5 rounded-lg object-cover mb-4 transition-transform duration-200"
+                        id="plant-{{ loop.index }}"
+                        src="{% if plant.scientificName in discovered_plants %}https://via.placeholder.com/100?text=🌱{% else %}/static/images/unknown.png{% endif %}"
+                        alt="{{ plant.commonName }}"
+                    >
+                    <div class="text-center">
+                        <div class="text-lg font-bold text-orange-700">{{ plant.commonName }}</div>
+                        <div class="italic text-gray-600 text-sm">{{ plant.scientificName }}</div>
+                        <div class="mt-2 uppercase tracking-wide font-medium 
+                            {% if plant.rarity == 'mythical' %}
+                                text-yellow-700
+                            {% elif plant.rarity == 'rare' %}
+                                text-purple-600
+                            {% elif plant.rarity == 'uncommon' %}
+                                text-blue-500
+                            {% else %}
+                                text-green-500
+                            {% endif %}">
+                            ✧ {{ plant.rarity|title }} ✧
+                        </div>
+                        {% if plant.scientificName in discovered_plants and plant.effect %}
+                        <div class="mt-2 italic text-gray-600 text-xs px-2">
+                            "{{ plant.effect }}"
+                        </div>
+                        {% endif %}
+                        <div class="mt-2 text-sm text-gray-600">
+                            Cost: {{ plant.seedCost }} seeds
+                        </div>
+                    </div>
+                {% if plant.scientificName in discovered_plants %}
+                </a>
+                {% else %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% for bird in birds %}
+            {% if bird.scientificName in discovered_birds %}
+            fetch(`https://api.inaturalist.org/v1/taxa?q={{ bird.scientificName }}&limit=1`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.results && data.results.length > 0) {
+                        const taxon = data.results[0];
+                        if (taxon.default_photo) {
+                            const imageUrl = taxon.default_photo.medium_url;
+                            document.getElementById('bird-{{ loop.index }}').src = imageUrl;
+                        }
+                        const taxonUrl = `https://www.inaturalist.org/taxa/${taxon.id}`;
+                        document.getElementById('bird-link-{{ loop.index }}').href = taxonUrl;
+                    }
+                })
+                .catch(error => console.error('Error fetching bird image:', error));
+            {% endif %}
+        {% endfor %}
+
+        {% for plant in plants %}
+            {% if plant.scientificName in discovered_plants %}
+            fetch(`https://api.inaturalist.org/v1/taxa?q={{ plant.scientificName }}&limit=1`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.results && data.results.length > 0) {
+                        const taxon = data.results[0];
+                        if (taxon.default_photo) {
+                            const imageUrl = taxon.default_photo.medium_url;
+                            document.getElementById('plant-{{ loop.index }}').src = imageUrl;
+                        }
+                        const taxonUrl = `https://www.inaturalist.org/taxa/${taxon.id}`;
+                        document.getElementById('plant-link-{{ loop.index }}').href = taxonUrl;
+                    }
+                })
+                .catch(error => console.error('Error fetching plant image:', error));
+            {% endif %}
+        {% endfor %}
+    });
+</script>
+{% endblock %}

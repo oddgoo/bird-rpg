@@ -3,7 +3,7 @@ from threading import Thread
 from config.config import PORT, DEBUG
 from web.home import get_home_page
 from data.storage import load_data, load_lore
-from data.models import get_personal_nest, get_total_chicks, get_total_bird_species, load_bird_species
+from data.models import get_personal_nest, get_total_chicks, get_total_bird_species, load_bird_species, get_discovered_species
 from utils.time_utils import get_time_until_reset, get_current_date
 import json
 import os
@@ -88,6 +88,26 @@ def user_page(user_id):
     }
     
     return render_template('user.html', nest=nest_data)
+
+@app.route('/codex')
+def codex():
+    # Load bird species data
+    birds = load_bird_species()
+    
+    # Load plant species data
+    with open('data/plant_species.json') as f:
+        plants = json.load(f)
+    
+    # Load game data and get discovered species
+    data = load_data()
+    discovered_birds = {scientific_name for _, scientific_name in get_discovered_species(data)}
+    discovered_plants = set()  # Empty set since plant discovery isn't implemented yet
+    
+    return render_template('codex.html', 
+                         birds=birds,
+                         plants=plants,
+                         discovered_birds=discovered_birds,
+                         discovered_plants=discovered_plants)
 
 def run_server():
     app.jinja_env.auto_reload = DEBUG  # Enable template auto-reload
