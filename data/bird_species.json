@@ -117,35 +117,35 @@
         "scientificName": "Callocephalon fimbriatum",
         "rarityWeight": 4,
         "rarity": "uncommon",
-        "effect": ""
+        "effect": "Your first seed gathering action of the day also gives +1 garden size"
       },
       {
         "commonName": "Major Mitchell's Cockatoo",
         "scientificName": "Lophochroa leadbeateri",
         "rarityWeight": 4,
         "rarity": "uncommon",
-        "effect": ""
+        "effect": "Your first seed gathering action of the day also gives +1 garden size"
       },
       {
         "commonName": "Southern Cassowary",
         "scientificName": "Casuarius casuarius",
         "rarityWeight": 4,
         "rarity": "uncommon",
-        "effect": ""
+        "effect": "Your first nest-building action of the day gives +3 twigs."
       },
       {
         "commonName": "Albert's Lyrebird",
         "scientificName": "Menura alberti",
         "rarityWeight": 4,
         "rarity": "uncommon",
-        "effect": ""
+        "effect": "All your songs give +1 action."
       },
       {
         "commonName": "Superb Lyrebird",
         "scientificName": "Menura novaehollandiae",
         "rarityWeight": 4,
         "rarity": "uncommon",
-        "effect": ""
+        "effect": "All your songs give +1 action."
       },
       {
         "commonName": "Red Goshawk",
@@ -159,28 +159,28 @@
         "scientificName": "Probosciger aterrimus",
         "rarityWeight": 3,
         "rarity": "uncommon",
-        "effect": ""
+        "effect": "Your first seed gathering action of the day also gives +1 garden size"
       },
       {
         "commonName": "Black-throated Finch",
         "scientificName": "Poephila cincta",
         "rarityWeight": 3,
         "rarity": "uncommon",
-        "effect": ""
-      },
-      {
-        "commonName": "Swift Parrot",
-        "scientificName": "Lathamus discolor",
-        "rarityWeight": 2,
-        "rarity": "uncommon",
-        "effect": ""
+        "effect": "Your first singing action of the day has a 50% chance to give you +1 inspiration"
       },
       {
         "commonName": "Gouldian Finch",
         "scientificName": "Erythrura gouldiae",
         "rarityWeight": 2,
         "rarity": "uncommon",
-        "effect": ""
+        "effect": "Your first singing action of the day has a 50% chance to give you +1 inspiration"
+      },
+      {
+        "commonName": "Swift Parrot",
+        "scientificName": "Lathamus discolor",
+        "rarityWeight": 2,
+        "rarity": "uncommon",
+        "effect": "All your songs give +1 action."
       },
       {
         "commonName": "Helmeted Honeyeater",
@@ -208,7 +208,7 @@
         "scientificName": "Pezoporus occidentalis",
         "rarityWeight": 0.5,
         "rarity": "mythical",
-        "effect": "All your songs give +3 actions."
+        "effect": "All your songs give +5 actions."
       }
     ]
   }

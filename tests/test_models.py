@@ -6,7 +6,8 @@ from data.models import (
     record_song, get_singers_today, add_bonus_actions,
     get_egg_cost, select_random_bird_species, record_brooding,
     has_brooded_egg, get_total_chicks, load_bird_species,
-    get_nest_building_bonus, get_singing_bonus
+    get_nest_building_bonus, get_singing_bonus,
+    get_seed_gathering_bonus, get_singing_inspiration_chance
 )
 import random
 from utils.time_utils import get_current_date
@@ -29,7 +30,9 @@ class TestNestOperations:
             "seeds": 0,
             "name": "Some Bird's Nest",
             "egg": None,
-            "chicks": []
+            "chicks": [],
+            "garden_size": 0,
+            "inspiration": 0
         }
         assert "123" in mock_data["personal_nests"]
 
@@ -424,17 +427,31 @@ class TestBirdEffects:
     def test_plains_wanderer_building_bonus(self, mock_data):
         """Test Plains-wanderer(s) give stacking +5 twigs on first build"""
         user_id = "123"
+        today = get_current_date()
+        
+        # Initialize daily actions
+        mock_data["daily_actions"] = {
+            user_id: {
+                f"actions_{today}": {
+                    "used": 0,
+                    "bonus": 0
+                }
+            }
+        }
+        
         nest = get_personal_nest(mock_data, user_id)
         
         # Add two Plains-wanderers to nest
         nest["chicks"].extend([
             {
                 "commonName": "Plains-wanderer",
-                "scientificName": "Pedionomus torquatus"
+                "scientificName": "Pedionomus torquatus",
+                "effect": "Your first nest building action of the day gives +5 twigs"
             },
             {
                 "commonName": "Plains-wanderer",
-                "scientificName": "Pedionomus torquatus"
+                "scientificName": "Pedionomus torquatus",
+                "effect": "Your first nest building action of the day gives +5 twigs"
             }
         ])
         
@@ -452,42 +469,70 @@ class TestBirdEffects:
     def test_singing_bonus_stacking(self, mock_data):
         """Test Orange-bellied Parrot and Night Parrot singing bonuses stack"""
         user_id = "123"
+        today = get_current_date()
+        
+        # Initialize daily actions
+        mock_data["daily_actions"] = {
+            user_id: {
+                f"actions_{today}": {
+                    "used": 0,
+                    "bonus": 0
+                }
+            }
+        }
+        
         nest = get_personal_nest(mock_data, user_id)
         
         # Add both rare parrots to nest
         nest["chicks"].extend([
             {
                 "commonName": "Orange-bellied Parrot",
-                "scientificName": "Neophema chrysogaster"
+                "scientificName": "Neophema chrysogaster",
+                "effect": "Your singing actions give +3 bonus actions to the target"
             },
             {
                 "commonName": "Night Parrot",
-                "scientificName": "Pezoporus occidentalis"
+                "scientificName": "Pezoporus occidentalis",
+                "effect": "Your singing actions give +5 bonus actions to the target"
             }
         ])
         
         bonus = get_singing_bonus(nest)
-        assert bonus == 6, "Should get +3 from Orange-bellied and +3 from Night Parrot"
+        assert bonus == 8, "Should get +3 from Orange-bellied and +5 from Night Parrot"
 
     def test_multiple_same_bird_effects(self, mock_data):
         """Test multiple copies of same bird stack effects"""
         user_id = "123"
+        today = get_current_date()
+        
+        # Initialize daily actions
+        mock_data["daily_actions"] = {
+            user_id: {
+                f"actions_{today}": {
+                    "used": 0,
+                    "bonus": 0
+                }
+            }
+        }
+        
         nest = get_personal_nest(mock_data, user_id)
         
         # Add two Orange-bellied Parrots
         nest["chicks"].extend([
             {
                 "commonName": "Orange-bellied Parrot",
-                "scientificName": "Neophema chrysogaster"
+                "scientificName": "Neophema chrysogaster",
+                "effect": "Your singing actions give +3 bonus actions to the target"
             },
             {
                 "commonName": "Orange-bellied Parrot",
-                "scientificName": "Neophema chrysogaster"
+                "scientificName": "Neophema chrysogaster",
+                "effect": "Your singing actions give +3 bonus actions to the target"
             }
         ])
         
         bonus = get_singing_bonus(nest)
-        assert bonus == 6, "Multiple copies of same bird should stack effects (+1 each)"
+        assert bonus == 6, "Multiple copies of same bird should stack effects (+3 each)"
 
     def test_no_effect_birds(self, mock_data):
         """Test birds without effects don't contribute bonuses"""
@@ -756,4 +801,62 @@ class TestLoreMechanics:
         
         # Check memoir was not added
         assert len(mock_data.get("memoirs", [])) == 0
+
+
+def test_get_seed_gathering_bonus(mock_data):
+    """Test garden size bonus calculation from cockatoos"""
+    nest = {
+        "chicks": [
+            {
+                "commonName": "Gang-gang Cockatoo",
+                "scientificName": "Callocephalon fimbriatum",
+                "effect": "Your first seed gathering action of the day also gives +1 garden size"
+            },
+            {
+                "commonName": "Major Mitchell's Cockatoo",
+                "scientificName": "Lophochroa leadbeateri",
+                "effect": "Your first seed gathering action of the day also gives +1 garden size"
+            }
+        ]
+    }
+    mock_data["personal_nests"] = {"123": nest}
+    
+    # Test first action of the day
+    bonus = get_seed_gathering_bonus(mock_data, nest)
+    assert bonus == 2
+    
+    # Test after actions used
+    record_actions(mock_data, "123", 1)
+    bonus = get_seed_gathering_bonus(mock_data, nest)
+    assert bonus == 0
+
+def test_get_singing_inspiration_chance(mock_data, mocker):
+    """Test inspiration chance calculation from finches"""
+    # Mock random to always return 0.4 (less than 0.5, so inspiration triggers)
+    mocker.patch('random.random', return_value=0.4)
+    
+    nest = {
+        "chicks": [
+            {
+                "commonName": "Black-throated Finch",
+                "scientificName": "Poephila cincta",
+                "effect": "Your first singing action of the day has a 50% chance to give you +1 inspiration"
+            },
+            {
+                "commonName": "Gouldian Finch",
+                "scientificName": "Erythrura gouldiae",
+                "effect": "Your first singing action of the day has a 50% chance to give you +1 inspiration"
+            }
+        ]
+    }
+    mock_data["personal_nests"] = {"123": nest}
+    
+    # Test first action of the day
+    bonus = get_singing_inspiration_chance(mock_data, nest)
+    assert bonus == 2  # Both finches should trigger
+    
+    # Test after actions used
+    record_actions(mock_data, "123", 1)
+    bonus = get_singing_inspiration_chance(mock_data, nest)
+    assert bonus == 0
 

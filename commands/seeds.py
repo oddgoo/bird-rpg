@@ -1,7 +1,8 @@
 from discord.ext import commands
 
 from data.storage import load_data, save_data
-from data.models import get_personal_nest, get_common_nest, get_remaining_actions, record_actions
+from data.models import (get_personal_nest, get_common_nest, get_remaining_actions, 
+                        record_actions, get_seed_gathering_bonus)
 from utils.logging import log_debug
 from utils.time_utils import get_time_until_reset
 
@@ -24,6 +25,19 @@ class SeedCommands(commands.Cog):
             return
         
         nest = get_personal_nest(data, ctx.author.id)
+        
+        # Initialize garden_size if it doesn't exist
+        if "garden_size" not in nest:
+            nest["garden_size"] = 0
+        
+        # Apply garden size bonus if it's first action
+        garden_bonus = get_seed_gathering_bonus(data, nest)
+        if garden_bonus > 0:
+            nest["garden_size"] += garden_bonus
+            bonus_msg = f"\nYour cockatoos helped expand your garden by {garden_bonus}! 🦜"
+        else:
+            bonus_msg = ""
+        
         space_available = nest["twigs"] - nest["seeds"]
         amount = min(amount, space_available, remaining_actions)
         
@@ -37,7 +51,7 @@ class SeedCommands(commands.Cog):
         save_data(data)
         remaining = get_remaining_actions(data, ctx.author.id)
         await ctx.send(f"Added {amount} {'seed' if amount == 1 else 'seeds'} to your nest! 🏡\n"
-                      f"Your nest now has {nest['twigs']} twigs and {nest['seeds']} seeds.\n"
+                      f"Your nest now has {nest['twigs']} twigs and {nest['seeds']} seeds.{bonus_msg}\n"
                       f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today.")
 
     @commands.command(name='add_seed_common', aliases=['add_seeds_common'])
@@ -54,7 +68,20 @@ class SeedCommands(commands.Cog):
             await ctx.send(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
             return
         
+        # Get personal nest for checking cockatoo bonus
+        nest = get_personal_nest(data, ctx.author.id)
         common_nest = data["common_nest"]
+        
+        # Apply garden size bonus if it's first action
+        garden_bonus = get_seed_gathering_bonus(data, nest)
+        if garden_bonus > 0:
+            if "garden_size" not in nest:
+                nest["garden_size"] = 0
+            nest["garden_size"] += garden_bonus
+            bonus_msg = f"\nYour cockatoos helped expand your garden by {garden_bonus}! 🦜"
+        else:
+            bonus_msg = ""
+        
         space_available = common_nest["twigs"] - common_nest["seeds"]
         amount = min(amount, space_available, remaining_actions)
         
@@ -68,7 +95,7 @@ class SeedCommands(commands.Cog):
         save_data(data)
         remaining = get_remaining_actions(data, ctx.author.id)
         await ctx.send(f"Added {amount} {'seed' if amount == 1 else 'seeds'} to the common nest! 🌇\n"
-                      f"The common nest now has {common_nest['twigs']} twigs and {common_nest['seeds']} seeds.\n"
+                      f"The common nest now has {common_nest['twigs']} twigs and {common_nest['seeds']} seeds.{bonus_msg}\n"
                       f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today.")
 
     @commands.command(name='donate_seeds', aliases=['donate_seed','move_seeds_own'])

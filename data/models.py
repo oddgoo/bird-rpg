@@ -6,16 +6,16 @@ from utils.time_utils import get_current_date
 from constants import BASE_DAILY_ACTIONS  # Updated import path
 
 def get_personal_nest(data, user_id):
-    user_id = str(user_id)
+    """Get or create a personal nest for a user"""
+    user_id = str(user_id)  # Convert to string for consistency
+    if "personal_nests" not in data:
+        data["personal_nests"] = {}
     if user_id not in data["personal_nests"]:
         data["personal_nests"][user_id] = {
             "twigs": 0,
-            "seeds": 0,
-            "name": "Some Bird's Nest",
-            "egg": None,
-            "chicks": []
+            "seeds": 0
         }
-    # Ensure existing nests have all required fields
+        
     nest = data["personal_nests"][user_id]
     if "egg" not in nest:
         nest["egg"] = None
@@ -23,6 +23,10 @@ def get_personal_nest(data, user_id):
         nest["chicks"] = []
     if "name" not in nest:
         nest["name"] = "Some Bird's Nest"
+    if "garden_size" not in nest:
+        nest["garden_size"] = 0
+    if "inspiration" not in nest:
+        nest["inspiration"] = 0
     return nest
 
 def get_common_nest(data):
@@ -212,6 +216,14 @@ def load_bird_species():
         data = json.load(file)
     return data["bird_species"]
 
+def get_bird_effect(scientific_name):
+    """Get the effect for a bird species by scientific name"""
+    bird_species = load_bird_species()
+    for species in bird_species:
+        if species["scientificName"] == scientific_name:
+            return species.get("effect", "")
+    return ""
+
 def select_random_bird_species():
     """Select a random bird species based on rarity weights"""
     bird_species = load_bird_species()
@@ -236,18 +248,9 @@ def get_total_bird_species(data):
     return len(bird_species)
 
 def get_nest_building_bonus(data, nest):
-    """Check if user has Plains-wanderer(s) and it's their first build action"""
+    """Calculate building bonus from birds that give first-build-of-day bonuses"""
     today = get_current_date()
     
-    # Count Plains-wanderers
-    plains_wanderer_count = sum(
-        1 for chick in nest.get("chicks", [])
-        if chick["scientificName"] == "Pedionomus torquatus"
-    )
-    
-    if plains_wanderer_count == 0:
-        return 0
-        
     # Check if this is their first build action today
     user_id = next(
         uid for uid, user_nest in data["personal_nests"].items() 
@@ -255,16 +258,79 @@ def get_nest_building_bonus(data, nest):
     )
     daily_actions = data["daily_actions"].get(user_id, {}).get(f"actions_{today}", {})
     
-    if isinstance(daily_actions, dict) and daily_actions.get("used", 0) == 0:
-        return 5 * plains_wanderer_count  # +5 twigs per Plains-wanderer
-    return 0
+    if not isinstance(daily_actions, dict) or daily_actions.get("used", 0) > 0:
+        return 0
+    
+    # Calculate bonus from all chicks with building effects
+    total_bonus = 0
+    for chick in nest.get("chicks", []):
+        effect = get_bird_effect(chick["scientificName"])
+        if "Your first nest-building action of the day gives" in effect:
+            # Extract the number from strings like "+5 twigs"
+            bonus_amount = int(''.join(filter(str.isdigit, effect)))
+            total_bonus += bonus_amount
+            
+    return total_bonus
 
 def get_singing_bonus(nest):
-    """Get total singing bonus from rare birds"""
-    bonus = 0
+    """Calculate total singing bonus from birds with song-enhancing effects"""
+    total_bonus = 0
     for chick in nest.get("chicks", []):
-        if chick["scientificName"] == "Neophema chrysogaster":  # Orange-bellied Parrot
-            bonus += 3
-        elif chick["scientificName"] == "Pezoporus occidentalis":  # Night Parrot
-            bonus += 3
-    return bonus
+        effect = get_bird_effect(chick["scientificName"])
+        if "All your songs give" in effect:
+            # Extract the number from strings like "+3 bonus actions"
+            bonus_amount = int(''.join(filter(str.isdigit, effect)))
+            total_bonus += bonus_amount
+            
+    return total_bonus
+
+def get_singing_inspiration_chance(data, nest):
+    """Calculate chance-based inspiration bonus from finches on first singing action"""
+    today = get_current_date()
+    
+    # Check if this is their first action today
+    user_id = next(
+        uid for uid, user_nest in data["personal_nests"].items() 
+        if user_nest == nest
+    )
+    daily_actions = data["daily_actions"].get(user_id, {}).get(f"actions_{today}", {})
+    
+    if not isinstance(daily_actions, dict) or daily_actions.get("used", 0) > 0:
+        return 0
+    
+    # Count finches with inspiration chance effects
+    inspiration_chances = 0
+    for chick in nest.get("chicks", []):
+        effect = get_bird_effect(chick["scientificName"])
+        if "has a 50% chance to give you +1 inspiration" in effect:
+            if random.random() < 0.5:  # 50% chance for each finch
+                inspiration_chances += 1
+                
+    return inspiration_chances
+
+def get_seed_gathering_bonus(data, nest):
+    """Calculate garden size bonus from birds that give first-gather-of-day bonuses"""
+    today = get_current_date()
+    
+    # Check if this is their first gather action today
+    user_id = next(
+        uid for uid, user_nest in data["personal_nests"].items() 
+        if user_nest == nest
+    )
+    daily_actions = data["daily_actions"].get(user_id, {}).get(f"actions_{today}", {})
+    
+    if not isinstance(daily_actions, dict) or daily_actions.get("used", 0) > 0:
+        return 0
+    
+    # Calculate bonus from all chicks with seed gathering effects
+    total_bonus = 0
+    for chick in nest.get("chicks", []):
+        effect = get_bird_effect(chick["scientificName"])
+        if "Your first seed gathering action of the day also gives" in effect:
+            # Extract the number from strings like "+1 garden size"
+            bonus_amount = int(''.join(filter(str.isdigit, effect)))
+            total_bonus += bonus_amount
+
+    print(f'total_bonus: {total_bonus}')
+            
+    return total_bonus

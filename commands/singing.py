@@ -5,7 +5,8 @@ from discord.ext import commands
 from data.storage import load_data, save_data
 from data.models import (
     get_remaining_actions, record_actions, has_been_sung_to_by,
-    record_song, add_bonus_actions, get_personal_nest, get_singing_bonus
+    record_song, add_bonus_actions, get_personal_nest, get_singing_bonus,
+    get_singing_inspiration_chance
 )
 from utils.logging import log_debug
 from utils.time_utils import get_time_until_reset, get_current_date
@@ -57,14 +58,20 @@ class SingingCommands(commands.Cog):
                 continue
             
             singer_nest = get_personal_nest(data, ctx.author.id)
-            bonus_inspiration = get_singing_bonus(singer_nest)
-
+            bonus_actions = get_singing_bonus(singer_nest)
+            inspiration_bonus = get_singing_inspiration_chance(data, singer_nest)
+            
             # Record the song and add bonus actions
             record_song(data, ctx.author.id, target_user.id)
-            add_bonus_actions(data, target_user.id, 3 + bonus_inspiration)
+            add_bonus_actions(data, target_user.id, 3 + bonus_actions)
             record_actions(data, ctx.author.id, 1)
+            
+            # Add inspiration from finches
+            if inspiration_bonus > 0:
+                singer_nest["inspiration"] += inspiration_bonus
+            
             singer_remaining_actions -= 1
-            successful_targets.append((target_user, bonus_inspiration))
+            successful_targets.append((target_user, bonus_actions, inspiration_bonus))
 
         save_data(data)
         
@@ -75,12 +82,15 @@ class SingingCommands(commands.Cog):
                 message.append(f"• {user.display_name} ({reason})")
         else:
             message = ["🎵 Your beautiful song has inspired:"]
-            for user, bonus in successful_targets:
+            for user, action_bonus, inspiration_gained in successful_targets:
                 base_msg = f"**{user.display_name}** (+3"
-                if bonus > 0:
-                    base_msg += f" +{bonus}✨"
+                if action_bonus > 0:
+                    base_msg += f" +{action_bonus}✨"
                 base_msg += " actions)"
                 message.append(base_msg)
+            
+            if any(insp > 0 for _, _, insp in successful_targets):
+                message.append(f"\n✨ Your finches' songs brought you +{sum(insp for _, _, insp in successful_targets)} inspiration!")
             
             if skipped_targets:
                 message.append("\n⚠️ Couldn't sing to:")

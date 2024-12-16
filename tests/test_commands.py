@@ -293,3 +293,192 @@ class TestFlockCommands:
         mock_ctx.send.assert_called_once()
         assert "no active flock session" in mock_ctx.send.call_args[0][0]
 
+
+class TestSeedCommands:
+    @pytest.mark.asyncio
+    async def test_add_seed_with_cockatoo_bonus(self, mock_ctx, mock_data):
+        """Test adding seeds with cockatoo garden size bonus"""
+        # Set up nest with a Gang-gang Cockatoo
+        nest = get_personal_nest(mock_data, mock_ctx.author.id)
+        nest["twigs"] = 10
+        nest["chicks"] = [{
+            "commonName": "Gang-gang Cockatoo",
+            "scientificName": "Callocephalon fimbriatum",
+            "effect": "Your first seed gathering action of the day also gives +1 garden size"
+        }]
+        
+        # Mock the command
+        from commands.seeds import SeedCommands
+        seed_cog = SeedCommands(AsyncMock())
+        
+        # Debug assertions before command
+        print("\nBefore command:")
+        print(f"daily_actions structure: {mock_data['daily_actions']}")
+        print(f"nest structure: {nest}")
+        
+        # Add mock for load_data and save_data
+        def mock_load_data():
+            return mock_data
+
+        def mock_save_data(data):
+            mock_data.update(data)
+
+        with patch('commands.seeds.load_data', mock_load_data), \
+             patch('commands.seeds.save_data', mock_save_data):
+            await seed_cog.add_seed_own.callback(seed_cog, mock_ctx, 1)
+
+        # Check garden size was initialized and increased
+        assert "garden_size" in nest
+        assert nest["garden_size"] == 1
+        assert nest["seeds"] == 1
+
+    @pytest.mark.asyncio
+    async def test_add_seed_with_multiple_cockatoos(self, mock_ctx, mock_data):
+        """Test adding seeds with multiple cockatoos for garden size bonus"""
+        # Set up nest with both cockatoo species
+        nest = get_personal_nest(mock_data, mock_ctx.author.id)
+        nest["twigs"] = 10
+        nest["chicks"] = [
+            {
+                "commonName": "Gang-gang Cockatoo",
+                "scientificName": "Callocephalon fimbriatum",
+                "effect": "Your first seed gathering action of the day also gives +1 garden size"
+            },
+            {
+                "commonName": "Major Mitchell's Cockatoo",
+                "scientificName": "Lophochroa leadbeateri",
+                "effect": "Your first seed gathering action of the day also gives +1 garden size"
+            }
+        ]
+        
+        from commands.seeds import SeedCommands
+        seed_cog = SeedCommands(AsyncMock())
+        
+        # Add mock for load_data and save_data
+        def mock_load_data():
+            return mock_data
+
+        def mock_save_data(data):
+            mock_data.update(data)
+
+        with patch('commands.seeds.load_data', mock_load_data), \
+             patch('commands.seeds.save_data', mock_save_data):
+            await seed_cog.add_seed_own.callback(seed_cog, mock_ctx, 1)
+        
+        # Check garden size was increased by 2
+        assert nest["garden_size"] == 2
+        assert nest["seeds"] == 1
+
+class TestSingingCommands:
+    @pytest.mark.asyncio
+    async def test_sing_with_finch_inspiration(self, mock_ctx, mock_data, mocker):
+        """Test singing with finch inspiration chance"""
+        # Mock random to always return 0.4 (less than 0.5, so inspiration triggers)
+        mocker.patch('random.random', return_value=0.4)
+        
+        # Mock bird_species.json content
+        mock_bird_species = {
+            "bird_species": [
+                {
+                    "commonName": "Black-throated Finch",
+                    "scientificName": "Poephila cincta",
+                    "effect": "Your first singing action of the day has a 50% chance to give you +1 inspiration",
+                    "rarityWeight": 1
+                }
+            ]
+        }
+        
+        # Mock load_bird_species to return our test data
+        mocker.patch('data.models.load_bird_species', return_value=mock_bird_species["bird_species"])
+        
+        # Set up nest with a Black-throated Finch
+        nest = get_personal_nest(mock_data, mock_ctx.author.id)
+        nest["chicks"] = [{
+            "commonName": "Black-throated Finch",
+            "scientificName": "Poephila cincta"
+        }]
+        
+        # Set up target user
+        target_user = mock_ctx.add_member(456, "Target")
+        
+        from commands.singing import SingingCommands
+        sing_cog = SingingCommands(AsyncMock())
+        
+        # Add mock for load_data and save_data
+        def mock_load_data():
+            return mock_data
+        
+        def mock_save_data(data):
+            mock_data.update(data)
+        
+        with patch('commands.singing.load_data', mock_load_data), \
+             patch('commands.singing.save_data', mock_save_data):
+            await sing_cog.sing.callback(sing_cog, mock_ctx, target_user)
+        
+        # Get the updated nest from mock_data
+        updated_nest = get_personal_nest(mock_data, mock_ctx.author.id)
+        # Check inspiration was added
+        assert updated_nest["inspiration"] == 1
+
+    @pytest.mark.asyncio
+    async def test_sing_with_multiple_finches(self, mock_ctx, mock_data, mocker):
+        """Test singing with multiple finches for inspiration chance"""
+        # Mock random to always return 0.4 (less than 0.5, so inspiration triggers)
+        mocker.patch('random.random', return_value=0.4)
+        
+        # Mock bird_species.json content
+        mock_bird_species = {
+            "bird_species": [
+                {
+                    "commonName": "Black-throated Finch",
+                    "scientificName": "Poephila cincta",
+                    "effect": "Your first singing action of the day has a 50% chance to give you +1 inspiration",
+                    "rarityWeight": 1
+                },
+                {
+                    "commonName": "Gouldian Finch",
+                    "scientificName": "Erythrura gouldiae",
+                    "effect": "Your first singing action of the day has a 50% chance to give you +1 inspiration",
+                    "rarityWeight": 1
+                }
+            ]
+        }
+        
+        # Mock load_bird_species to return our test data
+        mocker.patch('data.models.load_bird_species', return_value=mock_bird_species["bird_species"])
+        
+        # Set up nest with both finch species
+        nest = get_personal_nest(mock_data, mock_ctx.author.id)
+        nest["chicks"] = [
+            {
+                "commonName": "Black-throated Finch",
+                "scientificName": "Poephila cincta"
+            },
+            {
+                "commonName": "Gouldian Finch",
+                "scientificName": "Erythrura gouldiae"
+            }
+        ]
+        
+        # Set up target user
+        target_user = mock_ctx.add_member(456, "Target")
+        
+        from commands.singing import SingingCommands
+        sing_cog = SingingCommands(AsyncMock())
+        
+        # Add mock for load_data and save_data
+        def mock_load_data():
+            return mock_data
+        
+        def mock_save_data(data):
+            mock_data.update(data)
+        
+        with patch('commands.singing.load_data', mock_load_data), \
+             patch('commands.singing.save_data', mock_save_data):
+            await sing_cog.sing.callback(sing_cog, mock_ctx, target_user)
+        
+        # Get the updated nest from mock_data
+        updated_nest = get_personal_nest(mock_data, mock_ctx.author.id)
+        # Check inspiration was added for both finches
+        assert updated_nest["inspiration"] == 2
+
