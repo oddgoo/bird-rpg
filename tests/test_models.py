@@ -996,3 +996,94 @@ def test_first_action_bonuses(mock_data):
     assert get_nest_building_bonus(mock_data, nest) == 0
     assert get_seed_gathering_bonus(mock_data, nest) == 0
 
+
+class TestSocialMechanics:
+    def test_entrust_bird_transfer(self, mock_data):
+        """Test that a bird is correctly transferred between nests"""
+        giver_id = "123"
+        receiver_id = "456"
+        
+        # Set up giver's nest with a bird
+        giver_nest = get_personal_nest(mock_data, giver_id)
+        test_bird = {
+            "commonName": "Test Bird",
+            "scientificName": "Testus birdus"
+        }
+        giver_nest["chicks"] = [test_bird]
+        
+        # Set up receiver's nest
+        receiver_nest = get_personal_nest(mock_data, receiver_id)
+        initial_receiver_birds = len(receiver_nest.get("chicks", []))
+        
+        # Transfer the bird
+        bird_to_give = None
+        for i, bird in enumerate(giver_nest["chicks"]):
+            if bird["commonName"] == "Test Bird":
+                bird_to_give = giver_nest["chicks"].pop(i)
+                break
+        
+        if "chicks" not in receiver_nest:
+            receiver_nest["chicks"] = []
+        receiver_nest["chicks"].append(bird_to_give)
+        
+        # Verify the transfer
+        assert len(giver_nest["chicks"]) == 0
+        assert len(receiver_nest["chicks"]) == initial_receiver_birds + 1
+        assert any(bird["commonName"] == "Test Bird" for bird in receiver_nest["chicks"])
+        assert not any(bird["commonName"] == "Test Bird" for bird in giver_nest["chicks"])
+
+    def test_entrust_nonexistent_bird(self, mock_data):
+        """Test attempting to transfer a bird that doesn't exist"""
+        giver_id = "123"
+        receiver_id = "456"
+        
+        # Set up nests
+        giver_nest = get_personal_nest(mock_data, giver_id)
+        receiver_nest = get_personal_nest(mock_data, receiver_id)
+        giver_nest["chicks"] = []
+        
+        # Try to find and transfer a nonexistent bird
+        bird_to_give = None
+        for i, bird in enumerate(giver_nest.get("chicks", [])):
+            if bird["commonName"] == "Nonexistent Bird":
+                bird_to_give = giver_nest["chicks"].pop(i)
+                break
+        
+        assert bird_to_give is None
+        assert len(giver_nest.get("chicks", [])) == 0
+        assert len(receiver_nest.get("chicks", [])) == 0
+
+    def test_entrust_bird_effects_transfer(self, mock_data):
+        """Test that bird effects are preserved when transferred"""
+        giver_id = "123"
+        receiver_id = "456"
+        
+        # Set up giver's nest with a special effect bird
+        giver_nest = get_personal_nest(mock_data, giver_id)
+        effect_bird = {
+            "commonName": "Night Parrot",
+            "scientificName": "Pezoporus occidentalis",
+            "effect": "All your songs give +5 actions."
+        }
+        giver_nest["chicks"] = [effect_bird]
+        
+        # Set up receiver's nest
+        receiver_nest = get_personal_nest(mock_data, receiver_id)
+        
+        # Transfer the bird
+        bird_to_give = None
+        for i, bird in enumerate(giver_nest["chicks"]):
+            if bird["commonName"] == "Night Parrot":
+                bird_to_give = giver_nest["chicks"].pop(i)
+                break
+        
+        if "chicks" not in receiver_nest:
+            receiver_nest["chicks"] = []
+        receiver_nest["chicks"].append(bird_to_give)
+        
+        # Verify the effect is preserved
+        transferred_bird = next(bird for bird in receiver_nest["chicks"] if bird["commonName"] == "Night Parrot")
+        assert transferred_bird["effect"] == "All your songs give +5 actions."
+        assert get_singing_bonus(receiver_nest) == 5
+        assert get_singing_bonus(giver_nest) == 0
+
