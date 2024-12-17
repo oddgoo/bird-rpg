@@ -10,6 +10,7 @@ from data.models import (
 )
 from utils.logging import log_debug
 from utils.time_utils import get_time_until_reset, get_current_date
+from config.config import DEBUG
 
 class SingingCommands(commands.Cog):
     def __init__(self, bot):
@@ -47,8 +48,8 @@ class SingingCommands(commands.Cog):
                 skipped_targets.append((target_user, "is a bot"))
                 continue
             
-            # Skip self
-            if ctx.author.id == target_user.id:
+            # Skip self unless in debug mode
+            if ctx.author.id == target_user.id and not DEBUG:
                 skipped_targets.append((target_user, "is yourself"))
                 continue
             
@@ -64,7 +65,7 @@ class SingingCommands(commands.Cog):
             # Record the song and add bonus actions
             record_song(data, ctx.author.id, target_user.id)
             add_bonus_actions(data, target_user.id, 3 + bonus_actions)
-            record_actions(data, ctx.author.id, 1)
+            record_actions(data, ctx.author.id, 1, "sing")
             
             # Add inspiration from finches
             if inspiration_bonus > 0:
@@ -93,7 +94,7 @@ class SingingCommands(commands.Cog):
                 message.append(f"\n✨ Your finches' songs brought you +{sum(insp for _, _, insp in successful_targets)} inspiration!")
             
             if skipped_targets:
-                message.append("\n⚠️ Couldn't sing to:")
+                message.append("\n Couldn't sing to:")
                 for user, reason in skipped_targets:
                     message.append(f"• {user.display_name} ({reason})")
             

@@ -30,7 +30,7 @@ class BuildCommands(commands.Cog):
         total_twigs = amount + bonus_twigs
         
         nest["twigs"] += total_twigs
-        record_actions(data, ctx.author.id, amount)
+        record_actions(data, ctx.author.id, amount, "build")
         
         save_data(data)
         remaining = get_remaining_actions(data, ctx.author.id)
@@ -65,7 +65,7 @@ class BuildCommands(commands.Cog):
         total_twigs = amount + bonus_twigs
         
         data["common_nest"]["twigs"] += total_twigs
-        record_actions(data, ctx.author.id, amount)
+        record_actions(data, ctx.author.id, amount, "build")
         
         save_data(data)
         nest = data["common_nest"]

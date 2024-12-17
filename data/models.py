@@ -64,7 +64,11 @@ def get_remaining_actions(data, user_id):
     total_available = BASE_DAILY_ACTIONS + actions_data["bonus"] + chick_bonus
     return total_available - actions_data["used"]
 
-def record_actions(data, user_id, count):
+def record_actions(data, user_id, count, action_type=None):
+    """
+    Record actions used by a user
+    action_type can be: 'build', 'sing', 'seed', 'brood'
+    """
     user_id = str(user_id)
     today = get_current_date()
     
@@ -74,17 +78,41 @@ def record_actions(data, user_id, count):
     if f"actions_{today}" not in data["daily_actions"][user_id]:
         data["daily_actions"][user_id][f"actions_{today}"] = {
             "used": 0,
-            "bonus": 0
+            "bonus": 0,
+            "action_history": []  # List to track action types in order
         }
     
-    if isinstance(data["daily_actions"][user_id][f"actions_{today}"], (int, float)):
-        used_actions = data["daily_actions"][user_id][f"actions_{today}"]
-        data["daily_actions"][user_id][f"actions_{today}"] = {
-            "used": used_actions,
-            "bonus": 0
-        }
+    daily_data = data["daily_actions"][user_id][f"actions_{today}"]
     
-    data["daily_actions"][user_id][f"actions_{today}"]["used"] += count
+    # Convert old format if necessary
+    if isinstance(daily_data, (int, float)):
+        daily_data = {
+            "used": daily_data,
+            "bonus": 0,
+            "action_history": []
+        }
+        data["daily_actions"][user_id][f"actions_{today}"] = daily_data
+    elif "action_history" not in daily_data:
+        daily_data["action_history"] = []
+    
+    daily_data["used"] += count
+    if action_type:
+        daily_data["action_history"].extend([action_type] * count)
+
+def is_first_action_of_type(data, user_id, action_type):
+    """Check if this is the first action of a specific type today"""
+    user_id = str(user_id)
+    today = get_current_date()
+    
+    if user_id not in data["daily_actions"]:
+        return True
+        
+    daily_data = data["daily_actions"][user_id].get(f"actions_{today}")
+    if not daily_data or not isinstance(daily_data, dict):
+        return True
+        
+    action_history = daily_data.get("action_history", [])
+    return action_type not in action_history
 
 def has_been_sung_to(data, user_id):
     user_id = str(user_id)
@@ -249,16 +277,13 @@ def get_total_bird_species(data):
 
 def get_nest_building_bonus(data, nest):
     """Calculate building bonus from birds that give first-build-of-day bonuses"""
-    today = get_current_date()
-    
-    # Check if this is their first build action today
+    # Get user_id from nest
     user_id = next(
         uid for uid, user_nest in data["personal_nests"].items() 
         if user_nest == nest
     )
-    daily_actions = data["daily_actions"].get(user_id, {}).get(f"actions_{today}", {})
     
-    if not isinstance(daily_actions, dict) or daily_actions.get("used", 0) > 0:
+    if not is_first_action_of_type(data, user_id, "build"):
         return 0
     
     # Calculate bonus from all chicks with building effects
@@ -266,7 +291,6 @@ def get_nest_building_bonus(data, nest):
     for chick in nest.get("chicks", []):
         effect = get_bird_effect(chick["scientificName"])
         if "Your first nest-building action of the day gives" in effect:
-            # Extract the number from strings like "+5 twigs"
             bonus_amount = int(''.join(filter(str.isdigit, effect)))
             total_bonus += bonus_amount
             
@@ -283,19 +307,15 @@ def get_singing_bonus(nest):
             total_bonus += bonus_amount
             
     return total_bonus
-
 def get_singing_inspiration_chance(data, nest):
     """Calculate chance-based inspiration bonus from finches on first singing action"""
-    today = get_current_date()
-    
-    # Check if this is their first action today
+    # Get user_id from nest
     user_id = next(
         uid for uid, user_nest in data["personal_nests"].items() 
         if user_nest == nest
     )
-    daily_actions = data["daily_actions"].get(user_id, {}).get(f"actions_{today}", {})
     
-    if not isinstance(daily_actions, dict) or daily_actions.get("used", 0) > 0:
+    if not is_first_action_of_type(data, user_id, "sing"):
         return 0
     
     # Count finches with inspiration chance effects
@@ -310,16 +330,13 @@ def get_singing_inspiration_chance(data, nest):
 
 def get_seed_gathering_bonus(data, nest):
     """Calculate garden size bonus from birds that give first-gather-of-day bonuses"""
-    today = get_current_date()
-    
-    # Check if this is their first gather action today
+    # Get user_id from nest
     user_id = next(
         uid for uid, user_nest in data["personal_nests"].items() 
         if user_nest == nest
     )
-    daily_actions = data["daily_actions"].get(user_id, {}).get(f"actions_{today}", {})
     
-    if not isinstance(daily_actions, dict) or daily_actions.get("used", 0) > 0:
+    if not is_first_action_of_type(data, user_id, "seed"):
         return 0
     
     # Calculate bonus from all chicks with seed gathering effects
@@ -327,10 +344,7 @@ def get_seed_gathering_bonus(data, nest):
     for chick in nest.get("chicks", []):
         effect = get_bird_effect(chick["scientificName"])
         if "Your first seed gathering action of the day also gives" in effect:
-            # Extract the number from strings like "+1 garden size"
             bonus_amount = int(''.join(filter(str.isdigit, effect)))
             total_bonus += bonus_amount
-
-    print(f'total_bonus: {total_bonus}')
             
     return total_bonus

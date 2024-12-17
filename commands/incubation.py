@@ -109,7 +109,7 @@ class IncubationCommands(commands.Cog):
                 skipped_targets.append((target_user, error))
             else:
                 successful_targets.append(result)
-                record_actions(data, ctx.author.id, 1)
+                record_actions(data, ctx.author.id, 1, "brood")
                 remaining_actions -= 1
 
         save_data(data)
@@ -187,7 +187,7 @@ class IncubationCommands(commands.Cog):
             await ctx.send(f"Couldn't brood at {target_user.display_name}'s nest: {error}")
             return
 
-        record_actions(data, ctx.author.id, 1)
+        record_actions(data, ctx.author.id, 1, "brood")
         save_data(data)
 
         # Send appropriate response

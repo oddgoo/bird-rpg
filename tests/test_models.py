@@ -7,7 +7,8 @@ from data.models import (
     get_egg_cost, select_random_bird_species, record_brooding,
     has_brooded_egg, get_total_chicks, load_bird_species,
     get_nest_building_bonus, get_singing_bonus,
-    get_seed_gathering_bonus, get_singing_inspiration_chance
+    get_seed_gathering_bonus, get_singing_inspiration_chance,
+    is_first_action_of_type
 )
 import random
 from utils.time_utils import get_current_date
@@ -424,8 +425,8 @@ class TestIncubationModule:
         assert get_total_chicks(nest) == 3
 
 class TestBirdEffects:
-    def test_plains_wanderer_building_bonus(self, mock_data):
-        """Test Plains-wanderer(s) give stacking +5 twigs on first build"""
+    def test_first_build_bonus_birds(self, mock_data):
+        """Test that birds with first-build-of-day bonuses stack correctly"""
         user_id = "123"
         today = get_current_date()
         
@@ -441,28 +442,30 @@ class TestBirdEffects:
         
         nest = get_personal_nest(mock_data, user_id)
         
-        # Add two Plains-wanderers to nest
+        # Add birds with first-build bonuses
         nest["chicks"].extend([
             {
                 "commonName": "Plains-wanderer",
                 "scientificName": "Pedionomus torquatus",
-                "effect": "Your first nest building action of the day gives +5 twigs"
+            },
+            {
+                "commonName": "Southern Cassowary",
+                "scientificName": "Casuarius casuarius",
             },
             {
                 "commonName": "Plains-wanderer",
                 "scientificName": "Pedionomus torquatus",
-                "effect": "Your first nest building action of the day gives +5 twigs"
             }
         ])
         
-        # First build of the day
+        # First build of the day should get stacking bonuses
         bonus_twigs = get_nest_building_bonus(mock_data, nest)
-        assert bonus_twigs == 10, "Should get +5 twigs bonus per Plains-wanderer on first build"
+        assert bonus_twigs == 13, "Should get +5 twigs per Plains-wanderer and +3 from Cassowary"
         
-        # Record an action to simulate the build
-        record_actions(mock_data, user_id, 1)
+        # Record a build action
+        record_actions(mock_data, user_id, 1, "build")
         
-        # Second build of the day
+        # Subsequent builds should not get bonuses
         bonus_twigs = get_nest_building_bonus(mock_data, nest)
         assert bonus_twigs == 0, "Should not get bonus on subsequent builds"
 
@@ -826,7 +829,7 @@ def test_get_seed_gathering_bonus(mock_data):
     assert bonus == 2
     
     # Test after actions used
-    record_actions(mock_data, "123", 1)
+    record_actions(mock_data, "123", 1, "seed")
     bonus = get_seed_gathering_bonus(mock_data, nest)
     assert bonus == 0
 
@@ -840,12 +843,10 @@ def test_get_singing_inspiration_chance(mock_data, mocker):
             {
                 "commonName": "Black-throated Finch",
                 "scientificName": "Poephila cincta",
-                "effect": "Your first singing action of the day has a 50% chance to give you +1 inspiration"
             },
             {
                 "commonName": "Gouldian Finch",
                 "scientificName": "Erythrura gouldiae",
-                "effect": "Your first singing action of the day has a 50% chance to give you +1 inspiration"
             }
         ]
     }
@@ -856,7 +857,57 @@ def test_get_singing_inspiration_chance(mock_data, mocker):
     assert bonus == 2  # Both finches should trigger
     
     # Test after actions used
-    record_actions(mock_data, "123", 1)
+    record_actions(mock_data, "123", 1, "sing")
     bonus = get_singing_inspiration_chance(mock_data, nest)
     assert bonus == 0
+
+def test_action_history_tracking(mock_data):
+    """Test that action history is properly tracked"""
+    user_id = "123"
+    
+    # Record different types of actions
+    record_actions(mock_data, user_id, 1, "build")
+    record_actions(mock_data, user_id, 2, "seed")
+    record_actions(mock_data, user_id, 1, "sing")
+    
+    today = get_current_date()
+    daily_data = mock_data["daily_actions"][user_id][f"actions_{today}"]
+    
+    assert daily_data["used"] == 4
+    assert daily_data["action_history"] == ["build", "seed", "seed", "sing"]
+    
+    # Test is_first_action_of_type
+    assert not is_first_action_of_type(mock_data, user_id, "build")
+    assert not is_first_action_of_type(mock_data, user_id, "seed")
+    assert not is_first_action_of_type(mock_data, user_id, "sing")
+    assert is_first_action_of_type(mock_data, user_id, "brood")
+
+def test_first_action_bonuses(mock_data):
+    """Test that first-action bonuses only trigger on first action of that type"""
+    user_id = "123"
+    nest = get_personal_nest(mock_data, user_id)
+    
+    # Add birds with first-action bonuses
+    nest["chicks"] = [
+        {
+            "commonName": "Plains-wanderer",
+            "scientificName": "Pedionomus torquatus"
+        },
+        {
+            "commonName": "Gang-gang Cockatoo",
+            "scientificName": "Callocephalon fimbriatum"
+        }
+    ]
+    
+    # First actions should get bonuses
+    assert get_nest_building_bonus(mock_data, nest) == 5
+    assert get_seed_gathering_bonus(mock_data, nest) == 1
+    
+    # Record the actions
+    record_actions(mock_data, user_id, 1, "build")
+    record_actions(mock_data, user_id, 1, "seed")
+    
+    # Subsequent actions should not get bonuses
+    assert get_nest_building_bonus(mock_data, nest) == 0
+    assert get_seed_gathering_bonus(mock_data, nest) == 0
 

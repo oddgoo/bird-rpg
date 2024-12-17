@@ -404,21 +404,14 @@ class TestSingingCommands:
         from commands.singing import SingingCommands
         sing_cog = SingingCommands(AsyncMock())
         
-        # Add mock for load_data and save_data
-        def mock_load_data():
-            return mock_data
+        await sing_cog.sing.callback(sing_cog, mock_ctx, target_user)
         
-        def mock_save_data(data):
-            mock_data.update(data)
-        
-        with patch('commands.singing.load_data', mock_load_data), \
-             patch('commands.singing.save_data', mock_save_data):
-            await sing_cog.sing.callback(sing_cog, mock_ctx, target_user)
-        
-        # Get the updated nest from mock_data
-        updated_nest = get_personal_nest(mock_data, mock_ctx.author.id)
         # Check inspiration was added
-        assert updated_nest["inspiration"] == 1
+        assert nest["inspiration"] == 1
+        
+        # Check action was recorded with correct type
+        today = get_current_date()
+        assert mock_data["daily_actions"][str(mock_ctx.author.id)][f"actions_{today}"]["action_history"] == ["sing"]
 
     @pytest.mark.asyncio
     async def test_sing_with_multiple_finches(self, mock_ctx, mock_data, mocker):

@@ -46,7 +46,7 @@ class SeedCommands(commands.Cog):
             return
         
         nest["seeds"] += amount
-        record_actions(data, ctx.author.id, amount)
+        record_actions(data, ctx.author.id, amount, "seed")
         
         save_data(data)
         remaining = get_remaining_actions(data, ctx.author.id)
@@ -90,7 +90,7 @@ class SeedCommands(commands.Cog):
             return
         
         common_nest["seeds"] += amount
-        record_actions(data, ctx.author.id, amount)
+        record_actions(data, ctx.author.id, amount, "seed")
         
         save_data(data)
         remaining = get_remaining_actions(data, ctx.author.id)
