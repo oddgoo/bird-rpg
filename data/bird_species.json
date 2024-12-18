@@ -209,6 +209,209 @@
         "rarityWeight": 0.5,
         "rarity": "mythical",
         "effect": "All your songs give +5 actions."
+      },
+      {
+        "commonName": "Magpie Lark",
+        "scientificName": "Grallina cyanoleuca",
+        "rarityWeight": 8,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "Crested Pigeon",
+        "scientificName": "Ocyphaps lophotes",
+        "rarityWeight": 8,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "Little Corella",
+        "scientificName": "Cacatua sanguinea",
+        "rarityWeight": 7,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "Australian Raven",
+        "scientificName": "Corvus coronoides",
+        "rarityWeight": 7,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "Pied Currawong",
+        "scientificName": "Strepera graculina",
+        "rarityWeight": 7,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "Little Wattlebird",
+        "scientificName": "Anthochaera chrysoptera",
+        "rarityWeight": 6,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "Red Wattlebird",
+        "scientificName": "Anthochaera carunculata",
+        "rarityWeight": 6,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "Crimson Rosella",
+        "scientificName": "Platycercus elegans",
+        "rarityWeight": 6,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "Yellow-tailed Black Cockatoo",
+        "scientificName": "Calyptorhynchus funereus",
+        "rarityWeight": 5,
+        "rarity": "common",
+        "effect": "Your first seed gathering action of the day also gives +1 garden size"
+      },
+      {
+        "commonName": "Australian Pelican",
+        "scientificName": "Pelecanus conspicillatus",
+        "rarityWeight": 5,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "Sacred Kingfisher",
+        "scientificName": "Todiramphus sanctus",
+        "rarityWeight": 4,
+        "rarity": "uncommon",
+        "effect": ""
+      },
+      {
+        "commonName": "Rainbow Bee-eater",
+        "scientificName": "Merops ornatus",
+        "rarityWeight": 4,
+        "rarity": "uncommon",
+        "effect": ""
+      },
+      {
+        "commonName": "Spotted Pardalote",
+        "scientificName": "Pardalotus punctatus",
+        "rarityWeight": 4,
+        "rarity": "uncommon",
+        "effect": "Your first nest-building action of the day gives +3 twigs."
+      },
+      {
+        "commonName": "Red-tailed Black Cockatoo",
+        "scientificName": "Calyptorhynchus banksii",
+        "rarityWeight": 4,
+        "rarity": "uncommon",
+        "effect": "Your first seed gathering action of the day also gives +1 garden size"
+      },
+      {
+        "commonName": "Channel-billed Cuckoo",
+        "scientificName": "Scythrops novaehollandiae",
+        "rarityWeight": 3,
+        "rarity": "uncommon",
+        "effect": ""
+      },
+      {
+        "commonName": "Regent Honeyeater",
+        "scientificName": "Anthochaera phrygia",
+        "rarityWeight": 3,
+        "rarity": "uncommon",
+        "effect": ""
+      },
+      {
+        "commonName": "Glossy Black Cockatoo",
+        "scientificName": "Calyptorhynchus lathami",
+        "rarityWeight": 3,
+        "rarity": "uncommon",
+        "effect": "Your first seed gathering action of the day also gives +1 garden size"
+      },
+      {
+        "commonName": "Hooded Parrot",
+        "scientificName": "Psephotus dissimilis",
+        "rarityWeight": 3,
+        "rarity": "uncommon",
+        "effect": ""
+      },
+      {
+        "commonName": "Princess Parrot",
+        "scientificName": "Polytelis alexandrae",
+        "rarityWeight": 2,
+        "rarity": "uncommon",
+        "effect": ""
+      },
+      {
+        "commonName": "Golden Bowerbird",
+        "scientificName": "Prionodura newtoniana",
+        "rarityWeight": 2,
+        "rarity": "uncommon",
+        "effect": ""
+      },
+      {
+        "commonName": "Western Ground Parrot",
+        "scientificName": "Pezoporus flaviventris",
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "Your first nest-building action of the day gives +5 twigs."
+      },
+      {
+        "commonName": "Golden-shouldered Parrot",
+        "scientificName": "Psephotus chrysopterygius",
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "All your songs give +3 actions."
+      },
+      {
+        "commonName": "Paradise Parrot",
+        "scientificName": "Psephotus pulcherrimus",
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "All your songs give +3 actions."
+      },
+      {
+        "commonName": "Yellow Chat",
+        "scientificName": "Epthianura crocea",
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "Your first nest-building action of the day gives +5 twigs."
+      },
+      {
+        "commonName": "Noisy Scrub-bird",
+        "scientificName": "Atrichornis clamosus",
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "All your songs give +3 actions."
+      },
+      {
+        "commonName": "White-winged Fairy-wren",
+        "scientificName": "Malurus leucopterus",
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "All your songs give +3 actions."
+      },
+      {
+        "commonName": "Pink Robin",
+        "scientificName": "Petroica rodinogaster",
+        "rarityWeight": 0.5,
+        "rarity": "rare",
+        "effect": "All your songs give +3 actions."
+      },
+      {
+        "commonName": "Rufous Scrub-bird",
+        "scientificName": "Atrichornis rufescens",
+        "rarityWeight": 0.5,
+        "rarity": "mythical",
+        "effect": "All your songs give +5 actions."
+      },
+      {
+        "commonName": "Mallee Emu-wren",
+        "scientificName": "Stipiturus mallee",
+        "rarityWeight": 0.5,
+        "rarity": "mythical",
+        "effect": "All your songs give +5 actions."
       }
     ]
   }
