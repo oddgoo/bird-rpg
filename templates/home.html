@@ -16,6 +16,17 @@
     </div>
 </div>
 
+<div class="rounded-xl p-6 mb-6 shadow-lg border-4 border-blue-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+    <div class="border border-blue-300/50 rounded-lg p-4 bg-blue-50/50">
+        <h2 class="flex justify-center items-center gap-2 text-2xl text-blue-900 font-mystical font-bold">Eggsploration</h2>
+        <div class="text-center mt-4">
+            <div class="inline-block mx-2 text-lg bg-white px-4 py-2 rounded-full shadow-lg">
+                <span class="text-2xl align-middle">🗺️</span> Oceania: {{ exploration.oceania|default(0) }}
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="border-4 border-yellow-900 rounded-xl mb-6 text-center p-6" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
     <div class="border border-amber-300/30 rounded-lg p-4">
         <h2 class="text-2xl text-center text-yellow-900 mb-4 font-mystical font-bold">Community Species</h2>
@@ -92,7 +103,7 @@
         {% endfor %}
         <a class="no-underline">
             <div class="bg-gray-200 backdrop-blur-sm rounded-lg p-5 shadow-md transition-transform transform hover:-translate-y-1 border border-amber-200/50 hover:border-amber-300/70">
-                <div class="text-sm font-bold font-mystical text-orange-900">P̴̍̿ͅa̷̖̤̅̈́n̶̗̱̳̂̂̔t̸̡̞̟͛͛h̵̭̘̼́̅ͅĕ̴̠̋̈́̚o̶̧͇̞̐n̵͓̟̣̉̈̍͠S̸̱̯̼͊p̷͖̘̫̍̔a̸͇̼̓̿̔̃r̶͖̦̈́͜͝ȑ̶̡̻̮̄̀͜ö̸̰́w̵͈̄͐̎̍ ̵̤͐̐͝N̵̺̻͖̈́̏͂͊è̸̡̝̯ͅs̶̞͉͇̣̑͐̀ẗ̶̩͔̰̪́̓̍̕ ̸̮̯̕E̶̻͚͙͗̄v̷̧͊̈́e̵̥̬̤͋̑r̸̡̛̒ ̸̤̇͊Ñ̵̦̯̤́̀͘e̵̦̚x̸̡̻̥̦̂͘̕͝ṱ̴͋̀͊͝ ̶͕͍̱̈Ţ̷̺̌̏͊͘i̵̱̿̇̎̅m̸͕̫̟̱̔ë̵̻̗̯́</div>
+                <div class="text-sm font-bold font-mystical text-orange-900">P̴̍̿ͅa̷̖̤̅̈́n̶̗̱̳̂̂̔t̸̵̡̞̟̭̘̼͛͛́̅ͅĕ̴̠̋̈́̚o̶̧͇̞̐n̵͓̟̣̉̈̍͠S̸̱̯̼͊p̷͖̘̫̍̔a̸͇̼̓̿̔̃r̶͖̦̈́͜͝ȑ̶̡̻̮̄̀͜ö̸̰́w̵͈̄͐̎̍ ̵̤͐̐͝N̵̺̻͖̈́̏͂͊è̸̡̝̯ͅs̶̞͉͇̣̑͐̀ẗ̶̩͔̰̪́̓̍̕ ̸̮̯̕E̶̻͚͙͗̄v̷̧͊̈́e̵̥̬̤͋̑r̸̡̛̒ ̸̤̇͊Ñ̵̦̯̤́̀͘e̵̦̚x̸̡̻̥̦̂͘̕͝ṱ̴͋̀͊͝ ̶͕͍̱̈Ţ̷̺̌̏͊͘i̵̱̿̇̎̅m̸͕̫̟̱̔ë̵̻̗̯́</div>
                 <div class="flex flex-col space-y-2">
                     <div class="flex justify-between border-b border-dashed border-yellow-200 py-1">
                         <span>🌰 Seeds</span>

@@ -62,6 +62,8 @@ def get_home_page():
             "scientificName": species[1]
         })
     
+    exploration = data.get("exploration", {})
+    
     return render_template(
         'home.html',
         common_nest=common_nest,
@@ -69,5 +71,6 @@ def get_home_page():
         time_until_reset=time_until_reset,
         total_bird_species=total_bird_species,
         discovered_species_count=discovered_species_count,
-        discovered_species=discovered_species
+        discovered_species=discovered_species,
+        exploration=exploration
     )

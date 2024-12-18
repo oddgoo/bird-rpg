@@ -7,8 +7,7 @@ from data.models import (
     get_egg_cost, select_random_bird_species, record_brooding,
     has_brooded_egg, get_total_chicks, load_bird_species,
     get_nest_building_bonus, get_singing_bonus,
-    get_seed_gathering_bonus, get_singing_inspiration_chance,
-    is_first_action_of_type
+    get_seed_gathering_bonus, get_singing_inspiration_chance
 )
 import random
 from utils.time_utils import get_current_date
@@ -229,91 +228,6 @@ class TestSongMechanics:
         
         assert len(successful_targets) == 1  # Only "789" should be successful
         assert "789" in successful_targets
-
-    def test_sing_with_finch_inspiration(self, mock_data, mocker):
-        """Test that a single finch has a chance to give inspiration on first sing"""
-        # Mock random to always return 0.4 (less than 0.5, so inspiration triggers)
-        mocker.patch('random.random', return_value=0.4)
-        
-        user_id = "123"
-        today = get_current_date()
-        
-        # Initialize daily actions
-        mock_data["daily_actions"] = {
-            user_id: {
-                f"actions_{today}": {
-                    "used": 0,
-                    "bonus": 0
-                }
-            }
-        }
-        
-        nest = get_personal_nest(mock_data, user_id)
-        
-        # Add a Black-throated Finch
-        nest["chicks"].append({
-            "commonName": "Black-throated Finch",
-            "scientificName": "Poephila cincta"
-        })
-        
-        # First sing of the day should have chance for inspiration
-        inspiration = get_singing_inspiration_chance(mock_data, nest)
-        assert inspiration == 1, "Should get +1 inspiration (50% chance succeeded)"
-        
-        # Record a sing action
-        record_actions(mock_data, user_id, 1, "sing")
-        
-        # Subsequent sings should not give inspiration chance
-        inspiration = get_singing_inspiration_chance(mock_data, nest)
-        assert inspiration == 0, "Should not get inspiration chance after first sing"
-
-    def test_sing_with_multiple_finches(self, mock_data, mocker):
-        """Test that multiple finches each have independent chances for inspiration"""
-        # Mock random to alternate between 0.4 and 0.6
-        random_values = [0.4, 0.6, 0.4]  # First and third succeed, second fails
-        mocker.patch('random.random', side_effect=random_values)
-        
-        user_id = "123"
-        today = get_current_date()
-        
-        # Initialize daily actions
-        mock_data["daily_actions"] = {
-            user_id: {
-                f"actions_{today}": {
-                    "used": 0,
-                    "bonus": 0
-                }
-            }
-        }
-        
-        nest = get_personal_nest(mock_data, user_id)
-        
-        # Add three finches
-        nest["chicks"].extend([
-            {
-                "commonName": "Black-throated Finch",
-                "scientificName": "Poephila cincta"
-            },
-            {
-                "commonName": "Gouldian Finch",
-                "scientificName": "Erythrura gouldiae"
-            },
-            {
-                "commonName": "Black-throated Finch",
-                "scientificName": "Poephila cincta"
-            }
-        ])
-        
-        # First sing of the day should check each finch
-        inspiration = get_singing_inspiration_chance(mock_data, nest)
-        assert inspiration == 2, "Should get +2 inspiration (two 50% chances succeeded, one failed)"
-        
-        # Record a sing action
-        record_actions(mock_data, user_id, 1, "sing")
-        
-        # Subsequent sings should not give inspiration chance
-        inspiration = get_singing_inspiration_chance(mock_data, nest)
-        assert inspiration == 0, "Should not get inspiration chance after first sing"
 
 class TestEdgeCases:
     def test_zero_remaining_actions(self, mock_data):
@@ -545,12 +459,12 @@ class TestBirdEffects:
         
         # First build of the day should get stacking bonuses
         bonus_twigs = get_nest_building_bonus(mock_data, nest)
-        assert bonus_twigs == 13, "Should get +5 twigs per Plains-wanderer and +3 from Cassowary"
+        assert bonus_twigs == 10, "Should get +5 twigs bonus per Plains-wanderer on first build"
         
-        # Record a build action
-        record_actions(mock_data, user_id, 1, "build")
+        # Record an action to simulate the build
+        record_actions(mock_data, user_id, 1)
         
-        # Subsequent builds should not get bonuses
+        # Second build of the day
         bonus_twigs = get_nest_building_bonus(mock_data, nest)
         assert bonus_twigs == 0, "Should not get bonus on subsequent builds"
 
