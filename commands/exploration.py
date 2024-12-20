@@ -18,13 +18,20 @@ class ExplorationCommands(commands.Cog):
         categories = [
             "Category:Geography_of_Australia",
             "Category:Environment_of_Australia",
+            "Category:Localities_in_Queensland",
+            "Category:Towns_in_Victoria_(state)",
+            "Category:Towns_in_New_South_Wales",
+            "Category:Towns_in_Western_Australia",
+            "Category:Towns_in_Tasmania",
+            "Category:Towns_in_South_Australia",
             "Category:Protected_areas_of_Australia",
             "Category:Australia_geography_stubs",
             "Category:Geography_of_New_Zealand",
+            "Category:Cities_in_New_Zealand",
             "Category:Protected_areas_of_New_Zealand",
             "Category:Papua_New_Guinea_geography_stubs",
             "Category:Fiji_geography_stubs",
-            "Category:Vanuatu_geography_stubs"
+            "Category:Vanuatu_geography_stubs",
         ]
         
         async with aiohttp.ClientSession() as session:
