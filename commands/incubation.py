@@ -220,6 +220,15 @@ class IncubationCommands(commands.Cog):
 
     async def fetch_bird_image(self, scientific_name):
         """Fetches the bird image URL and taxon URL from iNaturalist."""
+        # First check if this is a special bird by looking it up in bird_species.json
+        data = load_data()
+        for bird in data.get("bird_species", []):
+            if bird["scientificName"] == scientific_name and bird.get("rarity") == "Special":
+                # For special birds, return the local image path
+                local_image_url = f"/static/images/special-birds/{scientific_name}.png"
+                return local_image_url, None
+
+        # For regular birds, continue with iNaturalist API
         api_url = f"https://api.inaturalist.org/v1/taxa?q={scientific_name}&limit=1"
         async with aiohttp.ClientSession() as session:
             try:

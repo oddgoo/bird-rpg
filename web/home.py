@@ -4,6 +4,7 @@ from data.storage import load_data
 from data.models import (
     get_common_nest, 
     get_total_bird_species, 
+    load_bird_species,
     get_discovered_species_count, get_discovered_species
 )
 from utils.time_utils import get_time_until_reset
@@ -57,11 +58,19 @@ def get_home_page():
     
     discovered_species = []
     for species in get_discovered_species(data):
-        discovered_species.append({
-            "commonName": species[0],
-            "scientificName": species[1]
-        })
-    
+        common_name, scientific_name = species
+        # Find the full bird data from bird_species.json
+        for bird in load_bird_species():
+            if bird["scientificName"] == scientific_name:
+                discovered_species.append({
+                    "commonName": common_name,
+                    "scientificName": scientific_name,
+                    "rarity": bird["rarity"],
+                    "effect": bird.get("effect", "")
+                })
+                break
+
+    print(discovered_species)
     exploration = data.get("exploration", {})
     
     return render_template(

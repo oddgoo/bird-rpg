@@ -209,6 +209,14 @@
         "rarityWeight": 0.5,
         "rarity": "mythical",
         "effect": "All your songs give +5 actions."
+      },
+      {
+        "commonName": "Casspie",
+        "scientificName": "Casspie",
+        "rarityWeight": 0,
+        "rarity": "Special",
+        "effect": "Your first swoop of the day is +5 points more effective."
       }
+      
     ]
   }
