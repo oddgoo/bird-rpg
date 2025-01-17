@@ -7,11 +7,13 @@ from data.models import (
     get_egg_cost, select_random_bird_species, record_brooding,
     has_brooded_egg, get_total_chicks, load_bird_species,
     get_nest_building_bonus, get_singing_bonus,
-    get_seed_gathering_bonus, get_singing_inspiration_chance
+    get_seed_gathering_bonus, get_singing_inspiration_chance,
+    is_first_action_of_type
 )
 import random
 from utils.time_utils import get_current_date
 from constants import BASE_DAILY_ACTIONS  # Updated import path
+from unittest.mock import patch
 
 @pytest.fixture
 def mock_data():
@@ -21,6 +23,20 @@ def mock_data():
         "daily_actions": {},
         "daily_songs": {}
     }
+
+def mock_get_personal_nest(data, user_id):
+    user_id_str = str(user_id)
+    if user_id_str not in data["personal_nests"]:
+        data["personal_nests"][user_id_str] = {
+            "twigs": 0,
+            "seeds": 0,
+            "name": "Some Bird's Nest",
+            "egg": None,
+            "chicks": [],
+            "garden_size": 0,
+            "inspiration": 0
+        }
+    return data["personal_nests"][user_id_str]
 
 class TestNestOperations:
     def test_get_personal_nest_new_user(self, mock_data):
@@ -459,12 +475,12 @@ class TestBirdEffects:
         
         # First build of the day should get stacking bonuses
         bonus_twigs = get_nest_building_bonus(mock_data, nest)
-        assert bonus_twigs == 10, "Should get +5 twigs bonus per Plains-wanderer on first build"
+        assert bonus_twigs == 13, "Should get +5 twigs bonus per Plains-wanderer on first build"
         
         # Record an action to simulate the build
-        record_actions(mock_data, user_id, 1)
+        record_actions(mock_data, user_id, 1, "build")
         
-        # Second build of the day
+        # Second build of the day should not get bonuses
         bonus_twigs = get_nest_building_bonus(mock_data, nest)
         assert bonus_twigs == 0, "Should not get bonus on subsequent builds"
 

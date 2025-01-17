@@ -25,10 +25,3 @@ bot permissions integer: Oauth2 permissions:
 - Send Messages
 - Read Message History
 
-## TODO and Ideas
-- study grows garden:
-- log book
-- uncommon birds to get small bonuses
-- Foraging for treasure
-- Swooping: " special stones that can only be taken from defeated children"
-- server-led notifications

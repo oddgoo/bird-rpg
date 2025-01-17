@@ -12,12 +12,12 @@
                 <div>
                     <h3 class="text-xl text-orange-700 font-mystical">Commands</h3>
                     <ul class="list-group list-group-flush space-y-2">
-                        <li class="bg-white/90 p-2 rounded"><code>!add_twig [amount]</code> - Add twigs to your personal nest</li>
-                        <li class="bg-white/90 p-2 rounded"><code>!add_twig_common [amount]</code> - Add twigs to the common nest</li>
-                        <li class="bg-white/90 p-2 rounded"><code>!add_seed [amount]</code> - Add seeds to your personal nest</li>
-                        <li class="bg-white/90 p-2 rounded"><code>!add_seed_common [amount]</code> - Add seeds to the common nest</li>
-                        <li class="bg-white/90 p-2 rounded"><code>!borrow_seeds [amount]</code> - Move seeds from common nest to your nest</li>
-                        <li class="bg-white/90 p-2 rounded"><code>!donate_seeds [amount]</code> - Move seeds from your nest to common nest</li>
+                        <li class="bg-white/90 p-2 rounded"><code>/build [amount]</code> - Add twigs to your personal nest</li>
+                        <li class="bg-white/90 p-2 rounded"><code>/build_common [amount]</code> - Add twigs to the common nest</li>
+                        <li class="bg-white/90 p-2 rounded"><code>/add_seed [amount]</code> - Add seeds to your personal nest</li>
+                        <li class="bg-white/90 p-2 rounded"><code>/add_seed_common [amount]</code> - Add seeds to the common nest</li>
+                        <li class="bg-white/90 p-2 rounded"><code>/borrow_seeds [amount]</code> - Move seeds from common nest to your nest</li>
+                        <li class="bg-white/90 p-2 rounded"><code>/donate_seeds [amount]</code> - Move seeds from your nest to common nest</li>
                     </ul>
                 </div>
                 <div>
@@ -40,7 +40,7 @@
                 <div>
                     <h3 class="text-xl text-orange-700 font-mystical">Commands</h3>
                     <ul class="list-group list-group-flush space-y-2">
-                        <li class="bg-white/90 p-2 rounded"><code>!name_nest [name]</code> - Give your nest a custom name</li>
+                        <li class="bg-white/90 p-2 rounded"><code>/rename_nest [name]</code> - Give your nest a custom name</li>
                     </ul>
                 </div>
                 <div>
@@ -62,9 +62,9 @@
                 <div>
                     <h3 class="text-xl text-orange-700 font-mystical">Commands</h3>
                     <ul class="list-group list-group-flush space-y-2">
-                        <li class="bg-white/90 p-2 rounded"><code>!sing @user1 @user2 ...</code> - Give other birds 3 extra actions for the day</li>
-                        <li class="bg-white/90 p-2 rounded"><code>!nests</code> - Show status of your nest and the common nest</li>
-                        <li class="bg-white/90 p-2 rounded"><code>!entrust [bird_name] @user</code> - Give one of your birds to another user</li>
+                        <li class="bg-white/90 p-2 rounded"><code>/sing @user1 @user2 ...</code> - Give other birds 3 extra actions for the day</li>
+                        <li class="bg-white/90 p-2 rounded"><code>/nests</code> - Show status of your nest and the common nest</li>
+                        <li class="bg-white/90 p-2 rounded"><code>/entrust [bird_name] @user</code> - Give one of your birds to another user</li>
                     </ul>
                 </div>
                 <div>
@@ -89,7 +89,7 @@
                 <div>
                     <h3 class="text-xl text-orange-700 font-mystical">Commands</h3>
                     <ul class="list-group list-group-flush space-y-2">
-                        <li class="bg-white/90 p-2 rounded"><code>!explore [region] [amount]</code> - Explore a region to discover new birds</li>
+                        <li class="bg-white/90 p-2 rounded"><code>/explore [region] [amount]</code> - Explore a region to discover new birds</li>
                     </ul>
                 </div>
                 <div>
@@ -112,9 +112,9 @@
                 <div>
                     <h3 class="text-xl text-orange-700 font-mystical">Commands</h3>
                     <ul class="list-group list-group-flush space-y-2">
-                        <li class="bg-white/90 p-2 rounded"><code>!lay_egg</code> - Lay an egg in your nest (costs seeds)</li>
-                        <li class="bg-white/90 p-2 rounded"><code>!brood [@user1 @user2 ...]</code> - Brood eggs to help them hatch (yours if no users specified)</li>
-                        <li class="bg-white/90 p-2 rounded"><code>!brood_random</code> - Brood a random egg that you haven't brooded today</li>
+                        <li class="bg-white/90 p-2 rounded"><code>/lay_egg</code> - Lay an egg in your nest (costs seeds)</li>
+                        <li class="bg-white/90 p-2 rounded"><code>/brood @user1 @user2 ...</code> - Brood eggs to help them hatch (yours if no users specified)</li>
+                        <li class="bg-white/90 p-2 rounded"><code>/brood_random</code> - Brood a random egg that you haven't brooded today</li>
                     </ul>
                 </div>
                 <div>
@@ -139,8 +139,8 @@
                 <div>
                     <h3 class="text-xl text-orange-700 font-mystical">Commands</h3>
                     <ul class="list-group list-group-flush space-y-2">
-                        <li class="bg-white/90 p-2 rounded"><code>!start_flock</code> - Start a pomodoro flock session</li>
-                        <li class="bg-white/90 p-2 rounded"><code>!join_flock @user</code> - Join another bird's flock session</li>
+                        <li class="bg-white/90 p-2 rounded"><code>/start_flock</code> - Start a pomodoro flock session</li>
+                        <li class="bg-white/90 p-2 rounded"><code>/join_flock</code> - Join another bird's flock session</li>
                     </ul>
                 </div>
                 <div>
@@ -165,7 +165,7 @@
                 <div>
                     <h3 class="text-xl text-orange-700 font-mystical">Commands</h3>
                     <ul class="list-group list-group-flush space-y-2">
-                        <li class="bg-white/90 p-2 rounded"><code>!memoir [text]</code> - Add a memoir entry to the Wings of Time</li>
+                        <li class="bg-white/90 p-2 rounded"><code>/memoir [text]</code> - Add a memoir entry to the Wings of Time</li>
                     </ul>
                 </div>
                 <div>

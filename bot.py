@@ -1,6 +1,7 @@
 import os
 import discord
 from discord.ext import commands
+from discord import app_commands
 from config.config import DEBUG
 from web.server import start_server
 from utils.logging import log_debug
@@ -13,37 +14,35 @@ intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
 
 # Error handling
-@bot.event
-async def on_command_error(ctx, error):
-    if isinstance(error, commands.errors.CommandNotFound):
-        command_used = ctx.message.content.split()[0][1:]
-        await ctx.send(f"❌ Command `!{command_used}` not recognized! Use `!nest_help` to see available commands.")
-    elif isinstance(error, commands.errors.MissingRequiredArgument):
-        await ctx.send("❌ Missing required argument! Check `!nest_help` for proper usage.")
-    elif isinstance(error, commands.errors.BadArgument):
-        await ctx.send("❌ Invalid argument! Please provide a valid number.")
+@bot.tree.error
+async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.CommandNotFound):
+        await interaction.response.send_message("❌ Command not recognized! Use `/help` to see available commands.")
+    elif isinstance(error, app_commands.MissingPermissions):
+        await interaction.response.send_message("❌ You don't have permission to use this command!")
+    elif isinstance(error, app_commands.TransformerError):
+        await interaction.response.send_message("❌ Invalid argument! Please check the command options.")
     else:
         log_debug(f"Unexpected error: {str(error)}")
-        await ctx.send("❌ An unexpected error occurred. Please try again later.")
-
-
-@bot.event
-async def on_message(message):
-    if message.author == bot.user:
-        return
-    print(f"Message received: {message.content}")
-    await bot.process_commands(message)
+        await interaction.response.send_message("❌ An unexpected error occurred. Please try again later.")
 
 @bot.event
 async def on_ready():
     print(f'Bot is ready. Logged in as {bot.user.name}')
     print(f'Debug mode: {"ON" if DEBUG else "OFF"}')
     
+    # Sync slash commands
+    try:
+        print("Syncing slash commands...")
+        await bot.tree.sync()
+        print("Slash commands synced successfully!")
+    except Exception as e:
+        print(f"Failed to sync slash commands: {e}")
+    
     # Print loaded commands after bot is ready
     print("\nLoaded commands:")
-    for cog_name, cog in bot.cogs.items():
-        commands_list = [cmd.name for cmd in cog.get_commands()]
-        print(f"{cog_name}: {commands_list}")
+    for command in bot.tree.get_commands():
+        print(f"/{command.name}")
     
     # Run data migration on startup
     try:
@@ -71,7 +70,7 @@ async def load_cogs(bot):
         'commands.seeds',
         'commands.singing',
         'commands.info',
-        'commands.testing',
+        'commands.testing' if DEBUG else None,
         'commands.customisation',
         'commands.incubation',
         'commands.flock',
