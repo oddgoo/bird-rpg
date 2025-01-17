@@ -439,6 +439,49 @@ class TestIncubationModule:
         ]
         assert get_total_chicks(nest) == 3
 
+    def test_select_random_bird_species_with_multipliers(self, mock_data):
+        """Test that bird selection respects multipliers"""
+        # Create a controlled set of test birds
+        test_birds = [
+            {"scientificName": "Bird A", "rarityWeight": 10},
+            {"scientificName": "Bird B", "rarityWeight": 10},
+            {"scientificName": "Bird C", "rarityWeight": 10}
+        ]
+        
+        with patch('data.models.load_bird_species', return_value=test_birds):
+            # Test with no multipliers
+            results_no_multiplier = [select_random_bird_species() for _ in range(300)]
+            counts_no_multiplier = {
+                bird["scientificName"]: results_no_multiplier.count(bird) 
+                for bird in test_birds
+            }
+            
+            # With no multipliers, birds should be roughly equally distributed
+            for count in counts_no_multiplier.values():
+                assert 80 <= count <= 120, "Without multipliers, birds should be roughly equal"
+            
+            # Test with multipliers
+            multipliers = {
+                "Bird A": 3,  # 3x more likely
+                "Bird B": 2   # 2x more likely
+                # Bird C has no multiplier (1x)
+            }
+            
+            results_with_multiplier = [
+                select_random_bird_species(multipliers) for _ in range(600)
+            ]
+            counts_with_multiplier = {
+                bird["scientificName"]: results_with_multiplier.count(bird) 
+                for bird in test_birds
+            }
+            
+            # Bird A (3x) should appear roughly 3 times as often as Bird C (1x)
+            assert counts_with_multiplier["Bird A"] > (2.5 * counts_with_multiplier["Bird C"])
+            # Bird B (2x) should appear roughly 2 times as often as Bird C (1x)
+            assert counts_with_multiplier["Bird B"] > (1.5 * counts_with_multiplier["Bird C"])
+            # Bird A (3x) should appear more than Bird B (2x)
+            assert counts_with_multiplier["Bird A"] > counts_with_multiplier["Bird B"]
+
 class TestBirdEffects:
     def test_first_build_bonus_birds(self, mock_data):
         """Test that birds with first-build-of-day bonuses stack correctly"""

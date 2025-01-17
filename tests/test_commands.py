@@ -10,7 +10,7 @@ from data.models import (
     get_personal_nest, get_remaining_actions,
     record_actions, has_brooded_egg, record_brooding,
     get_egg_cost, get_total_chicks, select_random_bird_species,
-    add_bonus_actions
+    add_bonus_actions, load_bird_species
 )
 from utils.time_utils import get_current_date
 from constants import BASE_DAILY_ACTIONS
@@ -182,6 +182,94 @@ class TestIncubationCommands:
         # Check message
         mock_interaction.followup.send.assert_called_once()
         assert "You've used all your actions for today" in mock_interaction.followup.send.call_args[0][0]
+
+    @pytest.mark.asyncio
+    async def test_pray_for_bird_success(self, incubation_cog, mock_interaction, mock_data):
+        """Test praying for a bird successfully"""
+        # Setup
+        nest = get_personal_nest(mock_data, mock_interaction.user.id)
+        nest["egg"] = {
+            "brooding_progress": 0,
+            "brooded_by": []
+        }
+        add_bonus_actions(mock_data, mock_interaction.user.id, 5)  # Ensure enough actions
+
+        # Mock bird_species to have a known bird
+        test_bird = {"scientificName": "Test Bird", "rarityWeight": 10, "commonName": "Test Bird"}
+        
+        # Need to patch both the direct function call and the import
+        with patch('commands.incubation.load_bird_species', return_value=[test_bird]), \
+             patch('data.models.load_bird_species', return_value=[test_bird]):
+            await incubation_cog.pray_for_bird.callback(
+                incubation_cog,
+                mock_interaction,
+                "Test Bird",
+                3
+            )
+
+        # Check message
+        mock_interaction.response.send_message.assert_called_once()
+        message = mock_interaction.response.send_message.call_args[0][0]
+        assert "You offered 3 prayers for Test Bird" in message
+        assert "multiplier is now 3x" in message
+        
+        # Check multiplier was added
+        assert "multipliers" in nest["egg"]
+        assert nest["egg"]["multipliers"]["Test Bird"] == 3
+
+    @pytest.mark.asyncio
+    async def test_pray_for_bird_no_egg(self, incubation_cog, mock_interaction, mock_data):
+        """Test praying when user has no egg"""
+        nest = get_personal_nest(mock_data, mock_interaction.user.id)
+        nest["egg"] = None
+        add_bonus_actions(mock_data, mock_interaction.user.id, 5)
+
+        test_bird = {"scientificName": "Test Bird", "rarityWeight": 10, "commonName": "Test Bird"}
+        with patch('commands.incubation.load_bird_species', return_value=[test_bird]), \
+             patch('data.models.load_bird_species', return_value=[test_bird]):
+            await incubation_cog.pray_for_bird.callback(
+                incubation_cog,
+                mock_interaction,
+                "Test Bird",
+                1
+            )
+
+        # Check error message
+        mock_interaction.response.send_message.assert_called_once()
+        assert "don't have an egg to pray for" in mock_interaction.response.send_message.call_args[0][0]
+
+    @pytest.mark.asyncio
+    async def test_pray_for_bird_cumulative(self, incubation_cog, mock_interaction, mock_data):
+        """Test that multiple prayers stack correctly"""
+        nest = get_personal_nest(mock_data, mock_interaction.user.id)
+        nest["egg"] = {
+            "brooding_progress": 0,
+            "brooded_by": [],
+            "multipliers": {}  # Initialize multipliers
+        }
+        add_bonus_actions(mock_data, mock_interaction.user.id, 10)
+
+        # Mock bird_species
+        test_bird = {"scientificName": "Test Bird", "rarityWeight": 10, "commonName": "Test Bird"}
+        with patch('commands.incubation.load_bird_species', return_value=[test_bird]), \
+             patch('data.models.load_bird_species', return_value=[test_bird]):
+            # Pray twice
+            await incubation_cog.pray_for_bird.callback(
+                incubation_cog,
+                mock_interaction,
+                "Test Bird",
+                2
+            )
+            
+            await incubation_cog.pray_for_bird.callback(
+                incubation_cog,
+                mock_interaction,
+                "Test Bird",
+                3
+            )
+
+        # Check final multiplier is sum of both prayers
+        assert nest["egg"]["multipliers"]["Test Bird"] == 5
 
 
 class TestFlockCommands:

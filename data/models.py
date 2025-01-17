@@ -252,10 +252,23 @@ def get_bird_effect(scientific_name):
             return species.get("effect", "")
     return ""
 
-def select_random_bird_species():
-    """Select a random bird species based on rarity weights"""
+def select_random_bird_species(multipliers=None):
+    """
+    Select a random bird species based on rarity weights and optional multipliers
+    
+    Args:
+        multipliers (dict): Optional dictionary mapping scientific names to multipliers
+    """
     bird_species = load_bird_species()
-    weights = [species["rarityWeight"] for species in bird_species]
+    weights = []
+    
+    for species in bird_species:
+        base_weight = species["rarityWeight"]
+        if multipliers and species["scientificName"] in multipliers:
+            weights.append(base_weight * multipliers[species["scientificName"]])
+        else:
+            weights.append(base_weight)
+            
     return random.choices(bird_species, weights=weights, k=1)[0]
 
 def get_discovered_species(data):

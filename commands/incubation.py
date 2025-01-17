@@ -9,7 +9,7 @@ from data.storage import load_data, save_data
 from data.models import (
     get_personal_nest, get_remaining_actions, record_actions,
     has_brooded_egg, record_brooding, get_egg_cost,
-    get_total_chicks, select_random_bird_species
+    get_total_chicks, select_random_bird_species, load_bird_species
 )
 from utils.logging import log_debug
 from utils.time_utils import get_time_until_reset, get_current_date
@@ -219,6 +219,7 @@ class IncubationCommands(commands.Cog):
             return None, "doesn't have an egg to brood"
 
         # Check if already brooded today
+        print(f'{brooder_id} frooding for {interaction.user.id}')
         brooder_id = str(interaction.user.id)
         if has_brooded_egg(data, brooder_id, target_user.id) or (
             "brooded_by" in target_nest["egg"] and 
@@ -232,7 +233,9 @@ class IncubationCommands(commands.Cog):
 
         # Check if egg is ready to hatch
         if target_nest["egg"]["brooding_progress"] >= 10:
-            bird_species = select_random_bird_species()
+            # Get multipliers if they exist
+            multipliers = target_nest["egg"].get("multipliers", {})
+            bird_species = select_random_bird_species(multipliers)
             chick = {
                 "commonName": bird_species["commonName"],
                 "scientificName": bird_species["scientificName"]
@@ -269,6 +272,94 @@ class IncubationCommands(commands.Cog):
             except Exception as e:
                 log_debug(f"Error fetching image from iNaturalist: {e}")
         return None, None
+
+    @app_commands.command(name='pray_for_bird', description='Pray for a specific bird to increase its hatching chance')
+    @app_commands.describe(
+        scientific_name='The scientific name of the bird to pray for',
+        amount_of_prayers='How many prayers to offer (consumes this many actions)'
+    )
+    async def pray_for_bird(
+        self,
+        interaction: discord.Interaction,
+        scientific_name: str,
+        amount_of_prayers: int
+    ):
+        """Pray for a specific bird to increase its hatching chance"""
+        log_debug(f"pray_for_bird called by {interaction.user.id}")
+        data = load_data()
+        nest = get_personal_nest(data, interaction.user.id)
+
+        # Check if nest has an egg
+        if "egg" not in nest or nest["egg"] is None:
+            await interaction.response.send_message("You don't have an egg to pray for! 🥚")
+            return
+
+        # Validate amount of prayers
+        if amount_of_prayers <= 0:
+            await interaction.response.send_message("You must pray at least once! 🙏")
+            return
+
+        # Check if user has enough actions
+        remaining_actions = get_remaining_actions(data, interaction.user.id)
+        if remaining_actions < amount_of_prayers:
+            await interaction.response.send_message(
+                f"You don't have enough actions! You need {amount_of_prayers} but only have {remaining_actions} remaining. 🌙"
+            )
+            return
+
+        # Validate bird species exists
+        bird_species = load_bird_species()
+        valid_species = False
+        for species in bird_species:
+            if species["scientificName"].lower() == scientific_name.lower():
+                scientific_name = species["scientificName"]  # Use correct casing
+                valid_species = True
+                break
+
+        if not valid_species:
+            await interaction.response.send_message(f"Invalid bird species: {scientific_name}")
+            return
+
+        # Initialize multipliers if they don't exist
+        if "multipliers" not in nest["egg"]:
+            nest["egg"]["multipliers"] = {}
+
+        # Add or update multiplier
+        current_multiplier = nest["egg"]["multipliers"].get(scientific_name, 0)
+        nest["egg"]["multipliers"][scientific_name] = current_multiplier + amount_of_prayers
+
+        # Calculate actual percentage chance
+        total_weight = 0
+        target_weight = 0
+        target_base_weight = 0
+        
+        # Calculate total weights with multipliers
+        for species in bird_species:
+            base_weight = species["rarityWeight"]
+            if species["scientificName"] == scientific_name:
+                target_base_weight = base_weight
+                multiplied_weight = base_weight * nest["egg"]["multipliers"][scientific_name]
+                target_weight = multiplied_weight
+                total_weight += multiplied_weight
+            else:
+                # Apply any existing multipliers for other species
+                if "multipliers" in nest["egg"] and species["scientificName"] in nest["egg"]["multipliers"]:
+                    total_weight += base_weight * nest["egg"]["multipliers"][species["scientificName"]]
+                else:
+                    total_weight += base_weight
+
+        base_percentage = (target_base_weight / sum(s["rarityWeight"] for s in bird_species)) * 100
+        actual_percentage = (target_weight / total_weight) * 100
+
+        # Consume actions
+        record_actions(data, interaction.user.id, amount_of_prayers, "pray")
+        save_data(data)
+
+        await interaction.response.send_message(
+            f"🙏 You offered {amount_of_prayers} {'prayer' if amount_of_prayers == 1 else 'prayers'} for {scientific_name}! 🙏\n"
+            f"Their hatching chance multiplier is now {nest['egg']['multipliers'][scientific_name]}x\n"
+            f"Base chance: {base_percentage:.1f}% → Current chance: {actual_percentage:.1f}%"
+        )
 
 async def setup(bot):
     await bot.add_cog(IncubationCommands(bot))
