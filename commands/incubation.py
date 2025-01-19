@@ -89,20 +89,21 @@ class IncubationCommands(commands.Cog):
                 skipped_targets.append((target_user, "no actions left"))
                 continue
 
-            result, error = await self.process_brooding(interaction, target_user, data, remaining_actions)
+            result_tuple, error = await self.process_brooding(interaction, target_user, data, remaining_actions)
             if error:
                 skipped_targets.append((target_user, error))
             else:
-                successful_targets.append(result)
+                successful_targets.append(result_tuple)
                 record_actions(data, interaction.user.id, 1, "brood")
                 remaining_actions -= 1
         
         save_data(data)
 
         # Send responses - first send all success messages
-        for result in successful_targets:
-            if result[0] == "hatch":
-                _, chick, target_nest, target_user = result
+        for result_tuple in successful_targets:
+            action_type = result_tuple[0]
+            if action_type == "hatch":
+                _, chick, target_nest, target_user = result_tuple
                 # Fetch image and create embed
                 image_url, taxon_url = await self.fetch_bird_image(chick['scientificName'])
                 embed = discord.Embed(
@@ -124,7 +125,7 @@ class IncubationCommands(commands.Cog):
                 )
                 await interaction.followup.send(embed=embed)
             else:
-                _, remaining, target_nest, target_user = result
+                _, remaining, target_nest, target_user = result_tuple
                 await interaction.followup.send(f"You brooded at {target_nest['name']}! The egg needs {remaining} more {'brood' if remaining == 1 else 'broods'} until it hatches. 🥚")
 
         # Then send error messages if any
@@ -171,7 +172,7 @@ class IncubationCommands(commands.Cog):
             
         # Select a random target and brood their egg
         target_user = random.choice(valid_targets)
-        result, error = await self.process_brooding(interaction, target_user, data, remaining_actions)
+        result_tuple, error = await self.process_brooding(interaction, target_user, data, remaining_actions)
         
         if error:
             await interaction.followup.send(f"Couldn't brood at {target_user.display_name}'s nest: {error}")
@@ -181,8 +182,9 @@ class IncubationCommands(commands.Cog):
         save_data(data)
 
         # Send appropriate response
-        if result[0] == "hatch":
-            _, chick, target_nest, target_user = result
+        action_type = result_tuple[0]
+        if action_type == "hatch":
+            _, chick, target_nest, target_user = result_tuple
             # Fetch image and create embed
             image_url, taxon_url = await self.fetch_bird_image(chick['scientificName'])
             embed = discord.Embed(
@@ -204,7 +206,7 @@ class IncubationCommands(commands.Cog):
             )
             await interaction.followup.send(embed=embed)
         else:
-            _, remaining, target_nest, target_user = result
+            _, remaining, target_nest, target_user = result_tuple
             remaining_actions = get_remaining_actions(data, interaction.user.id)
             await interaction.followup.send(f"You brooded at **{target_nest['name']}**! The egg needs {remaining} more {'brood' if remaining == 1 else 'broods'} until it hatches. 🥚\nYou have {remaining_actions} {'action' if remaining_actions == 1 else 'actions'} remaining today.")
 
@@ -212,23 +214,24 @@ class IncubationCommands(commands.Cog):
         """Helper function to process brooding for a single user"""
         # Get target's nest
         target_nest = get_personal_nest(data, target_user.id)
-        print(target_nest)
 
         # Check if target has an egg
         if "egg" not in target_nest or target_nest["egg"] is None:
             return None, "doesn't have an egg to brood"
 
+        # Initialize brooded_by list if it doesn't exist
+        if "brooded_by" not in target_nest["egg"]:
+            target_nest["egg"]["brooded_by"] = []
+
         # Check if already brooded today
         brooder_id = str(interaction.user.id)
-        if has_brooded_egg(data, brooder_id, target_user.id) or (
-            "brooded_by" in target_nest["egg"] and 
-            brooder_id in target_nest["egg"]["brooded_by"]
-        ):
+        if has_brooded_egg(data, brooder_id, target_user.id):
             return None, "already brooded this egg today"
 
         # Record brooding
         record_brooding(data, interaction.user.id, target_user.id)
         target_nest["egg"]["brooding_progress"] += 1
+        target_nest["egg"]["brooded_by"].append(brooder_id)
 
         # Check if egg is ready to hatch
         if target_nest["egg"]["brooding_progress"] >= 10:
