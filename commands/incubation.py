@@ -219,7 +219,6 @@ class IncubationCommands(commands.Cog):
             return None, "doesn't have an egg to brood"
 
         # Check if already brooded today
-        print(f'{brooder_id} frooding for {interaction.user.id}')
         brooder_id = str(interaction.user.id)
         if has_brooded_egg(data, brooder_id, target_user.id) or (
             "brooded_by" in target_nest["egg"] and 
