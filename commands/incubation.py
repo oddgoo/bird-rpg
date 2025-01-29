@@ -108,14 +108,14 @@ class IncubationCommands(commands.Cog):
                 image_url, taxon_url = await self.fetch_bird_image(chick['scientificName'])
                 embed = discord.Embed(
                     title="🐣 Egg Hatched!",
-                    description=f"The egg has hatched into a **{chick['commonName']}** (*{chick['scientificName']}*)!",
+                    description=f"{target_user.mention}'s egg has hatched into a **{chick['commonName']}** (*{chick['scientificName']}*)!",
                     color=discord.Color.green()
                 )
                 if image_url:
                     embed.set_image(url=image_url)
                 embed.add_field(
                     name="Total Chicks",
-                    value=f"{target_user.display_name} now has {get_total_chicks(target_nest)} {'chick' if get_total_chicks(target_nest) == 1 else 'chicks'}! 🐦",
+                    value=f"{target_user.mention} now has {get_total_chicks(target_nest)} {'chick' if get_total_chicks(target_nest) == 1 else 'chicks'}! 🐦",
                     inline=False
                 )
                 embed.add_field(
@@ -126,7 +126,7 @@ class IncubationCommands(commands.Cog):
                 await interaction.followup.send(embed=embed)
             else:
                 _, remaining, target_nest, target_user = result_tuple
-                await interaction.followup.send(f"You brooded at {target_nest['name']}! The egg needs {remaining} more {'brood' if remaining == 1 else 'broods'} until it hatches. 🥚")
+                await interaction.followup.send(f"You brooded at {target_user.mention}'s **{target_nest['name']}**! The egg needs {remaining} more {'brood' if remaining == 1 else 'broods'} until it hatches. 🥚\nYou have {remaining_actions} {'action' if remaining_actions == 1 else 'actions'} remaining today.")
 
         # Then send error messages if any
         if skipped_targets:
@@ -192,14 +192,14 @@ class IncubationCommands(commands.Cog):
             image_url, taxon_url = await self.fetch_bird_image(chick['scientificName'])
             embed = discord.Embed(
                 title="🐣 Egg Hatched!",
-                description=f"The egg has hatched into a **{chick['commonName']}** (*{chick['scientificName']}*)!",
+                description=f"{target_user.mention}'s egg has hatched into a **{chick['commonName']}** (*{chick['scientificName']}*)!",
                 color=discord.Color.green()
             )
             if image_url:
                 embed.set_image(url=image_url)
             embed.add_field(
                 name="Total Chicks",
-                value=f"{target_user.display_name} now has {get_total_chicks(target_nest)} {'chick' if get_total_chicks(target_nest) == 1 else 'chicks'}! 🐦",
+                value=f"{target_user.mention} now has {get_total_chicks(target_nest)} {'chick' if get_total_chicks(target_nest) == 1 else 'chicks'}! 🐦",
                 inline=False
             )
             embed.add_field(
@@ -211,7 +211,7 @@ class IncubationCommands(commands.Cog):
         else:
             _, remaining, target_nest, target_user = result_tuple
             remaining_actions = get_remaining_actions(data, interaction.user.id)
-            await interaction.followup.send(f"You brooded at **{target_nest['name']}**! The egg needs {remaining} more {'brood' if remaining == 1 else 'broods'} until it hatches. 🥚\nYou have {remaining_actions} {'action' if remaining_actions == 1 else 'actions'} remaining today.")
+            await interaction.followup.send(f"You brooded at {target_user.mention}'s **{target_nest['name']}**! The egg needs {remaining} more {'brood' if remaining == 1 else 'broods'} until it hatches. 🥚\nYou have {remaining_actions} {'action' if remaining_actions == 1 else 'actions'} remaining today.")
 
     @app_commands.command(name='lock_nest', description='Lock your nest to prevent others from brooding')
     async def lock_nest(self, interaction: discord.Interaction):

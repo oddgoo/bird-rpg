@@ -91,11 +91,11 @@ class SingingCommands(commands.Cog):
         if not successful_targets:
             message = ["❌ Couldn't sing to any of the specified users:"]
             for user, reason in skipped_targets:
-                message.append(f"• {user.display_name} ({reason})")
+                message.append(f"• {user.mention} ({reason})")
         else:
             message = ["🎵 Your beautiful song has inspired:"]
             for user, action_bonus, inspiration_gained in successful_targets:
-                base_msg = f"**{user.display_name}** (+3"
+                base_msg = f"{user.mention} (+3"
                 if action_bonus > 0:
                     base_msg += f" +{action_bonus}✨"
                 base_msg += " actions)"
@@ -107,7 +107,7 @@ class SingingCommands(commands.Cog):
             if skipped_targets:
                 message.append("\n Couldn't sing to:")
                 for user, reason in skipped_targets:
-                    message.append(f"• {user.display_name} ({reason})")
+                    message.append(f"• {user.mention} ({reason})")
             
             singer_actions_left = get_remaining_actions(data, interaction.user.id)
             message.append(f"\n(You have {singer_actions_left} {'action' if singer_actions_left == 1 else 'actions'} remaining)")
