@@ -158,6 +158,9 @@ class IncubationCommands(commands.Cog):
         valid_targets = []
         for user_id, nest in data["personal_nests"].items():
             if "egg" in nest and nest["egg"] is not None:
+                # Skip locked nests
+                if nest.get("locked", False) and str(interaction.user.id) != user_id:
+                    continue
                 if not has_brooded_egg(data, interaction.user.id, user_id):
                     try:
                         member = await interaction.guild.fetch_member(int(user_id))
@@ -210,10 +213,48 @@ class IncubationCommands(commands.Cog):
             remaining_actions = get_remaining_actions(data, interaction.user.id)
             await interaction.followup.send(f"You brooded at **{target_nest['name']}**! The egg needs {remaining} more {'brood' if remaining == 1 else 'broods'} until it hatches. 🥚\nYou have {remaining_actions} {'action' if remaining_actions == 1 else 'actions'} remaining today.")
 
+    @app_commands.command(name='lock_nest', description='Lock your nest to prevent others from brooding')
+    async def lock_nest(self, interaction: discord.Interaction):
+        """Lock your nest to prevent others from brooding"""
+        log_debug(f"lock_nest called by {interaction.user.id}")
+        data = load_data()
+        nest = get_personal_nest(data, interaction.user.id)
+
+        # Check if nest is already locked
+        if nest.get("locked", False):
+            await interaction.response.send_message("Your nest is already locked! 🔒")
+            return
+
+        # Lock the nest
+        nest["locked"] = True
+        save_data(data)
+        await interaction.response.send_message("Your nest is now locked! Other players cannot brood your eggs. 🔒")
+
+    @app_commands.command(name='unlock_nest', description='Unlock your nest to allow others to brood')
+    async def unlock_nest(self, interaction: discord.Interaction):
+        """Unlock your nest to allow others to brood"""
+        log_debug(f"unlock_nest called by {interaction.user.id}")
+        data = load_data()
+        nest = get_personal_nest(data, interaction.user.id)
+
+        # Check if nest is already unlocked
+        if not nest.get("locked", False):
+            await interaction.response.send_message("Your nest is already unlocked! 🔓")
+            return
+
+        # Unlock the nest
+        nest["locked"] = False
+        save_data(data)
+        await interaction.response.send_message("Your nest is now unlocked! Other players can brood your eggs. 🔓")
+
     async def process_brooding(self, interaction: discord.Interaction, target_user, data, remaining_actions):
         """Helper function to process brooding for a single user"""
         # Get target's nest
         target_nest = get_personal_nest(data, target_user.id)
+
+        # Check if target's nest is locked and brooder is not the owner
+        if target_nest.get("locked", False) and str(interaction.user.id) != str(target_user.id):
+            return None, "Nest is locked!"
 
         # Check if target has an egg
         if "egg" not in target_nest or target_nest["egg"] is None:
