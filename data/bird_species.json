@@ -411,14 +411,14 @@
         "scientificName": "Atrichornis rufescens",
         "rarityWeight": 0.5,
         "rarity": "mythical",
-        "effect": "All your songs give +5 actions."
+        "effect": "All your songs give +8 actions."
       },
       {
         "commonName": "Mallee Emu-wren",
         "scientificName": "Stipiturus mallee",
         "rarityWeight": 0.5,
         "rarity": "mythical",
-        "effect": "All your songs give +5 actions."
+        "effect": "All your songs give +10 actions."
       }
       
     ]
