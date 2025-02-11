@@ -36,6 +36,39 @@ def get_common_nest(data):
         data["common_nest"] = {"twigs": 0, "seeds": 0}
     return data["common_nest"]
 
+def _ensure_daily_actions_format(daily_data):
+    """Helper function to ensure daily actions data is in the correct format"""
+    if isinstance(daily_data, (int, float)):
+        return {
+            "used": daily_data,
+            "used_bonus": 0,
+            "action_history": []
+        }
+    
+    # Ensure it's a dictionary
+    if not isinstance(daily_data, dict):
+        return {
+            "used": 0,
+            "used_bonus": 0,
+            "action_history": []
+        }
+    
+    # Ensure all required fields exist
+    if "used" not in daily_data:
+        daily_data["used"] = 0
+    if "used_bonus" not in daily_data:
+        daily_data["used_bonus"] = 0
+    if "action_history" not in daily_data:
+        daily_data["action_history"] = []
+        
+    # Handle old format that used "bonus" instead of "used_bonus"
+    if "bonus" in daily_data:
+        if "used_bonus" not in daily_data or daily_data["used_bonus"] == 0:
+            daily_data["used_bonus"] = 0
+        del daily_data["bonus"]
+    
+    return daily_data
+
 def get_remaining_actions(data, user_id):
     user_id = str(user_id)
     today = get_current_date()
@@ -46,24 +79,16 @@ def get_remaining_actions(data, user_id):
     if f"actions_{today}" not in data["daily_actions"][user_id]:
         data["daily_actions"][user_id][f"actions_{today}"] = {
             "used": 0,
-            "used_bonus": 0,  # Track used bonus actions separately
-            "action_history": []  # Only track used actions and history per day
-        }
-    
-    # Convert old format if necessary
-    if isinstance(data["daily_actions"][user_id][f"actions_{today}"], (int, float)):
-        used_actions = data["daily_actions"][user_id][f"actions_{today}"]
-        data["daily_actions"][user_id][f"actions_{today}"] = {
-            "used": used_actions,
             "used_bonus": 0,
             "action_history": []
         }
     
-    actions_data = data["daily_actions"][user_id][f"actions_{today}"]
+    # Ensure data format is correct
+    data["daily_actions"][user_id][f"actions_{today}"] = _ensure_daily_actions_format(
+        data["daily_actions"][user_id][f"actions_{today}"]
+    )
     
-    # Handle old format that used "bonus" instead of "used_bonus"
-    if "bonus" in actions_data and "used_bonus" not in actions_data:
-        actions_data["used_bonus"] = 0
+    actions_data = data["daily_actions"][user_id][f"actions_{today}"]
     
     # Get persistent bonus actions from nest
     nest = get_personal_nest(data, user_id)
@@ -92,25 +117,15 @@ def record_actions(data, user_id, count, action_type=None):
         data["daily_actions"][user_id][f"actions_{today}"] = {
             "used": 0,
             "used_bonus": 0,
-            "action_history": []  # List to track action types in order
-        }
-    
-    daily_data = data["daily_actions"][user_id][f"actions_{today}"]
-    
-    # Convert old format if necessary
-    if isinstance(daily_data, (int, float)):
-        daily_data = {
-            "used": daily_data,
-            "used_bonus": 0,
             "action_history": []
         }
-        data["daily_actions"][user_id][f"actions_{today}"] = daily_data
-    elif "action_history" not in daily_data:
-        daily_data["action_history"] = []
     
-    # Handle old format that used "bonus" instead of "used_bonus"
-    if "bonus" in daily_data and "used_bonus" not in daily_data:
-        daily_data["used_bonus"] = 0
+    # Ensure data format is correct
+    data["daily_actions"][user_id][f"actions_{today}"] = _ensure_daily_actions_format(
+        data["daily_actions"][user_id][f"actions_{today}"]
+    )
+    
+    daily_data = data["daily_actions"][user_id][f"actions_{today}"]
     
     # Get nest info for bonus action tracking
     nest = get_personal_nest(data, user_id)

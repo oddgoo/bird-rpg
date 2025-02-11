@@ -90,55 +90,61 @@ class Swooping(commands.Cog):
             await interaction.response.send_message("You need to use at least 1 action to swoop!")
             return
 
-        data = load_data()
-        user_id = str(interaction.user.id)  # Convert to string to match data format
-        remaining_actions = get_remaining_actions(data, user_id)
-        if remaining_actions < amount:
-            await interaction.response.send_message(
-                f"You don't have enough actions! You have {remaining_actions} actions."
-            )
-            return
-
-        # Get user's nest and check for swooping bonuses
-        user_nest = get_personal_nest(data, user_id)
-        bonus_damage = get_swooping_bonus(data, user_nest)
-
-        spawner = HumanSpawner()
-        human = spawner.spawn_human()
-        
-        # Check if human is already defeated
-        if human["resilience"] <= 0:
-            await interaction.response.send_message("There are no humans to swoop at right now! The current human has already been defeated.")
-            return
+        try:
+            data = load_data()
+            user_id = str(interaction.user.id)  # Convert to string to match data format
+            remaining_actions = get_remaining_actions(data, user_id)
             
-        damage = amount + bonus_damage
-        was_defeated = spawner.damage_human(damage)
-        record_actions(data, user_id, amount, "swoop")
-        save_data(data)
+            if remaining_actions < amount:
+                await interaction.response.send_message(
+                    f"You don't have enough actions! You have {remaining_actions} actions."
+                )
+                return
 
-        if not was_defeated:
-            message = [f"🦅 You swoop at the {human['name']}! 🦅"]
-            if bonus_damage > 0:
-                message.append(f"✨ Your birds' special abilities add **+{bonus_damage}** damage! ✨")
-            message.append(f"They still have **{human['resilience']}/{human['max_resilience']}** resilience left.")
-        else:
-            blessing_name, blessing_amount = await self._apply_blessing()
-            victory_gif = self.defeat_gifs.get(human['name'], "")
-            message = [
-                f"🎉 **VICTORY!** 🎉",
-                f"The {human['name']} has been driven away! 🏃‍♂️💨"
-            ]
-            if victory_gif:
-                message.append(victory_gif)
-            if bonus_damage > 0:
-                message.append(f"✨ Your birds' special abilities added **+{bonus_damage}** damage to the final blow! ✨")
-            message.append(f"🙏 The bird gods are pleased and grant everyone: **{blessing_name}** (**{blessing_amount}**)")
+            # Get user's nest and check for swooping bonuses
+            user_nest = get_personal_nest(data, user_id)
+            bonus_damage = get_swooping_bonus(data, user_nest)
 
-        # Add remaining actions to message
-        actions_left = get_remaining_actions(data, user_id)
-        message.append(f"\n⚡ You have **{actions_left}** {'action' if actions_left == 1 else 'actions'} remaining")
+            spawner = HumanSpawner()
+            human = spawner.spawn_human()
+            
+            # Check if human is already defeated
+            if human["resilience"] <= 0:
+                await interaction.response.send_message("There are no humans to swoop at right now! The current human has already been defeated.")
+                return
+                
+            damage = amount + bonus_damage
+            was_defeated = spawner.damage_human(damage)
+            record_actions(data, user_id, amount, "swoop")
+            save_data(data)
 
-        await interaction.response.send_message("\n".join(message))
+            if not was_defeated:
+                message = [f"🦅 You swoop at the {human['name']}! 🦅"]
+                if bonus_damage > 0:
+                    message.append(f"✨ Your birds' special abilities add **+{bonus_damage}** damage! ✨")
+                message.append(f"They still have **{human['resilience']}/{human['max_resilience']}** resilience left.")
+            else:
+                blessing_name, blessing_amount = await self._apply_blessing()
+                victory_gif = self.defeat_gifs.get(human['name'], "")
+                message = [
+                    f"🎉 **VICTORY!** 🎉",
+                    f"The {human['name']} has been driven away! 🏃‍♂️💨"
+                ]
+                if victory_gif:
+                    message.append(victory_gif)
+                if bonus_damage > 0:
+                    message.append(f"✨ Your birds' special abilities added **+{bonus_damage}** damage to the final blow! ✨")
+                message.append(f"🙏 The bird gods are pleased and grant everyone: **{blessing_name}** (**{blessing_amount}**)")
+
+            # Add remaining actions to message
+            actions_left = get_remaining_actions(data, user_id)
+            message.append(f"\n⚡ You have **{actions_left}** {'action' if actions_left == 1 else 'actions'} remaining")
+
+            await interaction.response.send_message("\n".join(message))
+            
+        except Exception as e:
+            print(f"Error in swoop command: {str(e)}")
+            await interaction.response.send_message("Sorry, something went wrong while processing your swoop! Please try again.")
 
     @app_commands.command(
         name="current_human",
