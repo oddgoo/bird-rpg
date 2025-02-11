@@ -12,6 +12,7 @@ from data.models import (
 from utils.logging import log_debug
 from utils.time_utils import get_time_until_reset, get_current_date
 from config.config import DEBUG
+from constants import BASE_DAILY_ACTIONS  # Updated import path
 
 
 class InfoCommands(commands.Cog):

@@ -46,7 +46,8 @@ def get_home_page():
             "egg_progress": egg_progress,
             "garden_size": nest.get("garden_size", 0),
             "garden_life": nest.get("garden_life", 0),
-            "inspiration": nest.get("inspiration", 0)
+            "inspiration": nest.get("inspiration", 0),
+            "featured_bird": nest.get("featured_bird")
         })
     
     # Sort nests by songs given, descending
