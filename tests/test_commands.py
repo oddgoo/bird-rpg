@@ -278,15 +278,24 @@ class TestFlockCommands:
         """Test starting a flock session successfully"""
         # Mock asyncio.sleep to do nothing
         mocker.patch('asyncio.sleep', return_value=None)
-        
+
         # Mock data module functions
-        mocker.patch('data.models.get_personal_nest', return_value={'seeds': 0, 'twigs': 0})
+        mocker.patch('data.models.get_personal_nest', return_value={
+            'seeds': 0,
+            'twigs': 0,
+            'name': "Some Bird's Nest",
+            'egg': None,
+            'chicks': [],
+            'garden_size': 0,
+            'inspiration': 0,
+            'bonus_actions': 0  # Add this field
+        })
         mocker.patch('data.storage.load_data', return_value=mock_data)
         mocker.patch('data.storage.save_data')
-        
+
         # Mock the user mention attribute
         mock_interaction.user.mention = f"<@{mock_interaction.user.id}>"
-        
+
         await flock_cog.start_flock.callback(flock_cog, mock_interaction)
 
         # Check messages were sent

@@ -21,7 +21,8 @@ def mock_data():
         "personal_nests": {},
         "common_nest": {"twigs": 0, "seeds": 0},
         "daily_actions": {},
-        "daily_songs": {}
+        "daily_songs": {},
+        "daily_brooding": {}  # Added for completeness
     }
 
 def mock_get_personal_nest(data, user_id):
@@ -34,7 +35,8 @@ def mock_get_personal_nest(data, user_id):
             "egg": None,
             "chicks": [],
             "garden_size": 0,
-            "inspiration": 0
+            "inspiration": 0,
+            "bonus_actions": 0
         }
     return data["personal_nests"][user_id_str]
 
@@ -48,7 +50,8 @@ class TestNestOperations:
             "egg": None,
             "chicks": [],
             "garden_size": 0,
-            "inspiration": 0
+            "inspiration": 0,
+            "bonus_actions": 0
         }
         assert "123" in mock_data["personal_nests"]
 
@@ -118,6 +121,32 @@ class TestActionTracking:
         add_bonus_actions(mock_data, "123", -2)
         remaining = get_remaining_actions(mock_data, "123")
         assert remaining == BASE_DAILY_ACTIONS - 2  # Bonus actions decreased by 2
+
+    def test_concurrent_bonus_actions(self, mock_data):
+        """Test multiple bonus action additions"""
+        # Add bonus actions multiple times
+        add_bonus_actions(mock_data, "123", 1)
+        add_bonus_actions(mock_data, "123", 2)
+        add_bonus_actions(mock_data, "123", 3)
+        
+        remaining = get_remaining_actions(mock_data, "123")
+        assert remaining == BASE_DAILY_ACTIONS + 6  # Base + (1+2+3) bonus
+
+    def test_cross_day_boundary(self, mock_data):
+        """Test that actions reset properly across days but bonus actions persist"""
+        user_id = "123"
+        # Add some bonus actions
+        add_bonus_actions(mock_data, user_id, 5)
+        
+        # Record actions for yesterday
+        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+        mock_data["daily_actions"][user_id] = {
+            f"actions_{yesterday}": {"used": 3, "action_history": []}
+        }
+        
+        # Check today's actions - should have base + persistent bonus
+        remaining = get_remaining_actions(mock_data, user_id)
+        assert remaining == BASE_DAILY_ACTIONS + 5  # Base actions + persistent bonus
 
 class TestSongMechanics:
     def test_record_and_check_song(self, mock_data):
@@ -281,28 +310,6 @@ class TestDataConsistency:
         actions_data = get_remaining_actions(mock_data, "123")
         assert isinstance(actions_data, (int, float))
         assert actions_data <= BASE_DAILY_ACTIONS  # Should not exceed base actions
-
-    def test_concurrent_bonus_actions(self, mock_data):
-        """Test multiple bonus action additions"""
-        # Add bonus actions multiple times
-        add_bonus_actions(mock_data, "123", 1)
-        add_bonus_actions(mock_data, "123", 2)
-        add_bonus_actions(mock_data, "123", 3)
-        
-        remaining = get_remaining_actions(mock_data, "123")
-        assert remaining == BASE_DAILY_ACTIONS + 6  # 3 base + (1+2+3) bonus
-
-    def test_cross_day_boundary(self, mock_data):
-        """Test that actions reset properly across days"""
-        # Record actions for yesterday
-        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
-        mock_data["daily_actions"]["123"] = {
-            f"actions_{yesterday}": {"used": 3, "bonus": 2}
-        }
-        
-        # Check today's actions
-        remaining = get_remaining_actions(mock_data, "123")
-        assert remaining == BASE_DAILY_ACTIONS  # Should be fresh daily actions
 
 class TestIncubationModule:
     def test_lay_egg_success(self, mock_data):
@@ -785,34 +792,7 @@ class TestFlockCommands:
             assert mock_data[member_str]['garden_size'] == 1
             assert get_remaining_actions(mock_data, member) == BASE_DAILY_ACTIONS + 5
 
-    def test_flock_session_deadline(self, mock_data):
-        """Test flock session joining deadline"""
-        leader_id = "123"
-        joiner_id = "456"
-        active_flocks = {}
-        
-        # Create expired flock session
-        active_flocks[leader_id] = {
-            'leader': leader_id,
-            'members': [leader_id],
-            'start_time': datetime.now() - timedelta(minutes=15),
-            'joining_deadline': datetime.now() - timedelta(minutes=5)
-        }
-        
-        flock = active_flocks[leader_id]
-        assert datetime.now() > flock['joining_deadline']
-        
-        # Attempt to join after deadline
-        initial_members = len(flock['members'])
-        if datetime.now() <= flock['joining_deadline']:
-            flock['members'].append(joiner_id)
-        
-        assert len(flock['members']) == initial_members
-        assert joiner_id not in flock['members']
-
 class TestLoreMechanics:
-
-
     def test_duplicate_memoir_same_day(self, mock_data):
         """Test that a user can't add multiple memoirs on the same day"""
         user_id = "123"
@@ -863,7 +843,6 @@ class TestLoreMechanics:
         # Check memoir was not added
         assert len(mock_data.get("memoirs", [])) == 0
 
-
 def test_get_seed_gathering_bonus(mock_data):
     """Test garden size bonus calculation from cockatoos"""
     nest = {
@@ -878,7 +857,14 @@ def test_get_seed_gathering_bonus(mock_data):
                 "scientificName": "Lophochroa leadbeateri",
                 "effect": "Your first seed gathering action of the day also gives +1 garden size"
             }
-        ]
+        ],
+        "bonus_actions": 0,
+        "twigs": 0,
+        "seeds": 0,
+        "name": "Some Bird's Nest",
+        "egg": None,
+        "garden_size": 0,
+        "inspiration": 0
     }
     mock_data["personal_nests"] = {"123": nest}
     
@@ -968,7 +954,6 @@ def test_first_action_bonuses(mock_data):
     # Subsequent actions should not get bonuses
     assert get_nest_building_bonus(mock_data, nest) == 0
     assert get_seed_gathering_bonus(mock_data, nest) == 0
-
 
 class TestSocialMechanics:
     def test_entrust_bird_transfer(self, mock_data):

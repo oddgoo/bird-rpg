@@ -27,6 +27,8 @@ def get_personal_nest(data, user_id):
         nest["garden_size"] = 0
     if "inspiration" not in nest:
         nest["inspiration"] = 0
+    if "bonus_actions" not in nest:  # New field for persistent bonus actions
+        nest["bonus_actions"] = 0
     return nest
 
 def get_common_nest(data):
@@ -44,7 +46,7 @@ def get_remaining_actions(data, user_id):
     if f"actions_{today}" not in data["daily_actions"][user_id]:
         data["daily_actions"][user_id][f"actions_{today}"] = {
             "used": 0,
-            "bonus": 0
+            "action_history": []  # Only track used actions and history per day
         }
     
     # Convert old format if necessary
@@ -52,16 +54,17 @@ def get_remaining_actions(data, user_id):
         used_actions = data["daily_actions"][user_id][f"actions_{today}"]
         data["daily_actions"][user_id][f"actions_{today}"] = {
             "used": used_actions,
-            "bonus": 0
+            "action_history": []
         }
     
     actions_data = data["daily_actions"][user_id][f"actions_{today}"]
     
-    # Add bonus actions from chicks
+    # Get persistent bonus actions from nest
     nest = get_personal_nest(data, user_id)
     chick_bonus = get_total_chicks(nest)
+    persistent_bonus = nest["bonus_actions"]
     
-    total_available = BASE_DAILY_ACTIONS + actions_data["bonus"] + chick_bonus
+    total_available = BASE_DAILY_ACTIONS + persistent_bonus + chick_bonus
     return total_available - actions_data["used"]
 
 def record_actions(data, user_id, count, action_type=None):
@@ -169,25 +172,8 @@ def get_singers_today(data, target_id):
 
 def add_bonus_actions(data, user_id, amount):
     user_id = str(user_id)
-    today = today = get_current_date()
-    
-    if user_id not in data["daily_actions"]:
-        data["daily_actions"][user_id] = {}
-    
-    if f"actions_{today}" not in data["daily_actions"][user_id]:
-        data["daily_actions"][user_id][f"actions_{today}"] = {
-            "used": 0,
-            "bonus": 0
-        }
-    
-    if isinstance(data["daily_actions"][user_id][f"actions_{today}"], (int, float)):
-        used_actions = data["daily_actions"][user_id][f"actions_{today}"]
-        data["daily_actions"][user_id][f"actions_{today}"] = {
-            "used": used_actions,
-            "bonus": 0
-        }
-    
-    data["daily_actions"][user_id][f"actions_{today}"]["bonus"] += amount
+    nest = get_personal_nest(data, user_id)
+    nest["bonus_actions"] += amount
 
 def get_egg_cost(nest):
     """Calculate the cost of laying an egg based on number of chicks"""

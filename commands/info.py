@@ -30,11 +30,12 @@ class InfoCommands(commands.Cog):
         
         # Get total actions available
         today = get_current_date()
-        actions_data = data["daily_actions"].get(str(interaction.user.id), {}).get(f"actions_{today}", {"used": 0, "bonus": 0})
+        actions_data = data["daily_actions"].get(str(interaction.user.id), {}).get(f"actions_{today}", {"used": 0})
         if isinstance(actions_data, (int, float)):
-            actions_data = {"used": actions_data, "bonus": 0}
+            actions_data = {"used": actions_data}
         chick_bonus = get_total_chicks(personal_nest)
-        total_actions = 3 + actions_data["bonus"] + chick_bonus
+        persistent_bonus = personal_nest["bonus_actions"]
+        total_actions = BASE_DAILY_ACTIONS + persistent_bonus + chick_bonus
         
         # Get community discovered species
         total_bird_species = get_total_bird_species(data)
