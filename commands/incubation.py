@@ -9,7 +9,8 @@ from data.storage import load_data, save_data
 from data.models import (
     get_personal_nest, get_remaining_actions, record_actions,
     has_brooded_egg, record_brooding, get_egg_cost,
-    get_total_chicks, select_random_bird_species, load_bird_species
+    get_total_chicks, select_random_bird_species, load_bird_species,
+    bless_egg, handle_blessed_egg_hatching
 )
 from utils.logging import log_debug
 from utils.time_utils import get_time_until_reset, get_current_date
@@ -247,6 +248,18 @@ class IncubationCommands(commands.Cog):
         save_data(data)
         await interaction.response.send_message("Your nest is now unlocked! Other players can brood your eggs. 🔓")
 
+    @app_commands.command(name='bless_egg', description='Use 3 💡 and 10 🌰 to bless your egg, preserving it and its prayers if a less-prayed bird hatches')
+    async def bless_egg(self, interaction: discord.Interaction):
+        """Use 3 inspiration and 10 seeds to bless your egg, preserving prayers and creating a new egg immediately if the most-prayed bird is not hatched"""
+        log_debug(f"bless_egg called by {interaction.user.id}")
+        data = load_data()
+        nest = get_personal_nest(data, interaction.user.id)
+
+        success, message = bless_egg(nest)
+        if success:
+            save_data(data)
+        await interaction.response.send_message(message)
+
     async def process_brooding(self, interaction: discord.Interaction, target_user, data, remaining_actions):
         """Helper function to process brooding for a single user"""
         # Get target's nest
@@ -278,13 +291,28 @@ class IncubationCommands(commands.Cog):
         if target_nest["egg"]["brooding_progress"] >= 10:
             # Get multipliers if they exist
             multipliers = target_nest["egg"].get("multipliers", {})
+
             bird_species = select_random_bird_species(multipliers)
             chick = {
                 "commonName": bird_species["commonName"],
                 "scientificName": bird_species["scientificName"]
             }
+
+            # Handle blessed egg hatching
+            saved_multipliers = handle_blessed_egg_hatching(target_nest, bird_species["scientificName"])
+
+            # Clear the egg
             target_nest["chicks"].append(chick)
             target_nest["egg"] = None
+
+            # If we saved multipliers, create a new egg with them
+            if saved_multipliers:
+                target_nest["egg"] = {
+                    "brooding_progress": 0,
+                    "brooded_by": [],
+                    "multipliers": saved_multipliers
+                }
+
             return ("hatch", chick, target_nest, target_user), None
         else:
             remaining = 10 - target_nest["egg"]["brooding_progress"]

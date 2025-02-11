@@ -306,6 +306,7 @@ def get_singing_bonus(nest):
             total_bonus += bonus_amount
             
     return total_bonus
+
 def get_singing_inspiration_chance(data, nest):
     """Calculate chance-based inspiration bonus from finches on first singing action"""
     # Get user_id from nest
@@ -347,3 +348,64 @@ def get_seed_gathering_bonus(data, nest):
             total_bonus += bonus_amount
             
     return total_bonus
+
+def can_bless_egg(nest):
+    """Check if an egg can be blessed and return (can_bless, error_message)"""
+    if "egg" not in nest or nest["egg"] is None:
+        return False, "You don't have an egg to bless! 🥚"
+
+    if nest["inspiration"] < 3 or nest["seeds"] < 10:
+        return False, f"You need 3 inspiration and 10 seeds to bless your egg! You have {nest['inspiration']} inspiration and {nest['seeds']} seeds. ✨🌰"
+
+    if nest["egg"].get("protected_prayers", False):
+        return False, "Your egg is already blessed! 🛡️✨"
+
+    return True, None
+
+def bless_egg(nest):
+    """
+    Bless an egg in a nest, consuming resources.
+    Returns (success, error_message)
+    
+    Requirements:
+    - Nest must have an egg
+    - Nest must have 3 inspiration and 10 seeds
+    - Egg must not already be blessed
+    """
+    can_do_it, error = can_bless_egg(nest)
+    if not can_do_it:
+        return False, error
+
+    # Bless the egg
+    nest["inspiration"] -= 3
+    nest["seeds"] -= 10
+    nest["egg"]["protected_prayers"] = True
+    return True, "Your egg has been blessed! ✨ If a bird other than your most-prayed one hatches, your prayers will be preserved and a new egg will be created immediately! 🥚🛡️"
+
+def handle_blessed_egg_hatching(nest, hatched_bird_name):
+    """
+    Handle the hatching of a blessed egg.
+    Returns the multipliers to preserve for the next egg, or None if they should be discarded.
+    
+    Args:
+        nest: The nest containing the egg
+        hatched_bird_name: The scientific name of the bird that hatched
+    """
+    if not nest["egg"].get("protected_prayers", False):
+        return None
+
+    multipliers = nest["egg"].get("multipliers", {})
+    
+    # Find the bird with the most prayers
+    most_prayed_bird = None
+    max_prayers = 0
+    for bird, prayers in multipliers.items():
+        if prayers > max_prayers:
+            max_prayers = prayers
+            most_prayed_bird = bird
+
+    # Only preserve multipliers if the hatched bird isn't the most prayed for
+    if hatched_bird_name != most_prayed_bird:
+        return multipliers
+    
+    return None

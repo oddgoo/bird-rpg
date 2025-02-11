@@ -8,7 +8,7 @@ from data.models import (
     has_brooded_egg, get_total_chicks, load_bird_species,
     get_nest_building_bonus, get_singing_bonus,
     get_seed_gathering_bonus, get_singing_inspiration_chance,
-    is_first_action_of_type
+    is_first_action_of_type, can_bless_egg, bless_egg, handle_blessed_egg_hatching
 )
 import random
 from utils.time_utils import get_current_date
@@ -1044,4 +1044,84 @@ class TestSocialMechanics:
         assert transferred_bird["effect"] == "All your songs give +5 actions."
         assert get_singing_bonus(receiver_nest) == 5
         assert get_singing_bonus(giver_nest) == 0
+
+def test_can_bless_egg():
+    # Test no egg
+    nest = {"inspiration": 10, "seeds": 20}
+    can_bless, error = can_bless_egg(nest)
+    assert not can_bless
+    assert "don't have an egg" in error
+
+    # Test not enough inspiration
+    nest = {"inspiration": 2, "seeds": 20, "egg": {}}
+    can_bless, error = can_bless_egg(nest)
+    assert not can_bless
+    assert "need 3 inspiration" in error
+
+    # Test not enough seeds
+    nest = {"inspiration": 5, "seeds": 5, "egg": {}}
+    can_bless, error = can_bless_egg(nest)
+    assert not can_bless
+    assert "need 3 inspiration and 10 seeds" in error
+
+    # Test already blessed
+    nest = {"inspiration": 5, "seeds": 20, "egg": {"protected_prayers": True}}
+    can_bless, error = can_bless_egg(nest)
+    assert not can_bless
+    assert "already blessed" in error
+
+    # Test can bless
+    nest = {"inspiration": 5, "seeds": 20, "egg": {}}
+    can_bless, error = can_bless_egg(nest)
+    assert can_bless
+    assert error is None
+
+def test_bless_egg():
+    # Test successful blessing
+    nest = {"inspiration": 5, "seeds": 20, "egg": {}}
+    success, message = bless_egg(nest)
+    assert success
+    assert "has been blessed" in message
+    assert nest["inspiration"] == 2
+    assert nest["seeds"] == 10
+    assert nest["egg"]["protected_prayers"] is True
+
+    # Test failed blessing
+    nest = {"inspiration": 1, "seeds": 5, "egg": {}}
+    success, message = bless_egg(nest)
+    assert not success
+    assert "need 3 inspiration" in message
+    assert nest["inspiration"] == 1  # Resources shouldn't be consumed
+    assert nest["seeds"] == 5
+
+def test_handle_blessed_egg_hatching():
+    # Test unblessed egg
+    nest = {"egg": {"multipliers": {"Bird1": 2, "Bird2": 1}}}
+    saved = handle_blessed_egg_hatching(nest, "Bird1")
+    assert saved is None
+
+    # Test blessed egg, hatched most prayed bird
+    nest = {
+        "egg": {
+            "protected_prayers": True,
+            "multipliers": {"Bird1": 2, "Bird2": 1}
+        }
+    }
+    saved = handle_blessed_egg_hatching(nest, "Bird1")
+    assert saved is None
+
+    # Test blessed egg, hatched different bird
+    nest = {
+        "egg": {
+            "protected_prayers": True,
+            "multipliers": {"Bird1": 2, "Bird2": 1}
+        }
+    }
+    saved = handle_blessed_egg_hatching(nest, "Bird2")
+    assert saved == {"Bird1": 2, "Bird2": 1}
+
+    # Test blessed egg with no multipliers
+    nest = {"egg": {"protected_prayers": True}}
+    saved = handle_blessed_egg_hatching(nest, "Bird1")
+    assert saved == {}
 
