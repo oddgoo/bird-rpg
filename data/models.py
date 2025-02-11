@@ -46,6 +46,7 @@ def get_remaining_actions(data, user_id):
     if f"actions_{today}" not in data["daily_actions"][user_id]:
         data["daily_actions"][user_id][f"actions_{today}"] = {
             "used": 0,
+            "used_bonus": 0,  # Track used bonus actions separately
             "action_history": []  # Only track used actions and history per day
         }
     
@@ -54,17 +55,26 @@ def get_remaining_actions(data, user_id):
         used_actions = data["daily_actions"][user_id][f"actions_{today}"]
         data["daily_actions"][user_id][f"actions_{today}"] = {
             "used": used_actions,
+            "used_bonus": 0,
             "action_history": []
         }
     
     actions_data = data["daily_actions"][user_id][f"actions_{today}"]
+    
+    # Handle old format that used "bonus" instead of "used_bonus"
+    if "bonus" in actions_data and "used_bonus" not in actions_data:
+        actions_data["used_bonus"] = 0
     
     # Get persistent bonus actions from nest
     nest = get_personal_nest(data, user_id)
     chick_bonus = get_total_chicks(nest)
     persistent_bonus = nest["bonus_actions"]
     
-    total_available = BASE_DAILY_ACTIONS + persistent_bonus + chick_bonus
+    # Calculate remaining bonus actions
+    remaining_bonus = max(0, persistent_bonus - actions_data["used_bonus"])
+    
+    # Calculate total available actions
+    total_available = BASE_DAILY_ACTIONS + remaining_bonus + chick_bonus
     return total_available - actions_data["used"]
 
 def record_actions(data, user_id, count, action_type=None):
@@ -81,7 +91,7 @@ def record_actions(data, user_id, count, action_type=None):
     if f"actions_{today}" not in data["daily_actions"][user_id]:
         data["daily_actions"][user_id][f"actions_{today}"] = {
             "used": 0,
-            "bonus": 0,
+            "used_bonus": 0,
             "action_history": []  # List to track action types in order
         }
     
@@ -91,16 +101,34 @@ def record_actions(data, user_id, count, action_type=None):
     if isinstance(daily_data, (int, float)):
         daily_data = {
             "used": daily_data,
-            "bonus": 0,
+            "used_bonus": 0,
             "action_history": []
         }
         data["daily_actions"][user_id][f"actions_{today}"] = daily_data
     elif "action_history" not in daily_data:
         daily_data["action_history"] = []
     
-    daily_data["used"] += count
+    # Handle old format that used "bonus" instead of "used_bonus"
+    if "bonus" in daily_data and "used_bonus" not in daily_data:
+        daily_data["used_bonus"] = 0
+    
+    # Get nest info for bonus action tracking
+    nest = get_personal_nest(data, user_id)
+    persistent_bonus = nest["bonus_actions"]
+    remaining_bonus = max(0, persistent_bonus - daily_data["used_bonus"])
+    
+    # If we have bonus actions available, use them first
+    if remaining_bonus > 0:
+        bonus_to_use = min(count, remaining_bonus)
+        daily_data["used_bonus"] += bonus_to_use
+        count -= bonus_to_use  # Reduce the count by the number of bonus actions used
+    
+    # Record remaining actions as regular actions
+    if count > 0:
+        daily_data["used"] += count
+    
     if action_type:
-        daily_data["action_history"].extend([action_type] * count)
+        daily_data["action_history"].extend([action_type] * (count + min(remaining_bonus, count)))
 
 def is_first_action_of_type(data, user_id, action_type):
     """Check if this is the first action of a specific type today"""

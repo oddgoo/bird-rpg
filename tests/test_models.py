@@ -113,14 +113,38 @@ class TestActionTracking:
         assert remaining == BASE_DAILY_ACTIONS - 1
 
     def test_bonus_actions(self, mock_data):
+        # Add bonus actions
         add_bonus_actions(mock_data, "123", 3)
         remaining = get_remaining_actions(mock_data, "123")
         assert remaining == BASE_DAILY_ACTIONS + 3  # Base + bonus
 
+        # Use 2 actions - should consume bonus actions first
+        record_actions(mock_data, "123", 2)
+        remaining = get_remaining_actions(mock_data, "123")
+        assert remaining == BASE_DAILY_ACTIONS + 1  # Used 2 bonus actions, 1 remains
+
+        # Use 2 more actions - should consume last bonus action and one regular action
+        record_actions(mock_data, "123", 2)
+        remaining = get_remaining_actions(mock_data, "123")
+        assert remaining == BASE_DAILY_ACTIONS - 1  # Used last bonus action and one regular action
+
+        # Verify bonus actions were consumed by checking the daily tracking
+        today = get_current_date()
+        daily_data = mock_data["daily_actions"]["123"][f"actions_{today}"]
+        assert daily_data["used_bonus"] == 3  # All bonus actions were consumed
+        assert daily_data["used"] == 1  # One regular action was used
+
     def test_add_negative_bonus_actions(self, mock_data):
+        # Add negative bonus actions
         add_bonus_actions(mock_data, "123", -2)
         remaining = get_remaining_actions(mock_data, "123")
-        assert remaining == BASE_DAILY_ACTIONS - 2  # Bonus actions decreased by 2
+        # With the new system, negative bonus actions don't affect regular actions
+        # They just set the persistent bonus to a negative value
+        assert remaining == BASE_DAILY_ACTIONS  # Regular actions remain unchanged
+        
+        # Verify the negative bonus is stored
+        nest = get_personal_nest(mock_data, "123")
+        assert nest["bonus_actions"] == -2
 
     def test_concurrent_bonus_actions(self, mock_data):
         """Test multiple bonus action additions"""
@@ -138,15 +162,30 @@ class TestActionTracking:
         # Add some bonus actions
         add_bonus_actions(mock_data, user_id, 5)
         
-        # Record actions for yesterday
+        # Record actions for yesterday, including some used bonus actions
         yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
         mock_data["daily_actions"][user_id] = {
-            f"actions_{yesterday}": {"used": 3, "action_history": []}
+            f"actions_{yesterday}": {
+                "used": 3,
+                "used_bonus": 4,  # Used 4 out of 5 bonus actions yesterday
+                "action_history": []
+            }
         }
         
-        # Check today's actions - should have base + persistent bonus
+        # Check today's actions - should have base + all persistent bonus (unused bonus should reset)
         remaining = get_remaining_actions(mock_data, user_id)
-        assert remaining == BASE_DAILY_ACTIONS + 5  # Base actions + persistent bonus
+        assert remaining == BASE_DAILY_ACTIONS + 5  # Base actions + all persistent bonus (not reduced by yesterday's usage)
+
+        # Use some actions today
+        record_actions(mock_data, user_id, 3)
+        remaining = get_remaining_actions(mock_data, user_id)
+        assert remaining == BASE_DAILY_ACTIONS + 2  # Used 3 bonus actions, 2 remain
+
+        # Verify today's tracking is separate from yesterday's
+        today = get_current_date()
+        daily_data = mock_data["daily_actions"][user_id][f"actions_{today}"]
+        assert daily_data["used_bonus"] == 3  # Only today's used bonus actions are tracked
+        assert daily_data["used"] == 0  # Haven't used any regular actions today
 
 class TestSongMechanics:
     def test_record_and_check_song(self, mock_data):
@@ -495,12 +534,13 @@ class TestBirdEffects:
         user_id = "123"
         today = get_current_date()
         
-        # Initialize daily actions
+        # Initialize daily actions with new format
         mock_data["daily_actions"] = {
             user_id: {
                 f"actions_{today}": {
                     "used": 0,
-                    "bonus": 0
+                    "used_bonus": 0,
+                    "action_history": []
                 }
             }
         }
@@ -539,12 +579,13 @@ class TestBirdEffects:
         user_id = "123"
         today = get_current_date()
         
-        # Initialize daily actions
+        # Initialize daily actions with new format
         mock_data["daily_actions"] = {
             user_id: {
                 f"actions_{today}": {
                     "used": 0,
-                    "bonus": 0
+                    "used_bonus": 0,
+                    "action_history": []
                 }
             }
         }
@@ -573,12 +614,13 @@ class TestBirdEffects:
         user_id = "123"
         today = get_current_date()
         
-        # Initialize daily actions
+        # Initialize daily actions with new format
         mock_data["daily_actions"] = {
             user_id: {
                 f"actions_{today}": {
                     "used": 0,
-                    "bonus": 0
+                    "used_bonus": 0,
+                    "action_history": []
                 }
             }
         }
@@ -662,9 +704,13 @@ class TestMultiBrooding:
             nest = get_personal_nest(mock_data, target_id)
             nest["egg"] = {"brooding_progress": 5, "brooded_by": []}
         
-        # Set remaining actions to 2
+        # Set remaining actions to 2 using new format
         mock_data["daily_actions"][brooder_id] = {
-            f"actions_{get_current_date()}": {"used": BASE_DAILY_ACTIONS - 2, "bonus": 0}
+            f"actions_{get_current_date()}": {
+                "used": BASE_DAILY_ACTIONS - 2,
+                "used_bonus": 0,
+                "action_history": []
+            }
         }
         
         successful_broods = []
@@ -794,7 +840,7 @@ class TestFlockCommands:
 
 class TestLoreMechanics:
     def test_duplicate_memoir_same_day(self, mock_data):
-        """Test that a user can't add multiple memoirs on the same day"""
+        """Test that a user cannot add multiple memoirs on the same day"""
         user_id = "123"
         nest = get_personal_nest(mock_data, user_id)
         today = get_current_date()
