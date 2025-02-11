@@ -13,8 +13,7 @@ def has_player():
             # Check if user has a nest
             if user_id not in data.get("personal_nests", {}):
                 await interaction.response.send_message(
-                    "You need to have a nest first! Use `/build` to start building your nest.", 
-                    ephemeral=True
+                    "You need to have a nest first! Use `/build` to start building your nest."
                 )
                 return
             
@@ -33,8 +32,7 @@ def has_birds():
             # Check if user has a nest
             if user_id not in data.get("personal_nests", {}):
                 await interaction.response.send_message(
-                    "You need to have a nest first! Use `/build` to start building your nest.", 
-                    ephemeral=True
+                    "You need to have a nest first! Use `/build` to start building your nest."
                 )
                 return
 
@@ -42,8 +40,7 @@ def has_birds():
             nest = data["personal_nests"][user_id]
             if not nest.get("chicks", []):
                 await interaction.response.send_message(
-                    "You need to have at least one bird in your nest! Try hatching an egg first.", 
-                    ephemeral=True
+                    "You need to have at least one bird in your nest! Try hatching an egg first."
                 )
                 return
             

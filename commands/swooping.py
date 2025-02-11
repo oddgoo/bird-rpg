@@ -87,7 +87,7 @@ class Swooping(commands.Cog):
     @has_birds()
     async def swoop(self, interaction, amount: int):
         if amount <= 0:
-            await interaction.response.send_message("You need to use at least 1 action to swoop!", ephemeral=True)
+            await interaction.response.send_message("You need to use at least 1 action to swoop!")
             return
 
         data = load_data()
@@ -95,8 +95,7 @@ class Swooping(commands.Cog):
         remaining_actions = get_remaining_actions(data, user_id)
         if remaining_actions < amount:
             await interaction.response.send_message(
-                f"You don't have enough actions! You have {remaining_actions} actions.", 
-                ephemeral=True
+                f"You don't have enough actions! You have {remaining_actions} actions."
             )
             return
 
