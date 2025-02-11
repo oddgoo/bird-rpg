@@ -12,13 +12,18 @@
             <div class="inline-block mx-2 text-lg bg-white px-4 py-2 rounded-full shadow-lg">
                 <span class="text-2xl align-middle">🌰</span> Seeds: {{ common_nest.seeds }}
             </div>
+            <div class="inline-block mx-2 text-lg bg-white px-4 py-2 rounded-full shadow-lg">
+                <span class="text-2xl align-middle">🦅</span> Humans Defeated: {{ defeated_humans|length }}
+            </div>
         </div>
+
+ 
     </div>
 </div>
 
 <div class="rounded-xl p-6 mb-6 shadow-lg border-4 border-blue-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
     <div class="border border-blue-300/50 rounded-lg p-4 bg-blue-50/50">
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-3 gap-4">
             <div>
                 <h2 class="flex justify-center items-center gap-2 text-2xl text-blue-900 font-mystical font-bold">Eggsploration</h2>
                 <div class="text-center mt-4">
@@ -33,6 +38,20 @@
                     <div class="inline-block mx-2 text-lg bg-white px-4 py-2 rounded-full shadow-lg">
                         <span class="text-2xl align-middle">🐦</span> Bird Species: {{ discovered_species_count }} / {{ total_bird_species }}
                     </div>
+                </div>
+            </div>
+            <div class="border-l border-blue-300/50 pl-4">
+                <h2 class="flex justify-center items-center gap-2 text-2xl text-blue-900 font-mystical font-bold">Current Intruder</h2>
+                <div class="text-center mt-4">
+                    {% if current_human and current_human.resilience > 0 %}
+                    <div class="inline-block mx-2 text-lg bg-white px-4 py-2 rounded-full shadow-lg">
+                        <span class="text-2xl align-middle">👤</span> {{ current_human.name }}: {{ current_human.resilience }}/{{ current_human.max_resilience }}
+                    </div>
+                    {% else %}
+                    <div class="inline-block mx-2 text-lg bg-white px-4 py-2 rounded-full shadow-lg">
+                        <span class="text-2xl align-middle">✨</span> No intruders in sight!
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

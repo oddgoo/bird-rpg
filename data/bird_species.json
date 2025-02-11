@@ -40,7 +40,7 @@
         "scientificName": "Gymnorhina tibicen",
         "rarityWeight": 7,
         "rarity": "common",
-        "effect": ""
+        "effect": "Your first swoop of the day is +3 points more effective."
       },
       {
         "commonName": "Sulphur-crested Cockatoo",
@@ -215,14 +215,14 @@
         "scientificName": "Casspie",
         "rarityWeight": 0,
         "rarity": "Special",
-        "effect": "Your first swoop of the day is +5 points more effective."
+        "effect": "Your first swoop of the day is +7 points more effective."
       },
       {
         "commonName": "Magpie Lark",
         "scientificName": "Grallina cyanoleuca",
         "rarityWeight": 8,
         "rarity": "common",
-        "effect": ""
+        "effect": "Your first swoop of the day is +3 points more effective."
       },
       {
         "commonName": "Crested Pigeon",
@@ -243,7 +243,7 @@
         "scientificName": "Corvus coronoides",
         "rarityWeight": 7,
         "rarity": "common",
-        "effect": ""
+        "effect": "Your first swoop of the day is +3 points more effective."
       },
       {
         "commonName": "Pied Currawong",

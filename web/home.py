@@ -8,6 +8,8 @@ from data.models import (
     get_discovered_species_count, get_discovered_species
 )
 from utils.time_utils import get_time_until_reset
+from commands.swooping import Swooping
+from utils.human_spawner import HumanSpawner
 
 def get_home_page():
     data = load_data()
@@ -74,6 +76,17 @@ def get_home_page():
     print(discovered_species)
     exploration = data.get("exploration", {})
     
+    # Get current human
+    spawner = HumanSpawner()
+    current_human = spawner.spawn_human()
+
+    # Get defeated humans data
+    defeated_humans = data.get("defeated_humans", [])
+    # Sort by date, most recent first
+    defeated_humans.sort(key=lambda x: x["date"], reverse=True)
+    # Keep only the last 5 defeated humans
+    defeated_humans = defeated_humans[:5]
+
     return render_template(
         'home.html',
         common_nest=common_nest,
@@ -82,5 +95,7 @@ def get_home_page():
         total_bird_species=total_bird_species,
         discovered_species_count=discovered_species_count,
         discovered_species=discovered_species,
-        exploration=exploration
+        exploration=exploration,
+        current_human=current_human,
+        defeated_humans=defeated_humans,
     )

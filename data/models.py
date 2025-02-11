@@ -409,3 +409,31 @@ def handle_blessed_egg_hatching(nest, hatched_bird_name):
         return multipliers
     
     return None
+
+def get_swooping_bonus(data, nest):
+    """Get the bonus swooping damage from birds that boost swooping"""
+    # Get user_id from nest
+    user_id = next(
+        uid for uid, user_nest in data["personal_nests"].items() 
+        if user_nest == nest
+    )
+    
+    # Only apply bonus if this is the first swoop of the day
+    is_first = is_first_action_of_type(data, user_id, "swoop")
+    if not is_first:
+        return 0
+        
+    # Calculate bonus from all chicks with swooping effects
+    bonus = 0
+    for chick in nest.get("chicks", []):
+        effect = get_bird_effect(chick["scientificName"]).lower()
+        if "your first swoop" in effect and "more effective" in effect:
+            try:
+                this_bonus = int(''.join(filter(str.isdigit, effect)))
+                bonus += this_bonus
+            except ValueError:
+                print("  Could not parse bonus number")
+                continue
+    
+    print(f"Final swoop bonus: {bonus}")
+    return bonus

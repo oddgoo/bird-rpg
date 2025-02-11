@@ -1,0 +1,63 @@
+{
+    "human_types": [
+        {
+            "name": "small child",
+            "resilience": 25,
+            "description": "A small child wandering into the bird realm"
+        },
+        {
+            "name": "bully kid",
+            "resilience": 50,
+            "description": "A mischievous kid known for bothering birds"
+        },
+        {
+            "name": "average human on a bike",
+            "resilience": 100,
+            "description": "A cyclist passing through the bird realm"
+        }
+    ],
+    "blessings": [
+        {
+            "type": "individual_seeds",
+            "name": "Seeds for Everyone",
+            "tiers": [10, 20, 30],
+            "description": "The bird gods grant seeds to each player's nest"
+        },
+        {
+            "type": "common_seeds",
+            "name": "Common Nest Seeds",
+            "tiers": [40, 80, 120],
+            "description": "The bird gods grant seeds to the common nest"
+        },
+        {
+            "type": "inspiration",
+            "name": "Divine Inspiration",
+            "tiers": [2, 4, 7],
+            "description": "The bird gods grant inspiration to all players"
+        },
+        {
+            "type": "garden_growth",
+            "name": "Garden Blessing",
+            "tiers": [2, 4, 7],
+            "description": "The bird gods enhance everyone's garden"
+        },
+        {
+            "type": "bonus_actions",
+            "name": "Swift Wings (Bonus Actions)",
+            "tiers": [10, 20, 30],
+            "description": "The bird gods grant bonus actions to all players"
+        },
+        {
+            "type": "individual_nest_growth",
+            "name": "Nest Enhancement",
+            "tiers": [10, 20, 30],
+            "description": "The bird gods enhance each player's nest"
+        },
+        {
+            "type": "common_nest_growth",
+            "name": "Common Nest Enhancement",
+            "tiers": [40, 80, 120],
+            "description": "The bird gods enhance the common nest"
+        }
+    ]
+} 
