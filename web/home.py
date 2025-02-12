@@ -20,6 +20,9 @@ def get_home_page():
     # Get time until reset
     time_until_reset = get_time_until_reset()
     
+    # Load bird species data for reference
+    bird_species_data = {bird["scientificName"]: bird for bird in load_bird_species()}
+    
     # Get all personal nests with singing data
     personal_nests = []
     
@@ -36,6 +39,15 @@ def get_home_page():
         egg_data = nest.get("egg")
         egg_progress = egg_data["brooding_progress"] if egg_data else None
         
+        # Get featured bird data with rarity from bird_species.json
+        featured_bird = nest.get("featured_bird")
+        if featured_bird:
+            bird_data = bird_species_data.get(featured_bird["scientificName"], {})
+            featured_bird = {
+                **featured_bird,
+                "rarity": bird_data.get("rarity", "common")
+            }
+        
         personal_nests.append({
             "user_id": user_id,
             "name": nest.get("name", "Some Bird's Nest"),
@@ -49,7 +61,7 @@ def get_home_page():
             "garden_size": nest.get("garden_size", 0),
             "garden_life": nest.get("garden_life", 0),
             "inspiration": nest.get("inspiration", 0),
-            "featured_bird": nest.get("featured_bird")
+            "featured_bird": featured_bird
         })
     
     # Sort nests by songs given, descending
