@@ -3,6 +3,7 @@ import random
 import os
 from datetime import date
 from config.config import DATA_PATH
+from utils.time_utils import get_current_date
 
 class HumanSpawner:
     def __init__(self, test_mode=False):
@@ -53,7 +54,7 @@ class HumanSpawner:
 
     def spawn_human(self):
         """Spawn a new human if one hasn't been spawned today"""
-        today = date.today()
+        today = get_current_date()
         if self.current_human is None or (
             self.last_spawn_date != today and self.current_human.get("resilience", 0) <= 0
         ):

@@ -15,9 +15,9 @@ env/
 venv/
 ENV/
 *.so
+.bird-rpg/*
 
 # IDE
-.bird-rpg/
 .idea/
 .vscode/
 *.swp
