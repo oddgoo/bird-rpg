@@ -20,17 +20,11 @@ from utils.blessings import apply_blessing
 class Swooping(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self._load_human_data()
         self.defeat_gifs = {
             "small child": "https://media1.tenor.com/m/tXwrrX82m8sAAAAd/magpie-australia.gif",
             "average human on a bike": "https://media1.tenor.com/m/9asisfNB76gAAAAd/bird-attack-viralhog.gif",
             "bully kid": "https://media1.tenor.com/m/vBzQOAc7LbQAAAAd/sabiadocampo-bird-attack.gif"
         }
-
-    def _load_human_data(self):
-        file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'human_entities.json')
-        with open(file_path, 'r') as f:
-            self.human_data = json.load(f)
 
     def _record_defeated_human(self, human, blessing_name, blessing_amount):
         """Record a defeated human in the game data"""
@@ -51,10 +45,16 @@ class Swooping(commands.Cog):
 
     async def _apply_blessing(self):
         """Apply a random blessing to all players when human is defeated"""
-        blessing = random.choice(self.human_data["blessings"])
+        # Load human data directly
+        file_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'human_entities.json')
+        with open(file_path, 'r') as f:
+            human_data = json.load(f)
+            
+        blessing = random.choice(human_data["blessings"])
         # Get tier based on defeated human's max resilience
         spawner = HumanSpawner()
-        current_human = spawner.spawn_human()
+        state = spawner._get_current_state()
+        current_human = state['current_human']
         tier_index = {25: 0, 50: 1, 100: 2}[current_human["max_resilience"]]
         amount = blessing["tiers"][tier_index]
 
@@ -119,10 +119,13 @@ class Swooping(commands.Cog):
             save_data(data)
 
             if not was_defeated:
+                # Get updated human state after damage
+                updated_state = spawner._get_current_state()
+                updated_human = updated_state['current_human']
                 message = [f"🦅 You swoop at the {human['name']}! 🦅"]
                 if bonus_damage > 0:
                     message.append(f"✨ Your birds' special abilities add **+{bonus_damage}** damage! ✨")
-                message.append(f"They still have **{human['resilience']}/{human['max_resilience']}** resilience left.")
+                message.append(f"They still have **{updated_human['resilience']}/{updated_human['max_resilience']}** resilience left.")
             else:
                 blessing_name, blessing_amount = await self._apply_blessing()
                 victory_gif = self.defeat_gifs.get(human['name'], "")
