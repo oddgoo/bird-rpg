@@ -118,20 +118,23 @@ class TestActionTracking:
         remaining = get_remaining_actions(mock_data, "123")
         assert remaining == BASE_DAILY_ACTIONS + 3  # Base + bonus
 
-        # Use 2 actions - should consume bonus actions first
+        # Use 2 actions - should permanently consume bonus actions first
         record_actions(mock_data, "123", 2)
         remaining = get_remaining_actions(mock_data, "123")
-        assert remaining == BASE_DAILY_ACTIONS + 1  # Used 2 bonus actions, 1 remains
+        assert remaining == BASE_DAILY_ACTIONS + 1  # Used 2 bonus actions permanently, 1 remains
 
         # Use 2 more actions - should consume last bonus action and one regular action
         record_actions(mock_data, "123", 2)
         remaining = get_remaining_actions(mock_data, "123")
         assert remaining == BASE_DAILY_ACTIONS - 1  # Used last bonus action and one regular action
 
-        # Verify bonus actions were consumed by checking the daily tracking
+        # Verify bonus actions were permanently consumed
+        nest = get_personal_nest(mock_data, "123")
+        assert nest["bonus_actions"] == 0  # All bonus actions were permanently consumed
+
+        # Verify regular actions were tracked
         today = get_current_date()
         daily_data = mock_data["daily_actions"]["123"][f"actions_{today}"]
-        assert daily_data["used_bonus"] == 3  # All bonus actions were consumed
         assert daily_data["used"] == 1  # One regular action was used
 
     def test_add_negative_bonus_actions(self, mock_data):
@@ -157,35 +160,36 @@ class TestActionTracking:
         assert remaining == BASE_DAILY_ACTIONS + 6  # Base + (1+2+3) bonus
 
     def test_cross_day_boundary(self, mock_data):
-        """Test that actions reset properly across days but bonus actions persist"""
+        """Test that regular actions reset daily but bonus actions remain permanently spent"""
         user_id = "123"
         # Add some bonus actions
         add_bonus_actions(mock_data, user_id, 5)
         
-        # Record actions for yesterday, including some used bonus actions
+        # Record actions for yesterday
         yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
         mock_data["daily_actions"][user_id] = {
             f"actions_{yesterday}": {
                 "used": 3,
-                "used_bonus": 4,  # Used 4 out of 5 bonus actions yesterday
                 "action_history": []
             }
         }
         
-        # Check today's actions - should have base + all persistent bonus (unused bonus should reset)
+        # Use some bonus actions yesterday
+        nest = get_personal_nest(mock_data, user_id)
+        record_actions(mock_data, user_id, 3)  # This will use 3 bonus actions permanently
+        assert nest["bonus_actions"] == 2  # Should have 2 bonus actions remaining
+        
+        # Check today's actions
         remaining = get_remaining_actions(mock_data, user_id)
-        assert remaining == BASE_DAILY_ACTIONS + 5  # Base actions + all persistent bonus (not reduced by yesterday's usage)
+        assert remaining == BASE_DAILY_ACTIONS + 2  # Base actions + remaining bonus actions (3 were permanently spent)
 
-        # Use some actions today
-        record_actions(mock_data, user_id, 3)
+        # Use remaining bonus actions today
+        record_actions(mock_data, user_id, 2)  # Use the last 2 bonus actions
         remaining = get_remaining_actions(mock_data, user_id)
-        assert remaining == BASE_DAILY_ACTIONS + 2  # Used 3 bonus actions, 2 remain
+        assert remaining == BASE_DAILY_ACTIONS  # Only base actions remain, all bonus actions spent
 
-        # Verify today's tracking is separate from yesterday's
-        today = get_current_date()
-        daily_data = mock_data["daily_actions"][user_id][f"actions_{today}"]
-        assert daily_data["used_bonus"] == 3  # Only today's used bonus actions are tracked
-        assert daily_data["used"] == 0  # Haven't used any regular actions today
+        # Verify bonus actions are permanently spent
+        assert nest["bonus_actions"] == 0  # All bonus actions should be gone
 
 class TestSongMechanics:
     def test_record_and_check_song(self, mock_data):
@@ -539,7 +543,6 @@ class TestBirdEffects:
             user_id: {
                 f"actions_{today}": {
                     "used": 0,
-                    "used_bonus": 0,
                     "action_history": []
                 }
             }
@@ -584,7 +587,6 @@ class TestBirdEffects:
             user_id: {
                 f"actions_{today}": {
                     "used": 0,
-                    "used_bonus": 0,
                     "action_history": []
                 }
             }
@@ -708,7 +710,6 @@ class TestMultiBrooding:
         mock_data["daily_actions"][brooder_id] = {
             f"actions_{get_current_date()}": {
                 "used": BASE_DAILY_ACTIONS - 2,
-                "used_bonus": 0,
                 "action_history": []
             }
         }
@@ -1170,4 +1171,3 @@ def test_handle_blessed_egg_hatching():
     nest = {"egg": {"protected_prayers": True}}
     saved = handle_blessed_egg_hatching(nest, "Bird1")
     assert saved == {}
-
