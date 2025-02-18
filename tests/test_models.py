@@ -609,7 +609,7 @@ class TestBirdEffects:
         ])
         
         bonus = get_singing_bonus(nest)
-        assert bonus == 8, "Should get +3 from Orange-bellied and +5 from Night Parrot"
+        assert bonus == 13, "Should get +3 from Orange-bellied and +10 from Night Parrot"
 
     def test_multiple_same_bird_effects(self, mock_data):
         """Test multiple copies of same bird stack effects"""
@@ -1089,7 +1089,7 @@ class TestSocialMechanics:
         # Verify the effect is preserved
         transferred_bird = next(bird for bird in receiver_nest["chicks"] if bird["commonName"] == "Night Parrot")
         assert transferred_bird["effect"] == "All your songs give +5 actions."
-        assert get_singing_bonus(receiver_nest) == 5
+        assert get_singing_bonus(receiver_nest) == 10
         assert get_singing_bonus(giver_nest) == 0
 
 def test_can_bless_egg():

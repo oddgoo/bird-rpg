@@ -362,6 +362,9 @@ def get_singing_inspiration_chance(data, nest):
         if "has a 50% chance to give you +1 inspiration" in effect:
             if random.random() < 0.5:  # 50% chance for each finch
                 inspiration_chances += 1
+        if "has a 90% chance to give you +1 inspiration" in effect:
+            if random.random() < 0.9:  # 50% chance for each finch
+                inspiration_chances += 1
                 
     return inspiration_chances
 
