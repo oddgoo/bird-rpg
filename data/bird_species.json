@@ -419,7 +419,286 @@
         "rarityWeight": 0.5,
         "rarity": "mythical",
         "effect": "All your songs give +10 actions."
+      },
+      {
+        "commonName": "New Zealand Fantail",
+        "scientificName": "Rhipidura fuliginosa",
+        "rarityWeight": 8,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "Tui",
+        "scientificName": "Prosthemadera novaeseelandiae",
+        "rarityWeight": 7,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "New Zealand Pigeon",
+        "scientificName": "Hemiphaga novaeseelandiae",
+        "rarityWeight": 7,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "New Zealand Bellbird",
+        "scientificName": "Anthornis melanura",
+        "rarityWeight": 6,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "New Zealand Tomtit",
+        "scientificName": "Petroica macrocephala",
+        "rarityWeight": 6,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "New Zealand Scaup",
+        "scientificName": "Aythya novaeseelandiae",
+        "rarityWeight": 6,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "Papuan Lorikeet",
+        "scientificName": "Charmosyna papou",
+        "rarityWeight": 5,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "Wompoo Fruit Dove",
+        "scientificName": "Ptilinopus magnificus",
+        "rarityWeight": 5,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "Papuan Hornbill",
+        "scientificName": "Rhyticeros plicatus",
+        "rarityWeight": 5,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "New Zealand Robin",
+        "scientificName": "Petroica australis",
+        "rarityWeight": 5,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "Masked Lapwing",
+        "scientificName": "Vanellus miles",
+        "rarityWeight": 5,
+        "rarity": "common",
+        "effect": ""
+      },
+      {
+        "commonName": "Little Spotted Kiwi",
+        "scientificName": "Apteryx owenii",
+        "rarityWeight": 3,
+        "rarity": "common",
+        "effect": "Your first nest-building action of the day gives +1 twigs."
+      },
+      {
+        "commonName": "Kea",
+        "scientificName": "Nestor notabilis",
+        "rarityWeight": 4,
+        "rarity": "uncommon",
+        "effect": "Your first seed gathering action of the day also gives +1 garden size"
+      },
+      {
+        "commonName": "New Zealand Falcon",
+        "scientificName": "Falco novaeseelandiae",
+        "rarityWeight": 4,
+        "rarity": "uncommon",
+        "effect": "Your first swoop of the day is +2 points more effective."
+      },
+      {
+        "commonName": "Papuan Whipbird",
+        "scientificName": "Androphobus viridis",
+        "rarityWeight": 4,
+        "rarity": "uncommon",
+        "effect": "To be awakened..."
+      },
+      {
+        "commonName": "Papuan Frogmouth",
+        "scientificName": "Podargus papuensis",
+        "rarityWeight": 4,
+        "rarity": "uncommon",
+        "effect": ""
+      },
+      {
+        "commonName": "Papuan King Parrot",
+        "scientificName": "Alisterus chloropterus",
+        "rarityWeight": 4,
+        "rarity": "uncommon",
+        "effect": "Your first seed gathering action of the day also gives +1 garden size"
+      },
+      {
+        "commonName": "North Island Brown Kiwi",
+        "scientificName": "Apteryx mantelli",
+        "rarityWeight": 3,
+        "rarity": "uncommon",
+        "effect": "Your first nest-building action of the day gives +3 twigs."
+      },
+      {
+        "commonName": "Victoria Crowned Pigeon",
+        "scientificName": "Goura victoria",
+        "rarityWeight": 3,
+        "rarity": "uncommon",
+        "effect": "Your first nest-building action of the day gives +3 twigs."
+      },
+      {
+        "commonName": "Brown-headed Paradise Kingfisher",
+        "scientificName": "Tanysiptera danae",
+        "rarityWeight": 3,
+        "rarity": "uncommon",
+        "effect": "To be awakened..."
+      },
+      {
+        "commonName": "New Zealand Kaka",
+        "scientificName": "Nestor meridionalis",
+        "rarityWeight": 3,
+        "rarity": "uncommon",
+        "effect": "Your first seed gathering action of the day also gives +1 garden size"
+      },
+      {
+        "commonName": "New Zealand Dotterel",
+        "scientificName": "Charadrius obscurus",
+        "rarityWeight": 3,
+        "rarity": "uncommon",
+        "effect": ""
+      },
+      {
+        "commonName": "Raggiana Bird-of-Paradise",
+        "scientificName": "Paradisaea raggiana",
+        "rarityWeight": 2,
+        "rarity": "uncommon",
+        "effect": "Your first singing action of the day has a 50% chance to give you +1 inspiration"
+      },
+      {
+        "commonName": "Twelve-wired Bird-of-Paradise",
+        "scientificName": "Seleucidis melanoleucus",
+        "rarityWeight": 2,
+        "rarity": "uncommon",
+        "effect": "Your first singing action of the day has a 50% chance to give you +1 inspiration"
+      },
+      {
+        "commonName": "Salvadori's Teal",
+        "scientificName": "Salvadorina waigiuensis",
+        "rarityWeight": 2,
+        "rarity": "uncommon",
+        "effect": "All your songs give +2 actions."
+      },
+      {
+        "commonName": "Magnificent Riflebird",
+        "scientificName": "Ptiloris magnificus",
+        "rarityWeight": 2,
+        "rarity": "uncommon",
+        "effect": "Your first singing action of the day has a 50% chance to give you +1 inspiration"
+      },
+      {
+        "commonName": "Standardwing Bird-of-Paradise",
+        "scientificName": "Semioptera wallacii",
+        "rarityWeight": 2,
+        "rarity": "uncommon",
+        "effect": "To be awakened..."
+      },
+      {
+        "commonName": "Splendid Fairy-wren",
+        "scientificName": "Malurus splendens",
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "Your first singing action of the day has a 90% chance to give you +1 inspiration"
+      },
+      {
+        "commonName": "Southern Brown Kiwi",
+        "scientificName": "Apteryx australis",
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "Your first nest-building action of the day gives +5 twigs."
+      },
+      {
+        "commonName": "Wilson's Bird-of-Paradise",
+        "scientificName": "Diphyllodes respublica",
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "To be awakened..."
+      },
+      {
+        "commonName": "King Bird-of-Paradise",
+        "scientificName": "Cicinnurus regius",
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "All your songs give +3 actions."
+      },
+      {
+        "commonName": "Papuan Eagle",
+        "scientificName": "Harpyopsis novaeguineae",
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "Your first swoop of the day is +6 points more effective."
+      },
+      {
+        "commonName": "Ribbon-tailed Astrapia",
+        "scientificName": "Astrapia mayeri",
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "To be awakened..."
+      },
+      {
+        "commonName": "Wahnes's Parotia",
+        "scientificName": "Parotia wahnesi",
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "All your songs give +3 actions."
+      },
+      {
+        "commonName": "Black Sicklebill",
+        "scientificName": "Epimachus fastosus",
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "Your first nest-building action of the day gives +7 twigs."
+      },
+      {
+        "commonName": "Goldie's Bird-of-Paradise",
+        "scientificName": "Paradisaea decora",
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "Your first singing action of the day has a 90% chance to give you +1 inspiration"
+      },
+      {
+        "commonName": "Brown Sicklebill",
+        "scientificName": "Epimachus meyeri",
+        "rarityWeight": 1,
+        "rarity": "rare",
+        "effect": "All your songs give +4 actions."
+      },
+      {
+        "commonName": "Blue Bird-of-Paradise",
+        "scientificName": "Paradisaea rudolphi",
+        "rarityWeight": 0.5,
+        "rarity": "mythical",
+        "effect": "Your first nest-building action of the day gives +20 twigs."
+      },
+      {
+        "commonName": "Huon Astrapia",
+        "scientificName": "Astrapia rothschildi",
+        "rarityWeight": 0.2,
+        "rarity": "mythical",
+        "effect": "To be awakened..."
+      },
+      {
+        "commonName": "Emperor Bird-of-Paradise",
+        "scientificName": "Paradisaea guilielmi",
+        "rarityWeight": 0.1,
+        "rarity": "mythical",
+        "effect": "To be awakened..."
       }
-      
     ]
   }
