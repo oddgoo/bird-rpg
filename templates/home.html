@@ -16,8 +16,6 @@
                 <span class="text-2xl align-middle">🦅</span> Humans Defeated: {{ defeated_humans|length }}
             </div>
         </div>
-
- 
     </div>
 </div>
 
@@ -62,62 +60,66 @@
     <h2 class="flex justify-center items-center gap-2 text-2xl text-yellow-900 font-mystical font-bold">Nests</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-4">
         {% for nest in personal_nests %}
-        <a href="/user/{{ nest.user_id }}" class="no-underline">
-            <div class="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-md transition-transform transform hover:-translate-y-1 border border-amber-200/50 hover:border-amber-300/70">
-                <div class="text-md font-bold font-mystical text-orange-700 mb-2">{{ nest.name }}</div>
+        <a href="/user/{{ nest.user_id }}" class="no-underline block">
+            <div class="h-full bg-white/80 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1 border border-amber-200/50 hover:border-amber-300/70">
                 {% if nest.featured_bird %}
-                <div class="relative w-full h-40 rounded-lg overflow-hidden shadow-md mb-3">
+                <div class="relative w-full h-60 rounded-t-lg overflow-hidden mb-0">
                     <img 
                         src="https://via.placeholder.com/400?text=🐦"
                         alt="{{ nest.featured_bird.commonName }}"
                         id="featured-bird-{{ nest.user_id }}"
                         class="w-full h-full object-cover"
                     >
+                    
                 </div>
+                <img src="/static/images/ui/nest.png" style="position: absolute; left: 50%; transform: translateX(-50%); top: 35%; z-index: 1; width: 120%; max-width: none; height: 80px;" />
                 {% endif %}
-                <div class="flex flex-col space-y-1 text-md">
-                    <div class="flex justify-between border-b border-dashed border-yellow-200 py-0.5">
-                        <span>🪹 Twigs</span>
-                        <span>{{ nest.twigs }}</span>
-                    </div>
-                    <div class="flex justify-between border-b border-dashed border-yellow-200 py-0.5">
-                        <span>🌰 Seeds</span>
-                        <span>{{ nest.seeds }}</span>
-                    </div>
-                    <div class="flex justify-between border-b border-dashed border-yellow-200 py-0.5">
-                        <span>🐥 Chicks</span>
-                        <span>{{ nest.chicks }}</span>
-                    </div>
-                    <div class="flex justify-between border-b border-dashed border-yellow-200 py-0.5">
-                        <span>🥚 Egg</span>
-                        <span>
-                            {% if nest.has_egg %}
-                                {{ nest.egg_progress }}/10
-                            {% else %}
-                                None
-                            {% endif %}
-                        </span>
-                    </div>
-                    <div class="flex justify-between py-0.5">
-                        <span>🎵 Songs</span>
-                        <span class="font-bold text-blue-700">{{ nest.songs_given }}</span>
-                    </div>
-                    <div class="flex justify-between border-b border-dashed border-yellow-200 py-0.5">
-                        <span>🌱 Garden</span>
-                        <span>{{ nest.garden_size }} / {{ nest.garden_life|default(0) }}</span>
-                    </div>
-                    <div class="flex justify-between border-b border-dashed border-yellow-200 py-0.5">
-                        <span>💡 Inspiration</span>
-                        <span>{{ nest.inspiration|default(0) }}</span>
+                <div class="p-4 flex flex-col h-full mt-5">
+                    <div class="text-md font-bold font-mystical text-orange-700 mb-2">{{ nest.name }}</div>
+                    <div class="flex flex-col flex-grow space-y-1 text-sm">
+                        <div class="flex justify-between border-b border-dashed border-yellow-200 py-0.5">
+                            <span>🪹 Twigs</span>
+                            <span>{{ nest.twigs }}</span>
+                        </div>
+                        <div class="flex justify-between border-b border-dashed border-yellow-200 py-0.5">
+                            <span>🌰 Seeds</span>
+                            <span>{{ nest.seeds }}</span>
+                        </div>
+                        <div class="flex justify-between border-b border-dashed border-yellow-200 py-0.5">
+                            <span>🐥 Chicks</span>
+                            <span>{{ nest.chicks }}</span>
+                        </div>
+                        <div class="flex justify-between border-b border-dashed border-yellow-200 py-0.5">
+                            <span>🥚 Egg</span>
+                            <span>
+                                {% if nest.has_egg %}
+                                    {{ nest.egg_progress }}/10
+                                {% else %}
+                                    None
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="flex justify-between py-0.5">
+                            <span>🎵 Songs</span>
+                            <span class="font-bold text-blue-700">{{ nest.songs_given }}</span>
+                        </div>
+                        <div class="flex justify-between border-b border-dashed border-yellow-200 py-0.5">
+                            <span>🌱 Garden</span>
+                            <span>{{ nest.garden_size }} / {{ nest.garden_life|default(0) }}</span>
+                        </div>
+                        <div class="flex justify-between border-b border-dashed border-yellow-200 py-0.5">
+                            <span>💡 Inspiration</span>
+                            <span>{{ nest.inspiration|default(0) }}</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </a>
         {% endfor %}
-        <a class="no-underline">
-            <div class="bg-gray-200 backdrop-blur-sm rounded-lg p-4 shadow-md transition-transform transform hover:-translate-y-1 border border-amber-200/50 hover:border-amber-300/70">
+        <a href="#" class="no-underline block">
+            <div class="h-full bg-gray-200 backdrop-blur-sm rounded-lg p-4 shadow-md transition-transform transform hover:-translate-y-1 border border-amber-200/50 hover:border-amber-300/70">
                 <div class="text-sm font-bold font-mystical text-orange-900 mb-2">P̴̍̿ͅa̷̖̤̅̈́n̶̗̱̳̂̂̔t̸̵̡̞̟̭̘̼͛͛́̅ͅĕ̴̠̋̈́̚o̶̧͇̞̐n̵͓̟̣̉̈̍͠S̸̱̯̼͊p̷͖̘̫̍̔a̸͇̼̓̿̔̃r̶͖̦̈́͜͝ȑ̶̡̻̮̄̀͜ö̸̰́w̵͈̄͐̎̍ ̵̤͐̐͝N̵̺̻͖̈́̏͂͊è̸̡̝̯ͅs̶̞͉͇̣̑͐̀ẗ̶̩͔̰̪́̓̍̕ ̸̮̯̕E̶̻͚͙͗̄v̷̧͊̈́e̵̥̬̤͋̑r̸̡̛̒ ̸̤̇͊Ñ̵̦̯̤́̀͘e̵̦̚x̸̡̻̥̦̂͘̕͝ṱ̴͋̀͊͝ ̶͕͍̱̈Ţ̷̺̌̏͊͘i̵̱̿̇̎̅m̸͕̫̟̱̔ë̵̻̗̯́</div>
-                <div class="flex flex-col space-y-1 text-sm">
+                <div class="flex flex-col flex-grow space-y-1 text-sm">
                     <div class="flex justify-between border-b border-dashed border-yellow-200 py-0.5">
                         <span>🌰 Seeds</span>
                         <span>🌰🌻🌰🧆</span>
@@ -155,25 +157,23 @@
     </div>
 </div>
 
-<script>
+    <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Handle featured birds
-        {% for nest in personal_nests %}
-        {% if nest.featured_bird %}
-        {% if nest.featured_bird.rarity == 'Special' %}
-            document.getElementById(`featured-bird-{{ nest.user_id }}`).src = `/static/images/special-birds/{{ nest.featured_bird.scientificName }}.png`;
-        {% else %}
-        fetch(`https://api.inaturalist.org/v1/taxa?q={{ nest.featured_bird.scientificName }}&limit=1`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.results && data.results.length > 0 && data.results[0].default_photo) {
-                    document.getElementById(`featured-bird-{{ nest.user_id }}`).src = data.results[0].default_photo.medium_url;
-                }
-            })
-            .catch(error => console.error('Error fetching featured bird image:', error));
-        {% endif %}
-        {% endif %}
-        {% endfor %}
+        var featuredBirds = [{% for nest in personal_nests if nest.featured_bird %}{ "user_id": {{ nest.user_id|tojson }}, "isSpecial": {{ (nest.featured_bird.rarity=='Special')|tojson }}, "scientificName": {{ nest.featured_bird.scientificName|tojson }} }{% if not loop.last %}, {% endif %}{% endfor %}];
+        featuredBirds.forEach(function(bird) {
+            if (bird.isSpecial) {
+                document.getElementById('featured-bird-' + bird.user_id).src = '/static/images/special-birds/' + bird.scientificName + '.png';
+            } else {
+                fetch('https://api.inaturalist.org/v1/taxa?q=' + encodeURIComponent(bird.scientificName) + '&limit=1')
+                    .then(function(response) { return response.json(); })
+                    .then(function(data) {
+                        if (data.results && data.results.length > 0 && data.results[0].default_photo) {
+                            document.getElementById('featured-bird-' + bird.user_id).src = data.results[0].default_photo.medium_url;
+                        }
+                    })
+                    .catch(function(error) { console.error('Error fetching featured bird image:', error); });
+            }
+        });
     });
-</script>
+    </script>
 {% endblock %}
