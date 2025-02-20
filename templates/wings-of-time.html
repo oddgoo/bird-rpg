@@ -8,24 +8,30 @@
     </div>
 </div>
 
-{% for date, entries in memoirs|groupby('date')|reverse %}
+{% for date, entries in entries|groupby('date')|reverse %}
 <div class="border-4 border-yellow-900 rounded-xl mb-6 p-6" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
     <div class="border border-amber-300/30 rounded-lg p-4 bg-white/50">
         <h3 class="text-xl text-yellow-900 mb-4 font-mystical font-bold">{{ date }}</h3>
         
         <div class="space-y-4">
             {% for entry in entries %}
-            <div class="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-md border border-amber-200/50">
-                <div class="text-sm text-orange-700 font-mystical mb-2">{{ entry.nest_name }}</div>
-                <div class="text-gray-800">{{ entry.text }}</div>
-            </div>
+                {% if entry.type == 'realm' %}
+                <div class="bg-purple-100/90 backdrop-blur-sm rounded-lg p-6 shadow-md border border-purple-200 text-lg">
+                    <div class="text-purple-900">{{ entry.message }}</div>
+                </div>
+                {% else %}
+                <div class="bg-white/80 backdrop-blur-sm rounded-lg p-4 shadow-md border border-amber-200/50">
+                    <div class="text-sm text-orange-700 font-mystical mb-2">{{ entry.nest_name }}</div>
+                    <div class="text-gray-800">{{ entry.text }}</div>
+                </div>
+                {% endif %}
             {% endfor %}
         </div>
     </div>
 </div>
 {% endfor %}
 
-{% if not memoirs %}
+{% if not entries %}
 <div class="text-center p-6 text-white">
     No memoirs have been written yet. Be the first to share your story!
 </div>
@@ -34,5 +40,4 @@
     <a href="/" class="text-orange-700 hover:underline font-bold text-white">← Back</a>
 </div>
 
-{% endblock %} 
-
+{% endblock %}

@@ -53,8 +53,8 @@ class LoreCommands(commands.Cog):
         nest["inspiration"] += 1
         save_data(data)
 
-        await interaction.response.send_message("Your memoir has been added to the Wings of Time. (+1 Inspiration)\nView all memoirs at: https://bird-rpg.onrender.com/wings-of-time")
+        await interaction.response.send_message(f"Your memoir has been added to the Wings of Time:\n✨ {text} ✨\n\n(+1 Inspiration)\nView all memoirs at: https://bird-rpg.onrender.com/wings-of-time")
 
 async def setup(bot):
     await bot.add_cog(LoreCommands(bot))
-    log_debug("LoreCommands cog has been added.") 
+    log_debug("LoreCommands cog has been added.")
