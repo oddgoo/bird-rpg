@@ -4,6 +4,7 @@ from discord import app_commands
 import asyncio
 from data.storage import load_data, save_data
 from datetime import datetime, timedelta
+from config.config import MAX_GARDEN_SIZE
 from data.models import add_bonus_actions, get_personal_nest
 
 class FlockCommands(commands.Cog):
@@ -43,15 +44,18 @@ class FlockCommands(commands.Cog):
                 # Update garden size
                 if "garden_size" not in nest:
                     nest["garden_size"] = 0
-                nest["garden_size"] += 1
+                
+                # Check if garden size would exceed the maximum
+                if nest["garden_size"] < MAX_GARDEN_SIZE:
+                    nest["garden_size"] += 1
                 
                 # Add bonus actions
-                add_bonus_actions(data, member.id, 5)  # Add 5 bonus actions like in singing
+                add_bonus_actions(data, member.id, 3)  # Add 3 bonus actions like in singing
             save_data(data)
 
             # End session and notify
             members_mentions = ' '.join([member.mention for member in self.active_flock['members']])
-            await interaction.followup.send(f"🍅 The pomodoro flock has ended! {members_mentions} have grown their garden capacity by +1 and received 5 bonus actions for today! 🍅")
+            await interaction.followup.send(f"🍅 The pomodoro flock has ended! {members_mentions} have received 3 bonus actions for today and may have grown their garden capacity (if not already at the maximum)")
             self.active_flock = None
 
     @app_commands.command(name='join_flock', description='Join the active flock session')

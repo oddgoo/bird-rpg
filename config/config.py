@@ -18,3 +18,7 @@ ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'godbird')  # Default password if n
 
 # Create necessary directories
 os.makedirs(DATA_PATH, exist_ok=True)
+
+# Game limits
+MAX_BIRDS_PER_NEST = 30  # Maximum number of birds a user can have
+MAX_GARDEN_SIZE = 30     # Maximum garden size a user can have

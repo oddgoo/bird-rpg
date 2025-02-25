@@ -2,6 +2,7 @@ from discord.ext import commands
 from discord import app_commands
 import discord
 
+from config.config import MAX_GARDEN_SIZE
 from data.storage import load_data, save_data
 from data.models import (get_personal_nest, get_common_nest, get_remaining_actions, 
                         record_actions, get_seed_gathering_bonus)
@@ -36,8 +37,17 @@ class SeedCommands(commands.Cog):
         # Apply garden size bonus if it's first action
         garden_bonus = get_seed_gathering_bonus(data, nest)
         if garden_bonus > 0:
-            nest["garden_size"] += garden_bonus
-            bonus_msg = f"\nYour cockatoos helped expand your garden by {garden_bonus}! 🦜"
+            # Check if garden size would exceed the maximum
+            if nest["garden_size"] >= MAX_GARDEN_SIZE:
+                bonus_msg = f"\nYour garden is already at maximum size ({MAX_GARDEN_SIZE})! 🌱"
+            elif nest["garden_size"] + garden_bonus > MAX_GARDEN_SIZE:
+                # Only increase up to the maximum
+                actual_bonus = MAX_GARDEN_SIZE - nest["garden_size"]
+                nest["garden_size"] = MAX_GARDEN_SIZE
+                bonus_msg = f"\nYour cockatoos helped expand your garden by {actual_bonus} (reached maximum size of {MAX_GARDEN_SIZE})! 🦜"
+            else:
+                nest["garden_size"] += garden_bonus
+                bonus_msg = f"\nYour cockatoos helped expand your garden by {garden_bonus}! 🦜"
         else:
             bonus_msg = ""
         
@@ -81,8 +91,18 @@ class SeedCommands(commands.Cog):
         if garden_bonus > 0:
             if "garden_size" not in nest:
                 nest["garden_size"] = 0
-            nest["garden_size"] += garden_bonus
-            bonus_msg = f"\nYour cockatoos helped expand your garden by {garden_bonus}! 🦜"
+                
+            # Check if garden size would exceed the maximum
+            if nest["garden_size"] >= MAX_GARDEN_SIZE:
+                bonus_msg = f"\nYour garden is already at maximum size ({MAX_GARDEN_SIZE})! 🌱"
+            elif nest["garden_size"] + garden_bonus > MAX_GARDEN_SIZE:
+                # Only increase up to the maximum
+                actual_bonus = MAX_GARDEN_SIZE - nest["garden_size"]
+                nest["garden_size"] = MAX_GARDEN_SIZE
+                bonus_msg = f"\nYour cockatoos helped expand your garden by {actual_bonus} (reached maximum size of {MAX_GARDEN_SIZE})! 🦜"
+            else:
+                nest["garden_size"] += garden_bonus
+                bonus_msg = f"\nYour cockatoos helped expand your garden by {garden_bonus}! 🦜"
         else:
             bonus_msg = ""
         

@@ -5,6 +5,7 @@ from datetime import datetime
 import aiohttp
 import random
 
+from config.config import MAX_BIRDS_PER_NEST
 from data.storage import load_data, save_data
 from data.models import (
     get_personal_nest, get_remaining_actions, record_actions,
@@ -357,6 +358,11 @@ class IncubationCommands(commands.Cog):
 
         # Check if egg is ready to hatch
         if target_nest["egg"]["brooding_progress"] >= 10:
+            # Check if the nest has reached the maximum bird limit
+            current_birds = get_total_chicks(target_nest)
+            if current_birds >= MAX_BIRDS_PER_NEST:
+                return None, f"nest already has the maximum of {MAX_BIRDS_PER_NEST} birds"
+
             # Get multipliers if they exist
             multipliers = target_nest["egg"].get("multipliers", {})
 
