@@ -297,9 +297,15 @@ def select_random_bird_species(multipliers=None):
 def get_discovered_species(data):
     """Retrieve all unique bird species discovered by all users."""
     discovered = set()
+    # Add birds from nests
     for nest in data.get("personal_nests", {}).values():
         for chick in nest.get("chicks", []):
             discovered.add( (chick["commonName"], chick["scientificName"]) )
+    
+    # Add birds from released_birds array
+    for bird in data.get("released_birds", []):
+        discovered.add( (bird["commonName"], bird["scientificName"]) )
+    
     return discovered
 
 def get_discovered_plants(data):
