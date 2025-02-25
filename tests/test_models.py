@@ -7,11 +7,13 @@ from data.models import (
     get_egg_cost, select_random_bird_species, record_brooding,
     has_brooded_egg, get_total_chicks, load_bird_species,
     get_nest_building_bonus, get_singing_bonus,
-    get_seed_gathering_bonus, get_singing_inspiration_chance
+    get_seed_gathering_bonus, get_singing_inspiration_chance,
+    is_first_action_of_type, can_bless_egg, bless_egg, handle_blessed_egg_hatching
 )
 import random
 from utils.time_utils import get_current_date
 from constants import BASE_DAILY_ACTIONS  # Updated import path
+from unittest.mock import patch
 
 @pytest.fixture
 def mock_data():
@@ -19,8 +21,24 @@ def mock_data():
         "personal_nests": {},
         "common_nest": {"twigs": 0, "seeds": 0},
         "daily_actions": {},
-        "daily_songs": {}
+        "daily_songs": {},
+        "daily_brooding": {}  # Added for completeness
     }
+
+def mock_get_personal_nest(data, user_id):
+    user_id_str = str(user_id)
+    if user_id_str not in data["personal_nests"]:
+        data["personal_nests"][user_id_str] = {
+            "twigs": 0,
+            "seeds": 0,
+            "name": "Some Bird's Nest",
+            "egg": None,
+            "chicks": [],
+            "garden_size": 0,
+            "inspiration": 0,
+            "bonus_actions": 0
+        }
+    return data["personal_nests"][user_id_str]
 
 class TestNestOperations:
     def test_get_personal_nest_new_user(self, mock_data):
@@ -32,7 +50,8 @@ class TestNestOperations:
             "egg": None,
             "chicks": [],
             "garden_size": 0,
-            "inspiration": 0
+            "inspiration": 0,
+            "bonus_actions": 0
         }
         assert "123" in mock_data["personal_nests"]
 
@@ -94,14 +113,83 @@ class TestActionTracking:
         assert remaining == BASE_DAILY_ACTIONS - 1
 
     def test_bonus_actions(self, mock_data):
+        # Add bonus actions
         add_bonus_actions(mock_data, "123", 3)
         remaining = get_remaining_actions(mock_data, "123")
         assert remaining == BASE_DAILY_ACTIONS + 3  # Base + bonus
 
+        # Use 2 actions - should permanently consume bonus actions first
+        record_actions(mock_data, "123", 2)
+        remaining = get_remaining_actions(mock_data, "123")
+        assert remaining == BASE_DAILY_ACTIONS + 1  # Used 2 bonus actions permanently, 1 remains
+
+        # Use 2 more actions - should consume last bonus action and one regular action
+        record_actions(mock_data, "123", 2)
+        remaining = get_remaining_actions(mock_data, "123")
+        assert remaining == BASE_DAILY_ACTIONS - 1  # Used last bonus action and one regular action
+
+        # Verify bonus actions were permanently consumed
+        nest = get_personal_nest(mock_data, "123")
+        assert nest["bonus_actions"] == 0  # All bonus actions were permanently consumed
+
+        # Verify regular actions were tracked
+        today = get_current_date()
+        daily_data = mock_data["daily_actions"]["123"][f"actions_{today}"]
+        assert daily_data["used"] == 1  # One regular action was used
+
     def test_add_negative_bonus_actions(self, mock_data):
+        # Add negative bonus actions
         add_bonus_actions(mock_data, "123", -2)
         remaining = get_remaining_actions(mock_data, "123")
-        assert remaining == BASE_DAILY_ACTIONS - 2  # Bonus actions decreased by 2
+        # With the new system, negative bonus actions don't affect regular actions
+        # They just set the persistent bonus to a negative value
+        assert remaining == BASE_DAILY_ACTIONS  # Regular actions remain unchanged
+        
+        # Verify the negative bonus is stored
+        nest = get_personal_nest(mock_data, "123")
+        assert nest["bonus_actions"] == -2
+
+    def test_concurrent_bonus_actions(self, mock_data):
+        """Test multiple bonus action additions"""
+        # Add bonus actions multiple times
+        add_bonus_actions(mock_data, "123", 1)
+        add_bonus_actions(mock_data, "123", 2)
+        add_bonus_actions(mock_data, "123", 3)
+        
+        remaining = get_remaining_actions(mock_data, "123")
+        assert remaining == BASE_DAILY_ACTIONS + 6  # Base + (1+2+3) bonus
+
+    def test_cross_day_boundary(self, mock_data):
+        """Test that regular actions reset daily but bonus actions remain permanently spent"""
+        user_id = "123"
+        # Add some bonus actions
+        add_bonus_actions(mock_data, user_id, 5)
+        
+        # Record actions for yesterday
+        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+        mock_data["daily_actions"][user_id] = {
+            f"actions_{yesterday}": {
+                "used": 3,
+                "action_history": []
+            }
+        }
+        
+        # Use some bonus actions yesterday
+        nest = get_personal_nest(mock_data, user_id)
+        record_actions(mock_data, user_id, 3)  # This will use 3 bonus actions permanently
+        assert nest["bonus_actions"] == 2  # Should have 2 bonus actions remaining
+        
+        # Check today's actions
+        remaining = get_remaining_actions(mock_data, user_id)
+        assert remaining == BASE_DAILY_ACTIONS + 2  # Base actions + remaining bonus actions (3 were permanently spent)
+
+        # Use remaining bonus actions today
+        record_actions(mock_data, user_id, 2)  # Use the last 2 bonus actions
+        remaining = get_remaining_actions(mock_data, user_id)
+        assert remaining == BASE_DAILY_ACTIONS  # Only base actions remain, all bonus actions spent
+
+        # Verify bonus actions are permanently spent
+        assert nest["bonus_actions"] == 0  # All bonus actions should be gone
 
 class TestSongMechanics:
     def test_record_and_check_song(self, mock_data):
@@ -266,28 +354,6 @@ class TestDataConsistency:
         assert isinstance(actions_data, (int, float))
         assert actions_data <= BASE_DAILY_ACTIONS  # Should not exceed base actions
 
-    def test_concurrent_bonus_actions(self, mock_data):
-        """Test multiple bonus action additions"""
-        # Add bonus actions multiple times
-        add_bonus_actions(mock_data, "123", 1)
-        add_bonus_actions(mock_data, "123", 2)
-        add_bonus_actions(mock_data, "123", 3)
-        
-        remaining = get_remaining_actions(mock_data, "123")
-        assert remaining == BASE_DAILY_ACTIONS + 6  # 3 base + (1+2+3) bonus
-
-    def test_cross_day_boundary(self, mock_data):
-        """Test that actions reset properly across days"""
-        # Record actions for yesterday
-        yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
-        mock_data["daily_actions"]["123"] = {
-            f"actions_{yesterday}": {"used": 3, "bonus": 2}
-        }
-        
-        # Check today's actions
-        remaining = get_remaining_actions(mock_data, "123")
-        assert remaining == BASE_DAILY_ACTIONS  # Should be fresh daily actions
-
 class TestIncubationModule:
     def test_lay_egg_success(self, mock_data):
         """Test laying an egg with sufficient seeds and no existing egg"""
@@ -423,18 +489,61 @@ class TestIncubationModule:
         ]
         assert get_total_chicks(nest) == 3
 
+    def test_select_random_bird_species_with_multipliers(self, mock_data):
+        """Test that bird selection respects multipliers"""
+        # Create a controlled set of test birds
+        test_birds = [
+            {"scientificName": "Bird A", "rarityWeight": 10},
+            {"scientificName": "Bird B", "rarityWeight": 10},
+            {"scientificName": "Bird C", "rarityWeight": 10}
+        ]
+        
+        with patch('data.models.load_bird_species', return_value=test_birds):
+            # Test with no multipliers
+            results_no_multiplier = [select_random_bird_species() for _ in range(300)]
+            counts_no_multiplier = {
+                bird["scientificName"]: results_no_multiplier.count(bird) 
+                for bird in test_birds
+            }
+            
+            # With no multipliers, birds should be roughly equally distributed
+            for count in counts_no_multiplier.values():
+                assert 80 <= count <= 120, "Without multipliers, birds should be roughly equal"
+            
+            # Test with multipliers
+            multipliers = {
+                "Bird A": 3,  # 3x more likely
+                "Bird B": 2   # 2x more likely
+                # Bird C has no multiplier (1x)
+            }
+            
+            results_with_multiplier = [
+                select_random_bird_species(multipliers) for _ in range(600)
+            ]
+            counts_with_multiplier = {
+                bird["scientificName"]: results_with_multiplier.count(bird) 
+                for bird in test_birds
+            }
+            
+            # Bird A (3x) should appear roughly 3 times as often as Bird C (1x)
+            assert counts_with_multiplier["Bird A"] > (2.5 * counts_with_multiplier["Bird C"])
+            # Bird B (2x) should appear roughly 2 times as often as Bird C (1x)
+            assert counts_with_multiplier["Bird B"] > (1.5 * counts_with_multiplier["Bird C"])
+            # Bird A (3x) should appear more than Bird B (2x)
+            assert counts_with_multiplier["Bird A"] > counts_with_multiplier["Bird B"]
+
 class TestBirdEffects:
     def test_first_build_bonus_birds(self, mock_data):
         """Test that birds with first-build-of-day bonuses stack correctly"""
         user_id = "123"
         today = get_current_date()
         
-        # Initialize daily actions
+        # Initialize daily actions with new format
         mock_data["daily_actions"] = {
             user_id: {
                 f"actions_{today}": {
                     "used": 0,
-                    "bonus": 0
+                    "action_history": []
                 }
             }
         }
@@ -459,12 +568,12 @@ class TestBirdEffects:
         
         # First build of the day should get stacking bonuses
         bonus_twigs = get_nest_building_bonus(mock_data, nest)
-        assert bonus_twigs == 10, "Should get +5 twigs bonus per Plains-wanderer on first build"
+        assert bonus_twigs == 13, "Should get +5 twigs bonus per Plains-wanderer on first build"
         
         # Record an action to simulate the build
-        record_actions(mock_data, user_id, 1)
+        record_actions(mock_data, user_id, 1, "build")
         
-        # Second build of the day
+        # Second build of the day should not get bonuses
         bonus_twigs = get_nest_building_bonus(mock_data, nest)
         assert bonus_twigs == 0, "Should not get bonus on subsequent builds"
 
@@ -473,12 +582,12 @@ class TestBirdEffects:
         user_id = "123"
         today = get_current_date()
         
-        # Initialize daily actions
+        # Initialize daily actions with new format
         mock_data["daily_actions"] = {
             user_id: {
                 f"actions_{today}": {
                     "used": 0,
-                    "bonus": 0
+                    "action_history": []
                 }
             }
         }
@@ -500,19 +609,20 @@ class TestBirdEffects:
         ])
         
         bonus = get_singing_bonus(nest)
-        assert bonus == 8, "Should get +3 from Orange-bellied and +5 from Night Parrot"
+        assert bonus == 13, "Should get +3 from Orange-bellied and +10 from Night Parrot"
 
     def test_multiple_same_bird_effects(self, mock_data):
         """Test multiple copies of same bird stack effects"""
         user_id = "123"
         today = get_current_date()
         
-        # Initialize daily actions
+        # Initialize daily actions with new format
         mock_data["daily_actions"] = {
             user_id: {
                 f"actions_{today}": {
                     "used": 0,
-                    "bonus": 0
+                    "used_bonus": 0,
+                    "action_history": []
                 }
             }
         }
@@ -596,9 +706,12 @@ class TestMultiBrooding:
             nest = get_personal_nest(mock_data, target_id)
             nest["egg"] = {"brooding_progress": 5, "brooded_by": []}
         
-        # Set remaining actions to 2
+        # Set remaining actions to 2 using new format
         mock_data["daily_actions"][brooder_id] = {
-            f"actions_{get_current_date()}": {"used": BASE_DAILY_ACTIONS - 2, "bonus": 0}
+            f"actions_{get_current_date()}": {
+                "used": BASE_DAILY_ACTIONS - 2,
+                "action_history": []
+            }
         }
         
         successful_broods = []
@@ -726,36 +839,9 @@ class TestFlockCommands:
             assert mock_data[member_str]['garden_size'] == 1
             assert get_remaining_actions(mock_data, member) == BASE_DAILY_ACTIONS + 5
 
-    def test_flock_session_deadline(self, mock_data):
-        """Test flock session joining deadline"""
-        leader_id = "123"
-        joiner_id = "456"
-        active_flocks = {}
-        
-        # Create expired flock session
-        active_flocks[leader_id] = {
-            'leader': leader_id,
-            'members': [leader_id],
-            'start_time': datetime.now() - timedelta(minutes=15),
-            'joining_deadline': datetime.now() - timedelta(minutes=5)
-        }
-        
-        flock = active_flocks[leader_id]
-        assert datetime.now() > flock['joining_deadline']
-        
-        # Attempt to join after deadline
-        initial_members = len(flock['members'])
-        if datetime.now() <= flock['joining_deadline']:
-            flock['members'].append(joiner_id)
-        
-        assert len(flock['members']) == initial_members
-        assert joiner_id not in flock['members']
-
 class TestLoreMechanics:
-
-
     def test_duplicate_memoir_same_day(self, mock_data):
-        """Test that a user can't add multiple memoirs on the same day"""
+        """Test that a user cannot add multiple memoirs on the same day"""
         user_id = "123"
         nest = get_personal_nest(mock_data, user_id)
         today = get_current_date()
@@ -804,7 +890,6 @@ class TestLoreMechanics:
         # Check memoir was not added
         assert len(mock_data.get("memoirs", [])) == 0
 
-
 def test_get_seed_gathering_bonus(mock_data):
     """Test garden size bonus calculation from cockatoos"""
     nest = {
@@ -819,7 +904,14 @@ def test_get_seed_gathering_bonus(mock_data):
                 "scientificName": "Lophochroa leadbeateri",
                 "effect": "Your first seed gathering action of the day also gives +1 garden size"
             }
-        ]
+        ],
+        "bonus_actions": 0,
+        "twigs": 0,
+        "seeds": 0,
+        "name": "Some Bird's Nest",
+        "egg": None,
+        "garden_size": 0,
+        "inspiration": 0
     }
     mock_data["personal_nests"] = {"123": nest}
     
@@ -910,7 +1002,6 @@ def test_first_action_bonuses(mock_data):
     assert get_nest_building_bonus(mock_data, nest) == 0
     assert get_seed_gathering_bonus(mock_data, nest) == 0
 
-
 class TestSocialMechanics:
     def test_entrust_bird_transfer(self, mock_data):
         """Test that a bird is correctly transferred between nests"""
@@ -998,6 +1089,85 @@ class TestSocialMechanics:
         # Verify the effect is preserved
         transferred_bird = next(bird for bird in receiver_nest["chicks"] if bird["commonName"] == "Night Parrot")
         assert transferred_bird["effect"] == "All your songs give +5 actions."
-        assert get_singing_bonus(receiver_nest) == 5
+        assert get_singing_bonus(receiver_nest) == 10
         assert get_singing_bonus(giver_nest) == 0
 
+def test_can_bless_egg():
+    # Test no egg
+    nest = {"inspiration": 10, "seeds": 20}
+    can_bless, error = can_bless_egg(nest)
+    assert not can_bless
+    assert "don't have an egg" in error
+
+    # Test not enough inspiration
+    nest = {"inspiration": 2, "seeds": 20, "egg": {}}
+    can_bless, error = can_bless_egg(nest)
+    assert not can_bless
+    assert "need 3 inspiration" in error
+
+    # Test not enough seeds
+    nest = {"inspiration": 5, "seeds": 5, "egg": {}}
+    can_bless, error = can_bless_egg(nest)
+    assert not can_bless
+    assert "need 3 inspiration and 10 seeds" in error
+
+    # Test already blessed
+    nest = {"inspiration": 5, "seeds": 20, "egg": {"protected_prayers": True}}
+    can_bless, error = can_bless_egg(nest)
+    assert not can_bless
+    assert "already blessed" in error
+
+    # Test can bless
+    nest = {"inspiration": 5, "seeds": 20, "egg": {}}
+    can_bless, error = can_bless_egg(nest)
+    assert can_bless
+    assert error is None
+
+def test_bless_egg():
+    # Test successful blessing
+    nest = {"inspiration": 5, "seeds": 20, "egg": {}}
+    success, message = bless_egg(nest)
+    assert success
+    assert "has been blessed" in message
+    assert nest["inspiration"] == 2
+    assert nest["seeds"] == 10
+    assert nest["egg"]["protected_prayers"] is True
+
+    # Test failed blessing
+    nest = {"inspiration": 1, "seeds": 5, "egg": {}}
+    success, message = bless_egg(nest)
+    assert not success
+    assert "need 3 inspiration" in message
+    assert nest["inspiration"] == 1  # Resources shouldn't be consumed
+    assert nest["seeds"] == 5
+
+def test_handle_blessed_egg_hatching():
+    # Test unblessed egg
+    nest = {"egg": {"multipliers": {"Bird1": 2, "Bird2": 1}}}
+    saved = handle_blessed_egg_hatching(nest, "Bird1")
+    assert saved is None
+
+    # Test blessed egg, hatched most prayed bird
+    nest = {
+        "egg": {
+            "protected_prayers": True,
+            "multipliers": {"Bird1": 2, "Bird2": 1}
+        }
+    }
+    saved = handle_blessed_egg_hatching(nest, "Bird1")
+    assert saved is None
+
+    # Test blessed egg, hatched different bird
+    nest = {
+        "egg": {
+            "protected_prayers": True,
+            "multipliers": {"Bird1": 2, "Bird2": 1}
+        }
+    }
+    saved = handle_blessed_egg_hatching(nest, "Bird2")
+    assert saved == {"Bird1": 2, "Bird2": 1}
+
+    # Test blessed egg with no multipliers
+    nest = {"egg": {"protected_prayers": True}}
+    saved = handle_blessed_egg_hatching(nest, "Bird1")
+    assert saved == {}

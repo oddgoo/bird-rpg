@@ -1,4 +1,5 @@
 from discord.ext import commands
+from discord import app_commands
 import discord
 
 from data.storage import load_data, save_data
@@ -9,36 +10,28 @@ class SocialCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name='entrust')
-    async def entrust(self, ctx, *, args):
-        """Give one of your birds to another user
-        Usage: !entrust <common_bird_name> <@user>"""
+    @app_commands.command(name='entrust', description='Give one of your birds to another user')
+    @app_commands.describe(
+        bird_name='The common name of the bird to give',
+        target_user='The user to give the bird to'
+    )
+    async def entrust(self, interaction: discord.Interaction, bird_name: str, target_user: discord.User):
         try:
-            # Split args into bird name and user mention
-            *bird_name_parts, user_mention = args.split()
-            bird_name = ' '.join(bird_name_parts)
-
-            # Extract user ID from mention
-            if not ctx.message.mentions:
-                await ctx.send("❌ Please mention a user to give the bird to!")
-                return
-            target_user = ctx.message.mentions[0]
-
             # Don't allow giving birds to yourself
-            if target_user.id == ctx.author.id:
-                await ctx.send("❌ You can't give a bird to yourself!")
+            if target_user.id == interaction.user.id:
+                await interaction.response.send_message("❌ You can't give a bird to yourself!")
                 return
 
             # Don't allow giving birds to bots
             if target_user.bot:
-                await ctx.send("❌ You can't give birds to bots!")
+                await interaction.response.send_message("❌ You can't give birds to bots!")
                 return
 
-            log_debug(f"entrust called by {ctx.author.id} giving '{bird_name}' to {target_user.id}")
+            log_debug(f"entrust called by {interaction.user.id} giving '{bird_name}' to {target_user.id}")
             data = load_data()
 
             # Get both nests
-            giver_nest = get_personal_nest(data, ctx.author.id)
+            giver_nest = get_personal_nest(data, interaction.user.id)
             receiver_nest = get_personal_nest(data, target_user.id)
 
             # Find the bird in giver's nest
@@ -49,7 +42,7 @@ class SocialCommands(commands.Cog):
                     break
 
             if not bird_to_give:
-                await ctx.send(f"❌ You don't have a {bird_name} in your nest!")
+                await interaction.response.send_message(f"❌ You don't have a {bird_name} in your nest!")
                 return
 
             # Add bird to receiver's nest
@@ -67,7 +60,7 @@ class SocialCommands(commands.Cog):
             )
             embed.add_field(
                 name="From",
-                value=f"{ctx.author.display_name}'s Nest ({len(giver_nest['chicks'])} birds remaining)",
+                value=f"{interaction.user.display_name}'s Nest ({len(giver_nest['chicks'])} birds remaining)",
                 inline=True
             )
             embed.add_field(
@@ -76,11 +69,11 @@ class SocialCommands(commands.Cog):
                 inline=True
             )
 
-            await ctx.send(embed=embed)
+            await interaction.response.send_message(embed=embed)
 
         except Exception as e:
             log_debug(f"Error in entrust command: {e}")
-            await ctx.send("❌ Usage: !entrust <common_bird_name> <@user>")
+            await interaction.response.send_message("❌ Usage: /entrust <bird_name> <@user>")
 
 async def setup(bot):
     await bot.add_cog(SocialCommands(bot))

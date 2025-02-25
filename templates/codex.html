@@ -112,6 +112,10 @@
     document.addEventListener('DOMContentLoaded', function() {
         {% for bird in birds %}
             {% if bird.scientificName in discovered_birds %}
+            {% if bird.rarity == 'Special' %}
+                document.getElementById('bird-{{ loop.index }}').src = `/static/images/special-birds/{{ bird.scientificName }}.png`;
+                document.getElementById('bird-link-{{ loop.index }}').removeAttribute('href');
+            {% else %}
             fetch(`https://api.inaturalist.org/v1/taxa?q={{ bird.scientificName }}&limit=1`)
                 .then(response => response.json())
                 .then(data => {
@@ -126,6 +130,7 @@
                     }
                 })
                 .catch(error => console.error('Error fetching bird image:', error));
+            {% endif %}
             {% endif %}
         {% endfor %}
 

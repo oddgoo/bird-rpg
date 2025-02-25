@@ -139,9 +139,15 @@
                     const taxonUrl = `https://www.inaturalist.org/taxa/${taxon.id}`;
                     document.getElementById('chick-link-{{ loop.index }}').href = taxonUrl;
                 } else {
-                    console.warn(`No results found for {{ chick.scientificName }}`);
-                    document.getElementById('chick-link-{{ loop.index }}').removeAttribute('href');
-                    document.getElementById('chick-link-{{ loop.index }}').style.cursor = 'default';
+                    // Check if it's a special bird by checking if the image exists in our special-birds directory
+                    const specialBirdUrl = `/static/images/special-birds/{{ chick.scientificName }}.png`;
+                    fetch(specialBirdUrl, { method: 'HEAD' })
+                        .then(response => {
+                            if (response.ok) {
+                                document.getElementById('bird-{{ loop.index }}').src = specialBirdUrl;
+                                document.getElementById('chick-link-{{ loop.index }}').removeAttribute('href');
+                            }
+                        });
                 }
             })
             .catch(error => console.error('Error fetching bird image from iNaturalist:', error));

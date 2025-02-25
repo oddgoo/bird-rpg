@@ -15,9 +15,11 @@ env/
 venv/
 ENV/
 *.so
+.bird-rpg/*
+bird-rpg/
+bird-rpg/*
 
 # IDE
-.bird-rpg/
 .idea/
 .vscode/
 *.swp
@@ -26,3 +28,4 @@ ENV/
 # OS
 .DS_Store
 Thumbs.db
+

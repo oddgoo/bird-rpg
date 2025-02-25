@@ -1,6 +1,6 @@
 import os
 import json
-from config.config import NESTS_FILE, LORE_FILE
+from config.config import NESTS_FILE, LORE_FILE, REALM_LORE_FILE
 from utils.logging import log_debug
 
 def load_data():
@@ -56,4 +56,30 @@ def save_lore(data):
         log_debug("Lore data saved successfully")
     except Exception as e:
         log_debug(f"Error saving lore data: {e}")
+        raise
+
+def load_realm_lore():
+    try:
+        if os.path.exists(REALM_LORE_FILE):
+            with open(REALM_LORE_FILE, 'r') as f:
+                data = json.load(f)
+                log_debug("Realm lore data loaded successfully")
+                return data
+        log_debug("No existing realm lore data, creating new")
+        default_data = {
+            "messages": []
+        }
+        save_realm_lore(default_data)
+        return default_data
+    except Exception as e:
+        log_debug(f"Error loading realm lore data: {e}")
+        raise
+
+def save_realm_lore(data):
+    try:
+        with open(REALM_LORE_FILE, 'w') as f:
+            json.dump(data, f, indent=4)
+        log_debug("Realm lore data saved successfully")
+    except Exception as e:
+        log_debug(f"Error saving realm lore data: {e}")
         raise

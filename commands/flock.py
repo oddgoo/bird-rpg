@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord import app_commands
 import asyncio
 from data.storage import load_data, save_data
 from datetime import datetime, timedelta
@@ -10,27 +11,27 @@ class FlockCommands(commands.Cog):
         self.bot = bot
         self.active_flock = None  # Store the single active flock session
 
-    @commands.command()
-    async def start_flock(self, ctx):
+    @app_commands.command(name='start_flock', description='Start a pomodoro flock session')
+    async def start_flock(self, interaction: discord.Interaction):
         """Start a pomodoro flock session"""
         if self.active_flock is not None:
             time_remaining = (self.active_flock['end_time'] - datetime.now()).total_seconds() / 60
             if time_remaining > 0:
-                await ctx.send(f"❌ There's already an active flock session! Use `!join_flock` to join it ({time_remaining:.0f} minutes remaining)")
+                await interaction.response.send_message(f"❌ There's already an active flock session! Use `/join_flock` to join it ({time_remaining:.0f} minutes remaining)")
                 return
 
         # Create new flock session
         self.active_flock = {
-            'leader': ctx.author,
-            'members': [ctx.author],
+            'leader': interaction.user,
+            'members': [interaction.user],
             'start_time': datetime.now(),
             'end_time': datetime.now() + timedelta(minutes=60)
         }
 
-        await ctx.send(f"🍅 {ctx.author.mention} has started a pomodoro flock! The tomato goddess is pleased! Join anytime during the next hour with `!join_flock` to be part of the group (then head to the #pomobirdo channel).")
+        await interaction.response.send_message(f"🍅 {interaction.user.mention} has started a pomodoro flock! The tomato goddess is pleased! Join anytime during the next hour with `/join_flock` to be part of the group (then head to the #pomobirdo channel if you wish).")
 
         # Wait for session to complete
-        await asyncio.sleep(5)  # 3600 seconds = 60 minutes
+        await asyncio.sleep(3600)  # 3600 seconds = 60 minutes
         
         if self.active_flock:
             # Update garden sizes and add bonus actions for all participants
@@ -50,28 +51,28 @@ class FlockCommands(commands.Cog):
 
             # End session and notify
             members_mentions = ' '.join([member.mention for member in self.active_flock['members']])
-            await ctx.send(f"🍅 The pomodoro flock has ended! {members_mentions} have grown their garden capacity by +1 and received 5 bonus actions for today! 🍅")
+            await interaction.followup.send(f"🍅 The pomodoro flock has ended! {members_mentions} have grown their garden capacity by +1 and received 5 bonus actions for today! 🍅")
             self.active_flock = None
 
-    @commands.command()
-    async def join_flock(self, ctx):
+    @app_commands.command(name='join_flock', description='Join the active flock session')
+    async def join_flock(self, interaction: discord.Interaction):
         """Join the active flock session"""
         if not self.active_flock:
-            await ctx.send("❌ There is no active flock session! Start one with `!start_flock`")
+            await interaction.response.send_message("❌ There is no active flock session! Start one with `/start_flock`")
             return
         
         if datetime.now() > self.active_flock['end_time']:
-            await ctx.send("❌ This flock session has already ended!")
+            await interaction.response.send_message("❌ This flock session has already ended!")
             return
 
-        if ctx.author in self.active_flock['members']:
-            await ctx.send("❌ You're already in this flock!")
+        if interaction.user in self.active_flock['members']:
+            await interaction.response.send_message("❌ You're already in this flock!")
             return
 
         # Add member to flock
-        self.active_flock['members'].append(ctx.author)
+        self.active_flock['members'].append(interaction.user)
         time_remaining = (self.active_flock['end_time'] - datetime.now()).total_seconds() / 60
-        await ctx.send(f"🍅 {ctx.author.mention} has joined the flock! {time_remaining:.0f} minutes remaining in the session. Get ready to focus together!")
+        await interaction.response.send_message(f"🍅 {interaction.user.mention} has joined the flock! {time_remaining:.0f} minutes remaining in the session. Get ready to focus together!")
 
 async def setup(bot):
     await bot.add_cog(FlockCommands(bot))

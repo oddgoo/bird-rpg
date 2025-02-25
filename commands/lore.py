@@ -2,6 +2,9 @@ import json
 import os
 from datetime import datetime
 from discord.ext import commands
+from discord import app_commands
+import discord
+
 from data.storage import load_data, save_data, load_lore, save_lore
 from data.models import get_personal_nest
 from utils.time_utils import get_current_date
@@ -11,16 +14,17 @@ class LoreCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="memoir")
-    async def add_memoir(self, ctx, *, text: str):
-        log_debug(f"add_memoir called by {ctx.author.id}")
+    @app_commands.command(name='memoir', description='Add a memoir to the Wings of Time')
+    @app_commands.describe(text='Your memoir text (max 256 characters)')
+    async def add_memoir(self, interaction: discord.Interaction, text: str):
+        log_debug(f"add_memoir called by {interaction.user.id}")
         
         if len(text) > 256:
-            await ctx.send("Your memoir is too long! Please keep it under 256 characters.")
+            await interaction.response.send_message("Your memoir is too long! Please keep it under 256 characters.")
             return
 
         data = load_data()
-        nest = get_personal_nest(data, ctx.author.id)
+        nest = get_personal_nest(data, interaction.user.id)
         today = get_current_date()
         
         # Load lore data
@@ -28,13 +32,13 @@ class LoreCommands(commands.Cog):
         
         # Check if user already posted today
         for memoir in lore_data["memoirs"]:
-            if memoir["user_id"] == str(ctx.author.id) and memoir["date"] == today:
-                await ctx.send("You have already shared a memoir today. Return tomorrow to share more of your story!")
+            if memoir["user_id"] == str(interaction.user.id) and memoir["date"] == today:
+                await interaction.response.send_message("You have already shared a memoir today. Return tomorrow to share more of your story!")
                 return
 
         # Add memoir
         new_memoir = {
-            "user_id": str(ctx.author.id),
+            "user_id": str(interaction.user.id),
             "nest_name": nest.get("name", "Unknown Nest"),
             "text": text,
             "date": today
@@ -49,8 +53,8 @@ class LoreCommands(commands.Cog):
         nest["inspiration"] += 1
         save_data(data)
 
-        await ctx.send("Your memoir has been added to the Wings of Time. (+1 Inspiration)\nView all memoirs at: https://bird-rpg.onrender.com/wings-of-time")
+        await interaction.response.send_message(f"Your memoir has been added to the Wings of Time:\n✨ {text} ✨\n\n(+1 Inspiration)\nView all memoirs at: https://bird-rpg.onrender.com/wings-of-time")
 
 async def setup(bot):
     await bot.add_cog(LoreCommands(bot))
-    log_debug("LoreCommands cog has been added.") 
+    log_debug("LoreCommands cog has been added.")

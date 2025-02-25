@@ -2,7 +2,7 @@ from flask import Flask, render_template, send_from_directory
 from threading import Thread
 from config.config import PORT, DEBUG
 from web.home import get_home_page
-from data.storage import load_data, load_lore
+from data.storage import load_data, load_lore, load_realm_lore
 from data.models import get_personal_nest, get_total_chicks, get_total_bird_species, load_bird_species, get_discovered_species
 from utils.time_utils import get_time_until_reset, get_current_date
 import json
@@ -21,7 +21,36 @@ def help_page():
 @app.route('/wings-of-time')
 def wings_of_time():
     lore_data = load_lore()
-    return render_template('wings-of-time.html', memoirs=lore_data["memoirs"])
+    realm_lore = load_realm_lore()
+    
+    # Combine memoirs and realm messages
+    all_entries = []
+    
+    # Add memoirs with type
+    for memoir in lore_data["memoirs"]:
+        all_entries.append({
+            **memoir,
+            "type": "memoir"
+        })
+    
+    # Add realm messages with type and sort order
+    for message in realm_lore["messages"]:
+        all_entries.append({
+            "date": message["date"],
+            "message": message["message"],
+            "type": "realm",
+            "sort_order": 0  # Realm messages appear first
+        })
+    
+    # Add sort order to memoirs (after realm messages)
+    for entry in all_entries:
+        if "sort_order" not in entry:
+            entry["sort_order"] = 1
+    
+    # Sort entries by date (descending) and sort_order
+    sorted_entries = sorted(all_entries, key=lambda x: (x["date"], x["sort_order"]))
+    
+    return render_template('wings-of-time.html', entries=sorted_entries)
 
 @app.route('/user/<user_id>')
 def user_page(user_id):
@@ -103,11 +132,15 @@ def codex():
     discovered_birds = {scientific_name for _, scientific_name in get_discovered_species(data)}
     discovered_plants = set()  # Empty set since plant discovery isn't implemented yet
     
+    # Load realm lore data
+    realm_lore = load_realm_lore()
+    
     return render_template('codex.html', 
                          birds=birds,
                          plants=plants,
                          discovered_birds=discovered_birds,
-                         discovered_plants=discovered_plants)
+                         discovered_plants=discovered_plants,
+                         realm_messages=realm_lore["messages"])
 
 def run_server():
     app.jinja_env.auto_reload = DEBUG  # Enable template auto-reload
