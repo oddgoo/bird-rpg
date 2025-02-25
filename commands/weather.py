@@ -114,7 +114,7 @@ class WeatherCommands(commands.Cog):
             weather_info = self.get_weather_description(weather_code)
             
             # Format message
-            message = f"**🌦️ Good morning everybird! Today's weather in Naarm is: {date}** {weather_info['emoji']}\n\n"
+            message = f"**{weather_info['emoji']} Good morning everybird! Today's weather in Naarm is:** {weather_info['emoji']}\n\n"
             message += f"**Conditions:** {weather_info['description']}\n"
             message += f"**Temperature:** {temp_min}°C to {temp_max}°C\n"
             
