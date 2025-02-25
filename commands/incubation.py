@@ -96,6 +96,7 @@ class IncubationCommands(commands.Cog):
             return
 
         successful_targets = []
+        hatched_targets = []
         skipped_targets = []
 
         # Process each target user
@@ -108,39 +109,26 @@ class IncubationCommands(commands.Cog):
             if error:
                 skipped_targets.append((target_user, error))
             else:
-                successful_targets.append(result)
+                if result[0] == "hatch":
+                    hatched_targets.append(result)
+                else:
+                    successful_targets.append(result)
                 record_actions(data, ctx.author.id, 1, "brood")
                 remaining_actions -= 1
 
         save_data(data)
 
-        # Send responses
-        for result in successful_targets:
-            if result[0] == "hatch":
-                _, chick, target_nest, target_user = result
-                # Fetch image and create embed
-                image_url, taxon_url = await self.fetch_bird_image(chick['scientificName'])
-                embed = discord.Embed(
-                    title="🐣 Egg Hatched!",
-                    description=f"The egg has hatched into a **{chick['commonName']}** (*{chick['scientificName']}*)!",
-                    color=discord.Color.green()
-                )
-                if image_url:
-                    embed.set_image(url=image_url)
-                embed.add_field(
-                    name="Total Chicks",
-                    value=f"{target_user.display_name} now has {get_total_chicks(target_nest)} {'chick' if get_total_chicks(target_nest) == 1 else 'chicks'}! 🐦",
-                    inline=False
-                )
-                embed.add_field(
-                    name="View Chicks",
-                    value=f"[Click Here](https://bird-rpg.onrender.com/user/{target_user.id})",
-                    inline=False
-                )
-                await ctx.send(embed=embed)
-            else:
-                _, remaining, target_nest, target_user = result
-                await ctx.send(f"You brooded at **{target_nest['name']}**! The egg needs {remaining} more {'brood' if remaining == 1 else 'broods'} until it hatches. 🥚")
+        # Send batched response for successful broods
+        if successful_targets:
+            brood_messages = []
+            for _, remaining, target_nest, target_user in successful_targets:
+                brood_messages.append(f"**{target_nest['name']}** (needs {remaining} more {'brood' if remaining == 1 else 'broods'})")
+            
+            await ctx.send(f"You brooded at the following nests:\n• " + "\n• ".join(brood_messages) + f"\n\nYou have {remaining_actions} {'action' if remaining_actions == 1 else 'actions'} remaining today.")
+
+        # Send individual responses for hatches
+        for result in hatched_targets:
+            await self.send_hatching_response(ctx, result)
 
         if skipped_targets:
             skip_message = ["⚠️ Couldn't brood for:"]
@@ -148,8 +136,68 @@ class IncubationCommands(commands.Cog):
                 skip_message.append(f"• {user.display_name} ({reason})")
             await ctx.send("\n".join(skip_message))
 
+    @commands.command(name='brood_all')
+    async def brood_all(self, ctx):
+        """Use all remaining actions to brood eggs in all available nests"""
+        log_debug(f"brood_all called by {ctx.author.id}")
+        data = load_data()
+
+        # Check if brooder has actions
         remaining_actions = get_remaining_actions(data, ctx.author.id)
-        await ctx.send(f"You have {remaining_actions} {'action' if remaining_actions == 1 else 'actions'} remaining today.")
+        if remaining_actions <= 0:
+            await ctx.send(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
+            return
+
+        # Find all nests with eggs that haven't been brooded by the user today
+        valid_targets = []
+        for user_id, nest in data["personal_nests"].items():
+            if "egg" in nest and nest["egg"] is not None:
+                if not has_brooded_egg(data, ctx.author.id, user_id):
+                    try:
+                        member = await ctx.guild.fetch_member(int(user_id))
+                        if member and not member.bot:
+                            valid_targets.append(member)
+                    except:
+                        continue
+
+        if not valid_targets:
+            await ctx.send("There are no nests available to brood! All nests either have no eggs or you've already brooded them today. 🥚")
+            return
+
+        # Process brooding for as many targets as possible
+        successful_targets = []
+        hatched_targets = []
+
+        # Process each target until out of actions or targets
+        for target_user in valid_targets:
+            if remaining_actions <= 0:
+                break
+
+            result, error = await self.process_brooding(ctx, target_user, data, remaining_actions)
+            if error:
+                continue
+
+            if result[0] == "hatch":
+                hatched_targets.append(result)
+            else:
+                successful_targets.append(result)
+
+            record_actions(data, ctx.author.id, 1, "brood")
+            remaining_actions -= 1
+
+        save_data(data)
+
+        # Send batched response for successful broods
+        if successful_targets:
+            brood_messages = []
+            for _, remaining, target_nest, target_user in successful_targets:
+                brood_messages.append(f"**{target_nest['name']}** (needs {remaining} more {'brood' if remaining == 1 else 'broods'})")
+            
+            await ctx.send(f"You brooded at the following nests:\n• " + "\n• ".join(brood_messages) + f"\n\nYou have {remaining_actions} {'action' if remaining_actions == 1 else 'actions'} remaining today.")
+
+        # Send individual responses for hatches
+        for result in hatched_targets:
+            await self.send_hatching_response(ctx, result)
 
     @commands.command(name='brood_random')
     async def brood_random(self, ctx):
@@ -192,31 +240,35 @@ class IncubationCommands(commands.Cog):
 
         # Send appropriate response
         if result[0] == "hatch":
-            _, chick, target_nest, target_user = result
-            # Fetch image and create embed
-            image_url, taxon_url = await self.fetch_bird_image(chick['scientificName'])
-            embed = discord.Embed(
-                title="🐣 Egg Hatched!",
-                description=f"The egg has hatched into a **{chick['commonName']}** (*{chick['scientificName']}*)!",
-                color=discord.Color.green()
-            )
-            if image_url:
-                embed.set_image(url=image_url)
-            embed.add_field(
-                name="Total Chicks",
-                value=f"{target_user.display_name} now has {get_total_chicks(target_nest)} {'chick' if get_total_chicks(target_nest) == 1 else 'chicks'}! 🐦",
-                inline=False
-            )
-            embed.add_field(
-                name="View Chicks",
-                value=f"[Click Here](https://bird-rpg.onrender.com/user/{target_user.id})",
-                inline=False
-            )
-            await ctx.send(embed=embed)
+            await self.send_hatching_response(ctx, result)
         else:
             _, remaining, target_nest, target_user = result
             remaining_actions = get_remaining_actions(data, ctx.author.id)
             await ctx.send(f"You brooded at **{target_nest['name']}**! The egg needs {remaining} more {'brood' if remaining == 1 else 'broods'} until it hatches. 🥚\nYou have {remaining_actions} {'action' if remaining_actions == 1 else 'actions'} remaining today.")
+
+    async def send_hatching_response(self, ctx, result):
+        """Helper function to send a hatching response"""
+        _, chick, target_nest, target_user = result
+        # Fetch image and create embed
+        image_url, taxon_url = await self.fetch_bird_image(chick['scientificName'])
+        embed = discord.Embed(
+            title="🐣 Egg Hatched!",
+            description=f"The egg has hatched into a **{chick['commonName']}** (*{chick['scientificName']}*)!",
+            color=discord.Color.green()
+        )
+        if image_url:
+            embed.set_image(url=image_url)
+        embed.add_field(
+            name="Total Chicks",
+            value=f"{target_user.display_name} now has {get_total_chicks(target_nest)} {'chick' if get_total_chicks(target_nest) == 1 else 'chicks'}! 🐦",
+            inline=False
+        )
+        embed.add_field(
+            name="View Chicks",
+            value=f"[Click Here](https://bird-rpg.onrender.com/user/{target_user.id})",
+            inline=False
+        )
+        await ctx.send(embed=embed)
 
     async def fetch_bird_image(self, scientific_name):
         """Fetches the bird image URL and taxon URL from iNaturalist."""
