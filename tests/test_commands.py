@@ -125,23 +125,25 @@ class TestIncubationCommands:
         """Test brooding an egg successfully"""
         target_user = mock_interaction.add_member(456, "Target")
         target_nest = get_personal_nest(mock_data, target_user.id)
-        # Remove the egg initially to simulate the real scenario
-        # target_nest["egg"] = {"brooding_progress": 0, "brooded_by": []}
+        # Create an egg for the target user
+        target_nest["egg"] = {"brooding_progress": 0, "brooded_by": []}
         add_bonus_actions(mock_data, mock_interaction.user.id, BASE_DAILY_ACTIONS)
+
+        # Mock the bot.fetch_user method to return our target_user
+        incubation_cog.bot.fetch_user = AsyncMock(return_value=target_user)
 
         # Pass target_user as a mention string
         await incubation_cog.brood.callback(incubation_cog, mock_interaction, f"<@{target_user.id}>")
 
         # Check followup message
         mock_interaction.followup.send.assert_called()
-        assert mock_interaction.followup.send.call_count == 2
-        assert "doesn't have an egg to brood" in mock_interaction.followup.send.call_args_list[0][0][0]
+        assert mock_interaction.followup.send.call_count == 1
+        assert "You brooded at the following nests" in mock_interaction.followup.send.call_args[0][0]
 
-        # Check if the egg was created during process_brooding
+        # Check the egg was brooded
         target_nest = get_personal_nest(mock_data, target_user.id)  # Refresh target_nest
-        if target_nest["egg"] is not None:
-            assert target_nest["egg"]["brooding_progress"] == 1
-            assert str(mock_interaction.user.id) in target_nest["egg"]["brooded_by"]
+        assert target_nest["egg"]["brooding_progress"] == 1
+        assert str(mock_interaction.user.id) in target_nest["egg"]["brooded_by"]
 
     @pytest.mark.asyncio
     async def test_brood_no_egg(self, incubation_cog, mock_interaction, mock_data):
@@ -150,13 +152,17 @@ class TestIncubationCommands:
         get_personal_nest(mock_data, target_user.id)
         add_bonus_actions(mock_data, mock_interaction.user.id, BASE_DAILY_ACTIONS)
 
+        # Mock the bot.fetch_user method to return our target_user
+        incubation_cog.bot.fetch_user = AsyncMock(return_value=target_user)
+
         # Pass target_user as a mention string
         await incubation_cog.brood.callback(incubation_cog, mock_interaction, f"<@{target_user.id}>")
 
         # Check message
         mock_interaction.followup.send.assert_called()
-        assert mock_interaction.followup.send.call_count == 2
-        assert "doesn't have an egg to brood" in mock_interaction.followup.send.call_args_list[0][0][0]
+        assert mock_interaction.followup.send.call_count == 1
+        assert "Couldn't brood for" in mock_interaction.followup.send.call_args[0][0]
+        assert "doesn't have an egg to brood" in mock_interaction.followup.send.call_args[0][0]
 
     @pytest.mark.asyncio
     async def test_brood_no_actions(self, incubation_cog, mock_interaction, mock_data):
@@ -432,4 +438,3 @@ class TestSeedCommands:
         # Check garden size was increased by 2
         assert nest["garden_size"] == 2
         assert nest["seeds"] == 1
-
