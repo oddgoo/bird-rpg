@@ -72,7 +72,7 @@
     "rarity": "rare",
     "effect": "+25% chance of your eggs hatching an extra bird",
     "habitat": "Remote canyon systems",
-    "seedCost": 250,
+    "seedCost": 300,
     "sizeCost": 5,
     "inspirationCost" : 5
   },

@@ -88,13 +88,12 @@
                             {% endif %}">
                             ✧ {{ plant.rarity|title }} ✧
                         </div>
-                        {% if plant.scientificName in discovered_plants and plant.effect %}
-                        <div class="mt-2 italic text-gray-600 text-xs px-2">
+                        <div class="mt-2 italic text-gray-800 text-sm px-2">
                             "{{ plant.effect }}"
                         </div>
-                        {% endif %}
-                        <div class="mt-2 text-sm text-gray-600">
-                            Cost: {{ plant.seedCost }} seeds
+                        <div class="mt-2 text-sm text-gray-800">
+                            Size: {{plant.sizeCost}} </br>
+                            Cost: {{ plant.seedCost }} seeds, {{plant.inspirationCost}} inspo
                         </div>
                     </div>
                 {% if plant.scientificName in discovered_plants %}
