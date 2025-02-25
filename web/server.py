@@ -3,7 +3,7 @@ from threading import Thread
 from config.config import PORT, DEBUG
 from web.home import get_home_page
 from data.storage import load_data, load_lore, load_realm_lore
-from data.models import get_personal_nest, get_total_chicks, get_total_bird_species, load_bird_species, get_discovered_species
+from data.models import get_personal_nest, get_total_chicks, get_total_bird_species, load_bird_species, get_discovered_species, get_discovered_plants
 from utils.time_utils import get_time_until_reset, get_current_date
 import json
 import os
@@ -101,12 +101,31 @@ def user_page(user_id):
                     "name": target_nest.get("name", "Some Bird's Nest")
                 })
     
+    # Load plant species data
+    plant_species_data = {}
+    try:
+        with open('data/plant_species.json') as f:
+            plant_species_data = {plant["scientificName"]: plant for plant in json.load(f)}
+    except Exception as e:
+        print(f"Error loading plant species data: {e}")
+    
+    # Enrich plants data with species info
+    enriched_plants = []
+    for plant in nest.get("plants", []):
+        species_info = plant_species_data.get(plant["scientificName"], {})
+        enriched_plants.append({
+            **plant,
+            "rarity": species_info.get("rarity", "common"),
+            "effect": species_info.get("effect", "")
+        })
+    
     # Add all data to nest_data
     nest_data = {
         "name": nest.get("name", "Some Bird's Nest"),
         "twigs": nest["twigs"],
         "seeds": nest["seeds"],
         "chicks": enriched_chicks,
+        "plants": enriched_plants,
         "songs_given": songs_given,
         "egg": nest.get("egg", None),
         "songs_given_to": songs_given_to,
@@ -130,7 +149,7 @@ def codex():
     # Load game data and get discovered species
     data = load_data()
     discovered_birds = {scientific_name for _, scientific_name in get_discovered_species(data)}
-    discovered_plants = set()  # Empty set since plant discovery isn't implemented yet
+    discovered_plants = {scientific_name for _, scientific_name in get_discovered_plants(data)}
     
     # Load realm lore data
     realm_lore = load_realm_lore()

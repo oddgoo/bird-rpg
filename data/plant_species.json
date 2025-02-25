@@ -4,72 +4,88 @@
     "scientificName": "Acacia pycnantha",
     "rarityWeight": 8,
     "rarity": "common",
-    "effect": "",
+    "effect": "+2% chance of your eggs hatching an extra bird",
     "habitat": "Woodlands, forests",
-    "seedCost": 10
+    "seedCost": 30,
+    "sizeCost": 1,
+    "inspirationCost" : 1
   },
   {
     "commonName": "Kangaroo Paw",
     "scientificName": "Anigozanthos flavidus",
     "rarityWeight": 7,
     "rarity": "common",
-    "effect": "",
+    "effect": "+10% chance of your eggs needing one less brood",
     "habitat": "Coastal areas, heathlands",
-    "seedCost": 10
+    "seedCost": 30,
+    "sizeCost": 1,
+    "inspirationCost" : 1
   },
   {
     "commonName": "Bottlebrush",
     "scientificName": "Callistemon citrinus",
     "rarityWeight": 7,
     "rarity": "common",
-    "effect": "",
+    "effect": "To be Awakened",
     "habitat": "Gardens, coastal regions",
-    "seedCost": 10
+    "seedCost": 30,
+    "sizeCost": 1,
+    "inspirationCost" : 1
   },
   {
     "commonName": "Waratah",
     "scientificName": "Telopea speciosissima",
     "rarityWeight": 5,
     "rarity": "uncommon",
-    "effect": "",
+    "effect": "+7% chance of your eggs hatching an extra bird",
     "habitat": "Coastal areas of NSW",
-    "seedCost": 40
+    "seedCost": 100,
+    "sizeCost": 2,
+    "inspirationCost" : 3
   },
   {
     "commonName": "Sturt's Desert Pea",
     "scientificName": "Swainsona formosa",
     "rarityWeight": 4,
     "rarity": "uncommon",
-    "effect": "",
+    "effect": "+25% chance of your eggs needing one less brood",
     "habitat": "Arid regions",
-    "seedCost": 40
+    "seedCost": 100,
+    "sizeCost": 2,
+    "inspirationCost" : 3
   },
   {
     "commonName": "Flannel Flower",
     "scientificName": "Actinotus helianthi",
     "rarityWeight": 4,
     "rarity": "uncommon",
-    "effect": "",
+    "effect": "To be Awakened",
     "habitat": "Coastal heath, woodlands",
-    "seedCost": 40
+    "seedCost": 100,
+    "sizeCost": 2,
+    "inspirationCost" : 3
   },
   {
     "commonName": "Wollemi Pine",
     "scientificName": "Wollemia nobilis",
     "rarityWeight": 2,
     "rarity": "rare",
-    "effect": "Writing a Memoir also increases the capacity of your garden",
+    "effect": "+25% chance of your eggs hatching an extra bird",
     "habitat": "Remote canyon systems",
-    "seedCost": 100
+    "seedCost": 250,
+    "sizeCost": 5,
+    "inspirationCost" : 5
   },
   {
     "commonName": "Western Underground Orchid",
     "scientificName": "Rhizanthella gardneri",
     "rarityWeight": 1,
     "rarity": "rare",
-    "effect": "Your songs give +2 actions",
+    "effect": "To be Awakened",
     "habitat": "Underground in Western Australia",
-    "seedCost": 100
+    "seedCost": 250,
+    "sizeCost": 5,
+    "inspirationCost" : 5
   },
   {
     "commonName": "Queen of Sheba Orchid",
@@ -78,6 +94,8 @@
     "rarity": "mythical",
     "effect": "+100% chance of your eggs hatching an extra bird",
     "habitat": "Southwest Western Australia",
-    "seedCost": 300
+    "seedCost": 750,
+    "sizeCost": 15,
+    "inspirationCost" : 10
   }
 ]

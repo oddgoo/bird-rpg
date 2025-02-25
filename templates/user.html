@@ -84,6 +84,51 @@
 
 <div class="rounded-xl p-6 mb-8 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
     <div class="border border-amber-300/50 rounded-lg p-4">
+        <h2 class="text-2xl text-center text-yellow-900 mb-4 font-mystical font-bold">🌿 Garden Plants</h2>
+        {% if nest.plants %}
+        <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {% for plant in nest.plants %}
+            <li class="bg-lime-50 rounded-xl p-4 shadow-md flex flex-col items-center transition-transform transform hover:-translate-y-1 cursor-pointer relative overflow-hidden aspect-[5/7]">
+                <a href="#" class="flex flex-col items-center no-underline w-full h-full" target="_blank" id="plant-link-{{ loop.index }}">
+                    <img 
+                        class="w-4/5 h-3/5 rounded-lg object-cover mb-4 transition-transform duration-200"
+                        id="plant-{{ loop.index }}"
+                        src="https://via.placeholder.com/100?text=🌱"
+                        alt="{{ plant.commonName }}"
+                    >
+                    <div class="text-center">
+                        <div class="text-lg font-bold text-lime-700">{{ plant.commonName }}</div>
+                        <div class="italic text-gray-600 text-sm">{{ plant.scientificName }}</div>
+                        <div class="mt-2 uppercase tracking-wide font-medium 
+                            {% if plant.rarity == 'mythical' %}
+                                text-yellow-700
+                            {% elif plant.rarity == 'rare' %}
+                                text-purple-600
+                            {% elif plant.rarity == 'uncommon' %}
+                                text-blue-500
+                            {% else %}
+                                text-green-500
+                            {% endif %}">
+                            ✧ {{ plant.rarity|title }} ✧
+                        </div>
+                        {% if plant.effect %}
+                        <div class="mt-2 italic text-gray-600 text-xs px-2">
+                            "{{ plant.effect }}"
+                        </div>
+                        {% endif %}
+                    </div>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-center">This garden doesn't have any plants yet! 🌱</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="rounded-xl p-6 mb-8 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+    <div class="border border-amber-300/50 rounded-lg p-4">
         <h2 class="text-2xl text-center text-yellow-900 mb-4 font-mystical font-bold">🎵 Today's Songs</h2>
         {% if nest.songs_given_to %}
         <div class="flex flex-wrap justify-center gap-4">
@@ -126,32 +171,59 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Fetch bird images
         {% for chick in nest.chicks %}
-        fetch(`https://api.inaturalist.org/v1/taxa?q={{ chick.scientificName }}&limit=1`)
-            .then(response => response.json())
-            .then(data => {
+        fetchBirdImage("{{ chick.scientificName }}", "{{ loop.index }}");
+        {% endfor %}
+        
+        // Fetch plant images
+        {% for plant in nest.plants %}
+        fetchPlantImage("{{ plant.scientificName }}", "{{ loop.index }}");
+        {% endfor %}
+    });
+    
+    function fetchBirdImage(scientificName, index) {
+        fetch("https://api.inaturalist.org/v1/taxa?q=" + scientificName + "&limit=1")
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
                 if (data.results && data.results.length > 0) {
-                    const taxon = data.results[0];
+                    var taxon = data.results[0];
                     if (taxon.default_photo) {
-                        const imageUrl = taxon.default_photo.medium_url;
-                        document.getElementById('bird-{{ loop.index }}').src = imageUrl;
+                        var imageUrl = taxon.default_photo.medium_url;
+                        document.getElementById('bird-' + index).src = imageUrl;
                     }
-                    const taxonUrl = `https://www.inaturalist.org/taxa/${taxon.id}`;
-                    document.getElementById('chick-link-{{ loop.index }}').href = taxonUrl;
+                    var taxonUrl = "https://www.inaturalist.org/taxa/" + taxon.id;
+                    document.getElementById('chick-link-' + index).href = taxonUrl;
                 } else {
-                    // Check if it's a special bird by checking if the image exists in our special-birds directory
-                    const specialBirdUrl = `/static/images/special-birds/{{ chick.scientificName }}.png`;
+                    // Check if it's a special bird
+                    var specialBirdUrl = "/static/images/special-birds/" + scientificName + ".png";
                     fetch(specialBirdUrl, { method: 'HEAD' })
-                        .then(response => {
+                        .then(function(response) {
                             if (response.ok) {
-                                document.getElementById('bird-{{ loop.index }}').src = specialBirdUrl;
-                                document.getElementById('chick-link-{{ loop.index }}').removeAttribute('href');
+                                document.getElementById('bird-' + index).src = specialBirdUrl;
+                                document.getElementById('chick-link-' + index).removeAttribute('href');
                             }
                         });
                 }
             })
-            .catch(error => console.error('Error fetching bird image from iNaturalist:', error));
-        {% endfor %}
-    });
+            .catch(function(error) { console.error('Error fetching bird image:', error); });
+    }
+    
+    function fetchPlantImage(scientificName, index) {
+        fetch("https://api.inaturalist.org/v1/taxa?q=" + scientificName + "&limit=1")
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                if (data.results && data.results.length > 0) {
+                    var taxon = data.results[0];
+                    if (taxon.default_photo) {
+                        var imageUrl = taxon.default_photo.medium_url;
+                        document.getElementById('plant-' + index).src = imageUrl;
+                    }
+                    var taxonUrl = "https://www.inaturalist.org/taxa/" + taxon.id;
+                    document.getElementById('plant-link-' + index).href = taxonUrl;
+                }
+            })
+            .catch(function(error) { console.error('Error fetching plant image:', error); });
+    }
 </script>
-{% endblock %} 
+{% endblock %}

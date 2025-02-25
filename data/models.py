@@ -302,6 +302,14 @@ def get_discovered_species(data):
             discovered.add( (chick["commonName"], chick["scientificName"]) )
     return discovered
 
+def get_discovered_plants(data):
+    """Retrieve all unique plant species discovered by all users."""
+    discovered = set()
+    for nest in data.get("personal_nests", {}).values():
+        for plant in nest.get("plants", []):
+            discovered.add( (plant["commonName"], plant["scientificName"]) )
+    return discovered
+
 def get_discovered_species_count(data):
     """Return the count of all unique bird species discovered."""
     return len(get_discovered_species(data))

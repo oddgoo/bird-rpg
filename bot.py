@@ -77,7 +77,8 @@ async def load_cogs(bot):
         'commands.lore',
         'commands.social',
         'commands.exploration',
-        'commands.swooping'
+        'commands.swooping',
+        'commands.gardening'
     ]
 
 
