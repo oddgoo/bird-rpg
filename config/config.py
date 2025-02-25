@@ -14,6 +14,7 @@ REALM_LORE_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data
 
 # Web server configuration
 PORT = int(os.getenv('PORT', 10000))
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'godbird')  # Default password if not set
 
 # Create necessary directories
 os.makedirs(DATA_PATH, exist_ok=True)
