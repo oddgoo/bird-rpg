@@ -2,17 +2,17 @@
     "human_types": [
         {
             "name": "small child",
-            "resilience": 25,
+            "resilience": 35,
             "description": "A small child wandering into the bird realm"
         },
         {
             "name": "bully kid",
-            "resilience": 50,
+            "resilience": 70,
             "description": "A mischievous kid known for bothering birds"
         },
         {
             "name": "average human on a bike",
-            "resilience": 100,
+            "resilience": 120,
             "description": "A cyclist passing through the bird realm"
         }
     ],

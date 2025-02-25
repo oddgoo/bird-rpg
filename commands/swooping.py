@@ -23,7 +23,7 @@ class Swooping(commands.Cog):
         self.defeat_gifs = {
             "small child": "https://media1.tenor.com/m/tXwrrX82m8sAAAAd/magpie-australia.gif",
             "average human on a bike": "https://media1.tenor.com/m/9asisfNB76gAAAAd/bird-attack-viralhog.gif",
-            "bully kid": "https://media1.tenor.com/m/vBzQOAc7LbQAAAAd/sabiadocampo-bird-attack.gif"
+            "bully kid": "https://media1.tenor.com/m/5lHDGVVvRIQAAAAC/birds-attack-all-that.gif"
         }
 
     def _record_defeated_human(self, human, blessing_name, blessing_amount):
