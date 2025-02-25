@@ -228,7 +228,7 @@ class IncubationCommands(commands.Cog):
                 if not has_brooded_egg(data, interaction.user.id, user_id):
                     try:
                         member = await interaction.guild.fetch_member(int(user_id))
-                        if member and not member.bot and member.id != interaction.user.id:
+                        if member and not member.bot:
                             valid_targets.append(member)
                     except:
                         continue
