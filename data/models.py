@@ -485,3 +485,52 @@ def get_swooping_bonus(data, nest):
     
     print(f"Final swoop bonus: {bonus}")
     return bonus
+
+def load_plant_species():
+    """Load plant species from the JSON file"""
+    file_path = os.path.join(os.path.dirname(__file__), 'plant_species.json')
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+    return data
+
+def get_plant_effect(common_name):
+    """Get the effect for a plant species by common name"""
+    plant_species = load_plant_species()
+    for species in plant_species:
+        if species["commonName"] == common_name:
+            return species.get("effect", "")
+    return ""
+
+def get_less_brood_chance(nest):
+    """
+    Calculate the total chance of needing one less brood from all plants in the nest
+    Returns a percentage (e.g., 35 for 35%)
+    """
+    total_chance = 0
+    for plant in nest.get("plants", []):
+        effect = get_plant_effect(plant["commonName"])
+        if "chance of your eggs needing one less brood" in effect:
+            # Extract the percentage from strings like "+25% chance of your eggs needing one less brood"
+            try:
+                percentage = int(''.join(filter(str.isdigit, effect)))
+                total_chance += percentage
+            except ValueError:
+                continue
+    return total_chance
+
+def get_extra_bird_chance(nest):
+    """
+    Calculate the total chance of hatching an extra bird from all plants in the nest
+    Returns a percentage (e.g., 35 for 35%)
+    """
+    total_chance = 0
+    for plant in nest.get("plants", []):
+        effect = get_plant_effect(plant["commonName"])
+        if "chance of your eggs hatching an extra bird" in effect:
+            # Extract the percentage from strings like "+25% chance of your eggs hatching an extra bird"
+            try:
+                percentage = int(''.join(filter(str.isdigit, effect)))
+                total_chance += percentage
+            except ValueError:
+                continue
+    return total_chance

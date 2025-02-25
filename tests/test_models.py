@@ -8,7 +8,8 @@ from data.models import (
     has_brooded_egg, get_total_chicks, load_bird_species,
     get_nest_building_bonus, get_singing_bonus,
     get_seed_gathering_bonus, get_singing_inspiration_chance,
-    is_first_action_of_type, can_bless_egg, bless_egg, handle_blessed_egg_hatching
+    is_first_action_of_type, can_bless_egg, bless_egg, handle_blessed_egg_hatching,
+    get_less_brood_chance, get_extra_bird_chance, get_plant_effect, load_plant_species
 )
 import random
 from utils.time_utils import get_current_date
@@ -1171,3 +1172,88 @@ def test_handle_blessed_egg_hatching():
     nest = {"egg": {"protected_prayers": True}}
     saved = handle_blessed_egg_hatching(nest, "Bird1")
     assert saved == {}
+
+class TestPlantEffects:
+    def test_get_less_brood_chance(self):
+        """Test calculating less brood chance from plants"""
+        # Test with no plants
+        nest = {"plants": []}
+        chance = get_less_brood_chance(nest)
+        assert chance == 0
+        
+        # Test with one plant
+        with patch('data.models.get_plant_effect', return_value="+25% chance of your eggs needing one less brood"):
+            nest = {"plants": [{"commonName": "Sturt's Desert Pea"}]}
+            chance = get_less_brood_chance(nest)
+            assert chance == 25
+        
+        # Test with multiple plants
+        with patch('data.models.get_plant_effect', side_effect=[
+            "+25% chance of your eggs needing one less brood",
+            "+10% chance of your eggs needing one less brood"
+        ]):
+            nest = {
+                "plants": [
+                    {"commonName": "Sturt's Desert Pea"},
+                    {"commonName": "Kangaroo Paw"}
+                ]
+            }
+            chance = get_less_brood_chance(nest)
+            assert chance == 35
+        
+        # Test with plants that have different effects
+        with patch('data.models.get_plant_effect', side_effect=[
+            "+25% chance of your eggs needing one less brood",
+            "+7% chance of your eggs hatching an extra bird"  # Different effect type
+        ]):
+            nest = {
+                "plants": [
+                    {"commonName": "Sturt's Desert Pea"},
+                    {"commonName": "Waratah"}
+                ]
+            }
+            chance = get_less_brood_chance(nest)
+            assert chance == 25  # Only counts the first plant
+
+    def test_get_extra_bird_chance(self):
+        """Test calculating extra bird chance from plants"""
+        # Test with no plants
+        nest = {"plants": []}
+        chance = get_extra_bird_chance(nest)
+        assert chance == 0
+        
+        # Test with one plant
+        with patch('data.models.get_plant_effect', return_value="+7% chance of your eggs hatching an extra bird"):
+            nest = {"plants": [{"commonName": "Waratah"}]}
+            chance = get_extra_bird_chance(nest)
+            assert chance == 7
+        
+        # Test with multiple plants
+        with patch('data.models.get_plant_effect', side_effect=[
+            "+7% chance of your eggs hatching an extra bird",
+            "+2% chance of your eggs hatching an extra bird",
+            "+25% chance of your eggs hatching an extra bird"
+        ]):
+            nest = {
+                "plants": [
+                    {"commonName": "Waratah"},
+                    {"commonName": "Wattle"},
+                    {"commonName": "Wollemi Pine"}
+                ]
+            }
+            chance = get_extra_bird_chance(nest)
+            assert chance == 34
+        
+        # Test with plants that have different effects
+        with patch('data.models.get_plant_effect', side_effect=[
+            "+7% chance of your eggs hatching an extra bird",
+            "+25% chance of your eggs needing one less brood"  # Different effect type
+        ]):
+            nest = {
+                "plants": [
+                    {"commonName": "Waratah"},
+                    {"commonName": "Sturt's Desert Pea"}
+                ]
+            }
+            chance = get_extra_bird_chance(nest)
+            assert chance == 7  # Only counts the first plant

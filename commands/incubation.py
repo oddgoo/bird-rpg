@@ -10,7 +10,8 @@ from data.models import (
     get_personal_nest, get_remaining_actions, record_actions,
     has_brooded_egg, record_brooding, get_egg_cost,
     get_total_chicks, select_random_bird_species, load_bird_species,
-    bless_egg, handle_blessed_egg_hatching
+    bless_egg, handle_blessed_egg_hatching, get_less_brood_chance,
+    get_extra_bird_chance
 )
 from utils.logging import log_debug
 from utils.time_utils import get_time_until_reset, get_current_date
@@ -41,14 +42,38 @@ class IncubationCommands(commands.Cog):
 
         # Create the egg
         nest["seeds"] -= egg_cost
+        
+        # Check for "less brood" effect from plants
+        less_brood_chance = get_less_brood_chance(nest)
+        initial_brooding_progress = 0
+        less_brood_message = ""
+        
+        if less_brood_chance > 0:
+            # Calculate how many guaranteed less broods
+            guaranteed_less_broods = less_brood_chance // 100
+            # Calculate chance for an additional less brood
+            remaining_chance = less_brood_chance % 100
+            
+            # Apply guaranteed less broods
+            if guaranteed_less_broods > 0:
+                initial_brooding_progress += guaranteed_less_broods
+                less_brood_message = f"\nYour plants provided {guaranteed_less_broods} less {'brood' if guaranteed_less_broods == 1 else 'broods'} needed! 🌱"
+            
+            # Check for chance of additional less brood
+            if remaining_chance > 0 and random.random() < (remaining_chance / 100):
+                initial_brooding_progress += 1
+                less_brood_message += f"\nYour plants gave you an additional less brood needed (had a {remaining_chance}% chance)! 🍀"
+        
         nest["egg"] = {
-            "brooding_progress": 0,
+            "brooding_progress": initial_brooding_progress,
             "brooded_by": []
         }
         
+        broods_needed = 10 - initial_brooding_progress
+        
         save_data(data)
         await interaction.response.send_message(f"You laid an egg! It cost {egg_cost} seeds. 🥚\n"
-                      f"The egg needs to be brooded 10 times to hatch.\n"
+                      f"The egg needs to be brooded {broods_needed} times to hatch.{less_brood_message}\n"
                       f"Your nest now has {nest['seeds']} seeds remaining.")
 
     @app_commands.command(name='brood', description='Brood eggs to help them hatch')
@@ -335,17 +360,51 @@ class IncubationCommands(commands.Cog):
             # Get multipliers if they exist
             multipliers = target_nest["egg"].get("multipliers", {})
 
+            # Get the main bird species
             bird_species = select_random_bird_species(multipliers)
             chick = {
                 "commonName": bird_species["commonName"],
                 "scientificName": bird_species["scientificName"]
             }
-
+            
+            # Add the main chick to the nest
+            target_nest["chicks"].append(chick)
+            
+            # Check for "extra bird" effect from plants
+            extra_bird_chance = get_extra_bird_chance(target_nest)
+            extra_birds_message = ""
+            extra_birds = []
+            
+            if extra_bird_chance > 0:
+                # Calculate how many guaranteed extra birds
+                guaranteed_extra_birds = extra_bird_chance // 100
+                # Calculate chance for an additional extra bird
+                remaining_chance = extra_bird_chance % 100
+                
+                # Add guaranteed extra birds
+                for i in range(guaranteed_extra_birds):
+                    extra_bird_species = select_random_bird_species(multipliers)
+                    extra_chick = {
+                        "commonName": extra_bird_species["commonName"],
+                        "scientificName": extra_bird_species["scientificName"]
+                    }
+                    target_nest["chicks"].append(extra_chick)
+                    extra_birds.append(extra_chick)
+                
+                # Check for chance of additional extra bird
+                if remaining_chance > 0 and random.random() < (remaining_chance / 100):
+                    extra_bird_species = select_random_bird_species(multipliers)
+                    extra_chick = {
+                        "commonName": extra_bird_species["commonName"],
+                        "scientificName": extra_bird_species["scientificName"]
+                    }
+                    target_nest["chicks"].append(extra_chick)
+                    extra_birds.append(extra_chick)
+            
             # Handle blessed egg hatching
             saved_multipliers = handle_blessed_egg_hatching(target_nest, bird_species["scientificName"])
 
             # Clear the egg
-            target_nest["chicks"].append(chick)
             target_nest["egg"] = None
 
             # If we saved multipliers, create a new egg with them
@@ -355,6 +414,11 @@ class IncubationCommands(commands.Cog):
                     "brooded_by": [],
                     "multipliers": saved_multipliers
                 }
+                
+            # Add extra birds to the result tuple
+            result_tuple = ("hatch", chick, target_nest, target_user)
+            if extra_birds:
+                result_tuple = ("hatch", chick, target_nest, target_user, extra_birds)
 
             return ("hatch", chick, target_nest, target_user), None
         else:
@@ -363,21 +427,49 @@ class IncubationCommands(commands.Cog):
 
     async def send_hatching_response(self, interaction_or_ctx, result):
         """Helper function to send a hatching response"""
-        _, chick, target_nest, target_user = result
+        # Check if we have extra birds in the result
+        if len(result) > 4:
+            _, chick, target_nest, target_user, extra_birds = result
+        else:
+            _, chick, target_nest, target_user = result
+            extra_birds = []
+            
         # Fetch image and create embed
         image_url, taxon_url = await self.fetch_bird_image(chick['scientificName'])
+        
+        # Create the base description
+        description = f"{target_user.mention}'s egg has hatched into a **{chick['commonName']}** (*{chick['scientificName']}*)!"
+        
+        # Add extra birds to the description if any
+        if extra_birds:
+            description += "\n\n**Extra birds hatched from plant effects:**"
+            for i, extra_chick in enumerate(extra_birds):
+                description += f"\n{i+1}. **{extra_chick['commonName']}** (*{extra_chick['scientificName']}*)"
+        
         embed = discord.Embed(
             title="🐣 Egg Hatched!",
-            description=f"{target_user.mention}'s egg has hatched into a **{chick['commonName']}** (*{chick['scientificName']}*)!",
+            description=description,
             color=discord.Color.green()
         )
+        
         if image_url:
             embed.set_image(url=image_url)
+            
         embed.add_field(
             name="Total Chicks",
             value=f"{target_user.mention} now has {get_total_chicks(target_nest)} {'chick' if get_total_chicks(target_nest) == 1 else 'chicks'}! 🐦",
             inline=False
         )
+        
+        # Add plant effect explanation if extra birds hatched
+        if extra_birds:
+            plant_effect = f"Your garden's plants gave you {len(extra_birds)} extra {'bird' if len(extra_birds) == 1 else 'birds'}! 🌱"
+            embed.add_field(
+                name="Plant Effect",
+                value=plant_effect,
+                inline=False
+            )
+            
         embed.add_field(
             name="View Chicks",
             value=f"[Click Here](https://bird-rpg.onrender.com/user/{target_user.id})",

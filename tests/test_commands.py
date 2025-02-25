@@ -104,6 +104,37 @@ class TestIncubationCommands:
         assert nest["egg"] is not None
         assert nest["egg"]["brooding_progress"] == 0
         assert nest["egg"]["brooded_by"] == []
+        
+    @pytest.mark.asyncio
+    async def test_lay_egg_with_less_brood_effect(self, incubation_cog, mock_interaction, mock_data, mocker):
+        """Test laying an egg with plants that reduce brooding needed"""
+        nest = get_personal_nest(mock_data, mock_interaction.user.id)
+        nest["seeds"] = get_egg_cost(nest) + 50  # Ensure enough seeds
+        
+        # Add plants with less brood effect
+        nest["plants"] = [
+            {"commonName": "Sturt's Desert Pea", "scientificName": "Swainsona formosa"},
+            {"commonName": "Kangaroo Paw", "scientificName": "Anigozanthos flavidus"}
+        ]
+        
+        # Mock get_less_brood_chance to return a fixed value (35%)
+        mocker.patch('data.models.get_less_brood_chance', return_value=35)
+        
+        # Mock random.random to return 0.3 (below 0.35, so additional less brood should trigger)
+        mocker.patch('random.random', return_value=0.3)
+        
+        await incubation_cog.lay_egg.callback(incubation_cog, mock_interaction)
+        
+        # Check message
+        mock_interaction.response.send_message.assert_called_once()
+        message = mock_interaction.response.send_message.call_args[0][0]
+        assert "You laid an egg" in message
+        assert "plants" in message.lower()  # Should mention plants
+        
+        # Check egg created with reduced brooding needed
+        assert nest["egg"] is not None
+        assert nest["egg"]["brooding_progress"] == 1  # Should start with 1 brood progress (35% chance = 0 guaranteed + 35% chance of 1)
+        assert "The egg needs to be brooded 9 times" in message or "The egg needs to be brooded 9 more times" in message
 
     @pytest.mark.asyncio
     async def test_lay_egg_insufficient_seeds(self, incubation_cog, mock_interaction, mock_data):
@@ -276,7 +307,7 @@ class TestIncubationCommands:
 
         # Check final multiplier is sum of both prayers
         assert nest["egg"]["multipliers"]["Test Bird"] == 5
-
+        
 
 class TestFlockCommands:
     @pytest.mark.asyncio
