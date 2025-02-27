@@ -65,7 +65,7 @@
                 {% if nest.featured_bird %}
                 <div class="relative w-full h-60 rounded-t-lg overflow-hidden mb-0">
                     <img 
-                        src="https://via.placeholder.com/400?text=🐦"
+                        src=""
                         alt="{{ nest.featured_bird.commonName }}"
                         id="featured-bird-{{ nest.user_id }}"
                         class="w-full h-full object-cover"
@@ -164,14 +164,8 @@
             if (bird.isSpecial) {
                 document.getElementById('featured-bird-' + bird.user_id).src = '/static/images/special-birds/' + bird.scientificName + '.png';
             } else {
-                fetch('https://api.inaturalist.org/v1/taxa?q=' + encodeURIComponent(bird.scientificName) + '&limit=1')
-                    .then(function(response) { return response.json(); })
-                    .then(function(data) {
-                        if (data.results && data.results.length > 0 && data.results[0].default_photo) {
-                            document.getElementById('featured-bird-' + bird.user_id).src = data.results[0].default_photo.medium_url;
-                        }
-                    })
-                    .catch(function(error) { console.error('Error fetching featured bird image:', error); });
+                // Use local image if available
+                document.getElementById('featured-bird-' + bird.user_id).src = '/species_images/' + encodeURIComponent(bird.scientificName) + '.jpg';
             }
         });
     });

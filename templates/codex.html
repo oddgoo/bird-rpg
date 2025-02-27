@@ -20,7 +20,7 @@
                     <img 
                         class="w-4/5 h-3/5 rounded-lg object-cover mb-4 transition-transform duration-200"
                         id="bird-{{ loop.index }}"
-                        src="{% if bird.scientificName in discovered_birds %}https://via.placeholder.com/100?text=🐦{% else %}/static/images/unknown.png{% endif %}"
+                        src="/static/images/unknown.png"
                         alt="{{ bird.commonName }}"
                     >
                     <div class="text-center">
@@ -70,7 +70,7 @@
                     <img 
                         class="w-4/5 h-3/5 rounded-lg object-cover mb-4 transition-transform duration-200"
                         id="plant-{{ loop.index }}"
-                        src="{% if plant.scientificName in discovered_plants %}https://via.placeholder.com/100?text=🌱{% else %}/static/images/unknown.png{% endif %}"
+                        src="/static/images/unknown.png"
                         alt="{{ plant.commonName }}"
                     >
                     <div class="text-center">
@@ -112,44 +112,25 @@
     document.addEventListener('DOMContentLoaded', function() {
         {% for bird in birds %}
             {% if bird.scientificName in discovered_birds %}
-            {% if bird.rarity == 'Special' %}
-                document.getElementById('bird-{{ loop.index }}').src = `/static/images/special-birds/{{ bird.scientificName }}.png`;
-                document.getElementById('bird-link-{{ loop.index }}').removeAttribute('href');
-            {% else %}
-            fetch(`https://api.inaturalist.org/v1/taxa?q={{ bird.scientificName }}&limit=1`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.results && data.results.length > 0) {
-                        const taxon = data.results[0];
-                        if (taxon.default_photo) {
-                            const imageUrl = taxon.default_photo.medium_url;
-                            document.getElementById('bird-{{ loop.index }}').src = imageUrl;
-                        }
-                        const taxonUrl = `https://www.inaturalist.org/taxa/${taxon.id}`;
-                        document.getElementById('bird-link-{{ loop.index }}').href = taxonUrl;
-                    }
-                })
-                .catch(error => console.error('Error fetching bird image:', error));
-            {% endif %}
+                {% if bird.rarity == 'Special' %}
+                    document.getElementById('bird-{{ loop.index }}').src = "/static/images/special-birds/{{ bird.scientificName }}.png";
+                    document.getElementById('bird-link-{{ loop.index }}').removeAttribute('href');
+                {% else %}
+                  
+                    document.getElementById('bird-{{ loop.index }}').src = "/species_images/{{ bird.scientificName|urlencode }}.jpg";
+                    document.getElementById('bird-link-{{ loop.index }}').href = "https://www.inaturalist.org/taxa/{{ bird.scientificName }}";
+                    
+                {% endif %}
             {% endif %}
         {% endfor %}
 
         {% for plant in plants %}
             {% if plant.scientificName in discovered_plants %}
-            fetch(`https://api.inaturalist.org/v1/taxa?q={{ plant.scientificName }}&limit=1`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.results && data.results.length > 0) {
-                        const taxon = data.results[0];
-                        if (taxon.default_photo) {
-                            const imageUrl = taxon.default_photo.medium_url;
-                            document.getElementById('plant-{{ loop.index }}').src = imageUrl;
-                        }
-                        const taxonUrl = `https://www.inaturalist.org/taxa/${taxon.id}`;
-                        document.getElementById('plant-link-{{ loop.index }}').href = taxonUrl;
-                    }
-                })
-                .catch(error => console.error('Error fetching plant image:', error));
+                
+                document.getElementById('plant-{{ loop.index }}').src = "/species_images/{{ plant.scientificName|urlencode }}.jpg";
+                document.getElementById('plant-link-{{ loop.index }}').href = "https://www.inaturalist.org/taxa/{{ plant.scientificName }}";
+                
+
             {% endif %}
         {% endfor %}
     });

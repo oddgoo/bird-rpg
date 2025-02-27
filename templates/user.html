@@ -48,7 +48,7 @@
                     <img 
                         class="w-4/5 h-3/5 rounded-lg object-cover mb-4 transition-transform duration-200"
                         id="bird-{{ loop.index }}"
-                        src="https://via.placeholder.com/100?text=🐦"
+                        src=""
                         alt="{{ chick.commonName }}"
                     >
                     <div class="text-center">
@@ -93,7 +93,7 @@
                     <img 
                         class="w-4/5 h-3/5 rounded-lg object-cover mb-4 transition-transform duration-200"
                         id="plant-{{ loop.index }}"
-                        src="https://via.placeholder.com/100?text=🌱"
+                        src=""
                         alt="{{ plant.commonName }}"
                     >
                     <div class="text-center">
@@ -171,59 +171,33 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Fetch bird images
+        // Set bird images
         {% for chick in nest.chicks %}
-        fetchBirdImage("{{ chick.scientificName }}", "{{ loop.index }}");
+        var scientificName = "{{ chick.scientificName }}";
+        var index = "{{ loop.index }}";
+        
+        // Check if it's a special bird
+        if ("{{ chick.rarity }}" === "Special") {
+            document.getElementById('bird-' + index).src = "/static/images/special-birds/" + scientificName + ".png";
+            document.getElementById('chick-link-' + index).removeAttribute('href');
+        } else {
+            // Use local image if available
+            document.getElementById('bird-' + index).src = "/species_images/" + encodeURIComponent(scientificName) + ".jpg";
+            document.getElementById('chick-link-' + index).href = "https://www.inaturalist.org/taxa/" + encodeURIComponent(scientificName);
+            
+        }
         {% endfor %}
         
-        // Fetch plant images
+        // Set plant images
         {% for plant in nest.plants %}
-        fetchPlantImage("{{ plant.scientificName }}", "{{ loop.index }}");
+        var scientificName = "{{ plant.scientificName }}";
+        var index = "{{ loop.index }}";
+        
+        // Use local image if available
+        document.getElementById('plant-' + index).src = "/species_images/" + encodeURIComponent(scientificName) + ".jpg";
+        document.getElementById('plant-link-' + index).href = "https://www.inaturalist.org/taxa/" + encodeURIComponent(scientificName);
+        
         {% endfor %}
     });
-    
-    function fetchBirdImage(scientificName, index) {
-        fetch("https://api.inaturalist.org/v1/taxa?q=" + scientificName + "&limit=1")
-            .then(function(response) { return response.json(); })
-            .then(function(data) {
-                if (data.results && data.results.length > 0) {
-                    var taxon = data.results[0];
-                    if (taxon.default_photo) {
-                        var imageUrl = taxon.default_photo.medium_url;
-                        document.getElementById('bird-' + index).src = imageUrl;
-                    }
-                    var taxonUrl = "https://www.inaturalist.org/taxa/" + taxon.id;
-                    document.getElementById('chick-link-' + index).href = taxonUrl;
-                } else {
-                    // Check if it's a special bird
-                    var specialBirdUrl = "/static/images/special-birds/" + scientificName + ".png";
-                    fetch(specialBirdUrl, { method: 'HEAD' })
-                        .then(function(response) {
-                            if (response.ok) {
-                                document.getElementById('bird-' + index).src = specialBirdUrl;
-                                document.getElementById('chick-link-' + index).removeAttribute('href');
-                            }
-                        });
-                }
-            })
-            .catch(function(error) { console.error('Error fetching bird image:', error); });
-    }
-    
-    function fetchPlantImage(scientificName, index) {
-        fetch("https://api.inaturalist.org/v1/taxa?q=" + scientificName + "&limit=1")
-            .then(function(response) { return response.json(); })
-            .then(function(data) {
-                if (data.results && data.results.length > 0) {
-                    var taxon = data.results[0];
-                    if (taxon.default_photo) {
-                        var imageUrl = taxon.default_photo.medium_url;
-                        document.getElementById('plant-' + index).src = imageUrl;
-                    }
-                    var taxonUrl = "https://www.inaturalist.org/taxa/" + taxon.id;
-                    document.getElementById('plant-link-' + index).href = taxonUrl;
-                }
-            })
-            .catch(function(error) { console.error('Error fetching plant image:', error); });
-    }
 </script>
 {% endblock %}

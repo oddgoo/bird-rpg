@@ -1,7 +1,8 @@
-from flask import Flask, render_template, send_from_directory, request, redirect, url_for, send_file, session, flash
+from flask import Flask, render_template, send_from_directory, request, redirect, url_for, session, flash
 from threading import Thread
-from config.config import PORT, DEBUG, ADMIN_PASSWORD, NESTS_FILE, LORE_FILE, REALM_LORE_FILE
+from config.config import PORT, DEBUG, ADMIN_PASSWORD, NESTS_FILE, LORE_FILE, REALM_LORE_FILE, SPECIES_IMAGES_DIR
 from web.home import get_home_page
+from web.admin import admin_routes
 from data.storage import load_data, load_lore, load_realm_lore, save_data
 from data.models import get_personal_nest, get_total_chicks, get_total_bird_species, load_bird_species, get_discovered_species, get_discovered_plants
 from utils.time_utils import get_time_until_reset, get_current_date, get_australian_time
@@ -13,6 +14,9 @@ import secrets
 app = Flask('', static_url_path='/static', static_folder='static')
 # Set a secret key for session management
 app.secret_key = secrets.token_hex(16)
+
+# Register admin routes
+admin_routes(app)
 
 @app.route('/')
 def home():
@@ -141,6 +145,29 @@ def user_page(user_id):
     
     return render_template('user.html', nest=nest_data)
 
+@app.route('/species_images/<path:filename>')
+def species_images(filename):
+    # Check if the directory exists
+    if not os.path.exists(SPECIES_IMAGES_DIR):
+        return "Directory not found", 404
+    
+    try:
+        # Try with the encoded name (replacing spaces with %20)
+        encoded_filename = filename.replace(' ', '%20')
+        
+        # Check if the file exists with the encoded name
+        if encoded_filename in os.listdir(SPECIES_IMAGES_DIR):
+            return send_from_directory(SPECIES_IMAGES_DIR, encoded_filename)
+        
+        # Check if the file exists with the decoded name
+        if filename in os.listdir(SPECIES_IMAGES_DIR):
+            return send_from_directory(SPECIES_IMAGES_DIR, filename)
+        
+        # If neither exists, return 404
+        return "File not found", 404
+    except Exception as e:
+        return f"Error: {str(e)}", 500
+
 @app.route('/codex')
 def codex():
     # Load bird species data
@@ -165,124 +192,6 @@ def codex():
                          discovered_plants=discovered_plants,
                          realm_messages=realm_lore["messages"])
 
-@app.route('/admin/', methods=['GET', 'POST'])
-def admin():
-    if request.method == 'POST':
-        password = request.form.get('password')
-        if password == ADMIN_PASSWORD:
-            # Store authentication in session
-            session['admin_authenticated'] = True
-            return redirect(url_for('admin'))
-        else:
-            return render_template('admin.html', authenticated=False, error="Invalid password")
-    
-    # Check if authenticated in session
-    if session.get('admin_authenticated'):
-        return render_template('admin.html', authenticated=True)
-    
-    return render_template('admin.html', authenticated=False)
-
-@app.route('/admin/logout')
-def admin_logout():
-    # Clear admin authentication from session
-    session.pop('admin_authenticated', None)
-    return redirect(url_for('admin'))
-
-@app.route('/admin/download/<file_type>')
-def download_data(file_type):
-    # Check if authenticated in session
-    if not session.get('admin_authenticated'):
-        return redirect(url_for('admin'))
-    
-    try:
-        if file_type == 'nests':
-            return send_file(NESTS_FILE, as_attachment=True, download_name='nests.json')
-        elif file_type == 'lore':
-            return send_file(LORE_FILE, as_attachment=True, download_name='lore.json')
-        elif file_type == 'realm_lore':
-            return send_file(REALM_LORE_FILE, as_attachment=True, download_name='realm_lore.json')
-        else:
-            return redirect(url_for('admin'))
-    except Exception as e:
-        print(f"Error downloading file: {e}")
-        return redirect(url_for('admin'))
-
-@app.route('/admin/purge-old-actions')
-@app.route('/admin/purge_old_actions')
-def purge_old_actions():
-    # Check if authenticated in session
-    if not session.get('admin_authenticated'):
-        return redirect(url_for('admin'))
-    
-    try:
-        # Calculate date 4 days ago
-        current_time = get_australian_time()
-        four_days_ago = (current_time - timedelta(days=4)).strftime('%Y-%m-%d')
-        
-        # Load data
-        data = load_data()
-        
-        # Track counts for reporting
-        purged_counts = {
-            'daily_actions': 0,
-            'daily_songs': 0,
-            'daily_brooding': 0
-        }
-        
-        # Purge old actions from daily_actions
-        # Structure: data['daily_actions'][user_id]['actions_YYYY-MM-DD']
-        if 'daily_actions' in data:
-            for user_id in data['daily_actions']:
-                # Find action keys that are older than 4 days
-                old_action_keys = []
-                for action_key in data['daily_actions'][user_id]:
-                    # Extract date from action_key (format: actions_YYYY-MM-DD)
-                    if action_key.startswith('actions_'):
-                        date_str = action_key[8:]  # Remove 'actions_' prefix
-                        if date_str < four_days_ago:
-                            old_action_keys.append(action_key)
-                
-                # Remove old actions
-                for action_key in old_action_keys:
-                    purged_counts['daily_actions'] += 1
-                    del data['daily_actions'][user_id][action_key]
-        
-        # Purge old actions from daily_songs
-        # Structure: data['daily_songs'][date][user_id] = [singer_ids]
-        if 'daily_songs' in data:
-            old_dates = [date for date in data['daily_songs'] if date < four_days_ago]
-            for date in old_dates:
-                for user_id, singers in data['daily_songs'][date].items():
-                    purged_counts['daily_songs'] += len(singers)
-                del data['daily_songs'][date]
-        
-        # Purge old actions from daily_brooding
-        # Structure: data['daily_brooding'][date][user_id] = [brooder_ids]
-        if 'daily_brooding' in data:
-            old_dates = [date for date in data['daily_brooding'] if date < four_days_ago]
-            for date in old_dates:
-                for user_id, brooders in data['daily_brooding'][date].items():
-                    purged_counts['daily_brooding'] += len(brooders)
-                del data['daily_brooding'][date]
-        
-        # Save updated data
-        save_data(data)
-        
-        # Prepare success message
-        total_purged = sum(purged_counts.values())
-        message = f"Successfully purged old actions older than {four_days_ago}: "
-        message += f"{purged_counts['daily_actions']} daily actions, "
-        message += f"{purged_counts['daily_songs']} songs, "
-        message += f"{purged_counts['daily_brooding']} brooding actions."
-        
-        # Flash message will be displayed on the admin page
-        flash(message, 'success')
-        
-        return redirect(url_for('admin'))
-    except Exception as e:
-        print(f"Error purging old actions: {e}")
-        flash(f"Error purging old actions: {str(e)}", 'error')
-        return redirect(url_for('admin'))
 
 def run_server():
     app.jinja_env.auto_reload = DEBUG  # Enable template auto-reload

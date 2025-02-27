@@ -11,6 +11,7 @@ DATA_PATH = os.path.join(STORAGE_PATH, 'bird-rpg')
 NESTS_FILE = os.path.join(DATA_PATH, 'nests.json')
 LORE_FILE = os.path.join(DATA_PATH, "lore.json")
 REALM_LORE_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'realm_lore.json')
+SPECIES_IMAGES_DIR = os.path.join(DATA_PATH, 'species_images')
 
 # Web server configuration
 PORT = int(os.getenv('PORT', 10000))
@@ -18,6 +19,7 @@ ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'godbird')  # Default password if n
 
 # Create necessary directories
 os.makedirs(DATA_PATH, exist_ok=True)
+os.makedirs(SPECIES_IMAGES_DIR, exist_ok=True)
 
 # Game limits
 MAX_BIRDS_PER_NEST = 30  # Maximum number of birds a user can have
