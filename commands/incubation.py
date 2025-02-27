@@ -173,6 +173,9 @@ class IncubationCommands(commands.Cog):
                 # Skip locked nests
                 if nest.get("locked", False) and str(interaction.user.id) != user_id:
                     continue
+                # Skip users who are at their bird limit
+                if get_total_chicks(nest) >= MAX_BIRDS_PER_NEST:
+                    continue
                 if not has_brooded_egg(data, interaction.user.id, user_id):
                     try:
                         member = await interaction.guild.fetch_member(int(user_id))
@@ -182,7 +185,7 @@ class IncubationCommands(commands.Cog):
                         continue
 
         if not valid_targets:
-            await interaction.followup.send("There are no nests available to brood! All nests either have no eggs or you've already brooded them today. 🥚")
+            await interaction.followup.send("There are no nests available to brood! All nests either have no eggs, you've already brooded them today, or they are at capacity. 🥚")
             return
 
         # Process brooding for as many targets as possible
@@ -251,6 +254,9 @@ class IncubationCommands(commands.Cog):
                 # Skip locked nests
                 if nest.get("locked", False) and str(interaction.user.id) != user_id:
                     continue
+                # Skip users who are at their bird limit
+                if get_total_chicks(nest) >= MAX_BIRDS_PER_NEST:
+                    continue
                 if not has_brooded_egg(data, interaction.user.id, user_id):
                     try:
                         member = await interaction.guild.fetch_member(int(user_id))
@@ -260,7 +266,7 @@ class IncubationCommands(commands.Cog):
                         continue
         
         if not valid_targets:
-            await interaction.followup.send("There are no nests available to brood! All nests either have no eggs or you've already brooded them today. 🥚")
+            await interaction.followup.send("There are no nests available to brood! All nests either have no eggs,  you've already brooded them today, or they are at capacity! 🥚")
             return
             
         # Select a random target and brood their egg
