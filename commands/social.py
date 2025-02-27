@@ -3,8 +3,9 @@ from discord import app_commands
 import discord
 
 from data.storage import load_data, save_data
-from data.models import get_personal_nest
+from data.models import get_personal_nest, get_total_chicks
 from utils.logging import log_debug
+from config.config import MAX_BIRDS_PER_NEST
 
 class SocialCommands(commands.Cog):
     def __init__(self, bot):
@@ -43,6 +44,13 @@ class SocialCommands(commands.Cog):
 
             if not bird_to_give:
                 await interaction.response.send_message(f"❌ You don't have a {bird_name} in your nest!")
+                return
+
+            # Check if receiver's nest is at the limit
+            if get_total_chicks(receiver_nest) >= MAX_BIRDS_PER_NEST:
+                # Put the bird back in the giver's nest
+                giver_nest["chicks"].append(bird_to_give)
+                await interaction.response.send_message(f"❌ {target_user.display_name}'s nest is already full! They have reached the limit of {MAX_BIRDS_PER_NEST} birds.")
                 return
 
             # Add bird to receiver's nest
