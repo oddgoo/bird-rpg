@@ -55,7 +55,15 @@ class Swooping(commands.Cog):
         spawner = HumanSpawner()
         state = spawner._get_current_state()
         current_human = state['current_human']
-        tier_index = {25: 0, 50: 1, 100: 2}[current_human["max_resilience"]]
+        max_resilience = current_human["max_resilience"]
+        
+        # Determine tier based on max_resilience ranges instead of exact matches
+        if max_resilience <= 45:
+            tier_index = 0
+        elif max_resilience <= 100:
+            tier_index = 1
+        else:
+            tier_index = 2
         amount = blessing["tiers"][tier_index]
 
         data = load_data()
@@ -146,8 +154,10 @@ class Swooping(commands.Cog):
             await interaction.response.send_message("\n".join(message))
             
         except Exception as e:
-            print(f"Error in swoop command: {str(e)}")
-            await interaction.response.send_message("Sorry, something went wrong while processing your swoop! Please try again.")
+            import traceback
+            error_traceback = traceback.format_exc()
+            print(f"Error in swoop command: {str(e)}\n{error_traceback}")
+            await interaction.response.send_message(f"Sorry, something went wrong while processing your swoop: `{str(e)}`. Check console for full traceback.")
 
     @app_commands.command(
         name="current_human",
