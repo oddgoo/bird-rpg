@@ -1,4 +1,5 @@
 from copy import deepcopy
+from config.config import MAX_GARDEN_SIZE
 
 def get_blessing_amount(max_resilience):
     """Calculate blessing amount based on human difficulty"""
@@ -23,7 +24,9 @@ def apply_blessing(nests, blessing_type, amount):
             nest["inspiration"] = nest.get("inspiration", 0) + amount
     elif blessing_type == "garden_growth":
         for user_id, nest in nests.items():
-            nest["garden_size"] = nest.get("garden_size", 0) + amount
+            current_size = nest.get("garden_size", 0)
+            # Ensure we don't exceed MAX_GARDEN_SIZE
+            nest["garden_size"] = min(current_size + amount, MAX_GARDEN_SIZE)
     elif blessing_type == "bonus_actions":
         for user_id, nest in nests.items():
             nest["bonus_actions"] = nest.get("bonus_actions", 0) + amount
@@ -31,4 +34,4 @@ def apply_blessing(nests, blessing_type, amount):
         for user_id, nest in nests.items():
             nest["twigs"] = nest.get("twigs", 0) + amount
     
-    return nests 
+    return nests
