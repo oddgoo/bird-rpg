@@ -373,10 +373,10 @@ class ManifestCommands(commands.Cog):
     def get_points_needed(self, rarity):
         """Get the number of points needed to fully manifest a species based on rarity"""
         rarity_points = {
-            "common": 30,
-            "uncommon": 100,
-            "rare": 150,
-            "mythical": 200
+            "common": 40,
+            "uncommon": 70,
+            "rare": 110,
+            "mythical": 160
         }
         return rarity_points.get(rarity.lower(), 100)
     
