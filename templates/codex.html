@@ -9,16 +9,16 @@
 <div class="rounded-xl p-6 mb-8 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
     <div class="border border-amber-300/50 rounded-lg p-4">
         <h2 class="text-2xl text-center text-yellow-900 mb-4 font-mystical font-bold">🦜 Birds</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {% for bird in birds %}
-            <div class="bg-white rounded-xl p-4 shadow-md flex flex-col items-center transition-transform transform hover:-translate-y-1 relative overflow-hidden aspect-[5/7] {% if bird.scientificName not in discovered_birds %}opacity-50{% else %}cursor-pointer{% endif %}">
+            <div class="bg-white rounded-xl p-3 shadow-md flex flex-col items-center transition-transform transform hover:-translate-y-1 relative overflow-hidden aspect-[5/7] {% if bird.scientificName not in discovered_birds %}opacity-50{% else %}cursor-pointer{% endif %}">
                 {% if bird.scientificName in discovered_birds %}
                 <a href="#" class="flex flex-col items-center no-underline w-full h-full" target="_blank" id="bird-link-{{ loop.index }}">
                 {% else %}
                 <div class="flex flex-col items-center w-full h-full">
                 {% endif %}
                     <img 
-                        class="w-4/5 h-3/5 rounded-lg object-cover mb-4 transition-transform duration-200"
+                        class="w-5/6 h-3/5 rounded-lg object-cover mb-3 transition-transform duration-200"
                         id="bird-{{ loop.index }}"
                         src="/static/images/unknown.png"
                         alt="{{ bird.commonName }}"
@@ -59,16 +59,16 @@
 <div class="rounded-xl p-6 mb-8 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
     <div class="border border-amber-300/50 rounded-lg p-4">
         <h2 class="text-2xl text-center text-yellow-900 mb-4 font-mystical font-bold">🌿 Plants</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {% for plant in plants %}
-            <div class="bg-white rounded-xl p-4 shadow-md flex flex-col items-center transition-transform transform hover:-translate-y-1 relative overflow-hidden aspect-[5/7] {% if plant.scientificName not in discovered_plants %}opacity-50{% else %}cursor-pointer{% endif %}">
+            <div class="bg-white rounded-xl p-3 shadow-md flex flex-col items-center transition-transform transform hover:-translate-y-1 relative overflow-hidden aspect-[5/7] {% if plant.scientificName not in discovered_plants %}opacity-50{% else %}cursor-pointer{% endif %}">
                 {% if plant.scientificName in discovered_plants %}
                 <a href="#" class="flex flex-col items-center no-underline w-full h-full" target="_blank" id="plant-link-{{ loop.index }}">
                 {% else %}
                 <div class="flex flex-col items-center w-full h-full">
                 {% endif %}
                     <img 
-                        class="w-4/5 h-3/5 rounded-lg object-cover mb-4 transition-transform duration-200"
+                        class="w-5/6 h-3/5 rounded-lg object-cover mb-3 transition-transform duration-200"
                         id="plant-{{ loop.index }}"
                         src="/static/images/unknown.png"
                         alt="{{ plant.commonName }}"

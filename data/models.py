@@ -331,10 +331,9 @@ def select_random_bird_species(multipliers=None):
         base_weight = species["rarityWeight"]
         if multipliers and species["scientificName"] in multipliers:
             weights.append(base_weight * multipliers[species["scientificName"]])
-            print(f'total weight for {species} is {base_weight * multipliers[species["scientificName"]]}')
         else:
             weights.append(base_weight)
-            print(f'total weight for {species} is {base_weight}')
+
         
     
     if not all_birds:

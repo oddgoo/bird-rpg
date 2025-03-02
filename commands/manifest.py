@@ -127,11 +127,17 @@ class ManifestCommands(commands.Cog):
             }
             manifested_birds.append(bird)
         
+        # Calculate how many more points are needed to fully manifest
+        points_needed = self.get_points_needed(bird["rarity"])
+        points_remaining = max(0, points_needed - bird["manifested_points"])
+        
+        # Only use as many actions as needed to fully manifest
+        actions_used = min(actions, points_remaining)
+        
         # Add manifestation points
-        bird["manifested_points"] += actions
+        bird["manifested_points"] += actions_used
         
         # Check if fully manifested
-        points_needed = self.get_points_needed(bird["rarity"])
         is_newly_manifested = False
         
         if bird["manifested_points"] >= points_needed and not bird.get("fully_manifested", False):
@@ -144,15 +150,20 @@ class ManifestCommands(commands.Cog):
         # Save the updated data
         save_manifested_birds(manifested_birds)
         
-        # Record actions used
-        record_actions(data, interaction.user.id, actions, "manifest")
+        # Record only the actions actually used
+        record_actions(data, interaction.user.id, actions_used, "manifest")
         save_data(data)
         
         # Create and send response
         if is_newly_manifested:
             await self.send_fully_manifested_response(interaction, bird)
         else:
-            await self.send_manifestation_progress_response(interaction, bird, points_needed, actions, remaining_actions - actions)
+            # If we used fewer actions than requested, inform the user
+            if actions_used < actions:
+                await interaction.followup.send(
+                    f"You only needed {actions_used} actions to continue manifesting this bird, so the remaining {actions - actions_used} actions were not used."
+                )
+            await self.send_manifestation_progress_response(interaction, bird, points_needed, actions_used, remaining_actions - actions_used)
     
     @app_commands.command(name='manifest_plant', description='Manifest a plant species by its scientific name or common name')
     @app_commands.describe(
@@ -248,11 +259,17 @@ class ManifestCommands(commands.Cog):
             }
             manifested_plants.append(plant)
         
+        # Calculate how many more points are needed to fully manifest
+        points_needed = self.get_points_needed(plant["rarity"])
+        points_remaining = max(0, points_needed - plant["manifested_points"])
+        
+        # Only use as many actions as needed to fully manifest
+        actions_used = min(actions, points_remaining)
+        
         # Add manifestation points
-        plant["manifested_points"] += actions
+        plant["manifested_points"] += actions_used
         
         # Check if fully manifested
-        points_needed = self.get_points_needed(plant["rarity"])
         is_newly_manifested = False
         
         if plant["manifested_points"] >= points_needed and not plant.get("fully_manifested", False):
@@ -265,15 +282,20 @@ class ManifestCommands(commands.Cog):
         # Save the updated data
         save_manifested_plants(manifested_plants)
         
-        # Record actions used
-        record_actions(data, interaction.user.id, actions, "manifest")
+        # Record only the actions actually used
+        record_actions(data, interaction.user.id, actions_used, "manifest")
         save_data(data)
         
         # Create and send response
         if is_newly_manifested:
             await self.send_fully_manifested_plant_response(interaction, plant)
         else:
-            await self.send_manifestation_progress_response(interaction, plant, points_needed, actions, remaining_actions - actions, is_plant=True)
+            # If we used fewer actions than requested, inform the user
+            if actions_used < actions:
+                await interaction.followup.send(
+                    f"You only needed {actions_used} actions to continue manifesting this plant, so the remaining {actions - actions_used} actions were not used."
+                )
+            await self.send_manifestation_progress_response(interaction, plant, points_needed, actions_used, remaining_actions - actions_used, is_plant=True)
     
     async def fetch_species_data(self, name):
         """Fetch species data from iNaturalist API"""

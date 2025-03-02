@@ -177,7 +177,7 @@ def test_plant_compost():
     assert result is not None
     
     # Unpack the result
-    removed_plant, plant_data, seed_refund, inspiration_refund, updated_nest = result
+    removed_plant, plant_data, seed_refund, inspiration_refund, updated_nest, remaining_space = result
     
     # Check that the plant was removed
     assert len(nest["plants"]) == 0

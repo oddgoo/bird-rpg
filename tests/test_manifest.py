@@ -116,6 +116,46 @@ def mock_inaturalist_non_bird_response():
 
 class TestManifestBirdCommand:
     @pytest.mark.asyncio
+    async def test_manifest_bird_only_use_needed_actions(self, manifest_cog, mock_interaction, mock_data, mock_inaturalist_bird_response):
+        """Test that only the necessary actions are used when manifesting a bird"""
+        cog, manifested_birds, _ = manifest_cog
+        
+        # Add actions to the user
+        nest = get_personal_nest(mock_data, mock_interaction.user.id)
+        nest["bonus_actions"] = 50
+        
+        # Add a partially manifested bird that needs 10 more points to be fully manifested
+        points_needed = 100  # uncommon bird needs 100 points
+        manifested_birds.append({
+            "commonName": "Southern Cassowary",
+            "scientificName": "Casuarius casuarius",
+            "rarityWeight": 4,
+            "effect": "Your first nest-building action of the day gives +3 twigs.",
+            "rarity": "uncommon",
+            "manifested_points": 90,  # Only needs 10 more points
+            "fully_manifested": False
+        })
+        
+        # Mock fetch_species_data to return a bird
+        cog.fetch_species_data = AsyncMock(return_value=mock_inaturalist_bird_response)
+        
+        # Mock download_species_image to do nothing
+        cog.download_species_image = AsyncMock(return_value=True)
+        
+        # Call the command callback with more actions than needed (20 instead of 10)
+        await cog.manifest_bird.callback(cog, mock_interaction, "Casuarius casuarius", 20)
+        
+        # Check that the bird was fully manifested
+        assert len(manifested_birds) == 1
+        assert manifested_birds[0]["manifested_points"] == 100  # Should be exactly 100, not 110
+        assert manifested_birds[0]["fully_manifested"]  # Should be fully manifested
+        
+        # Check that only 10 actions were used, not 20
+        assert nest["bonus_actions"] == 40  # Started with 50, used 10
+        
+        # Check that the response was sent
+        assert mock_interaction.followup.send.call_count >= 1
+    @pytest.mark.asyncio
     async def test_manifest_bird_success(self, manifest_cog, mock_interaction, mock_data, mock_inaturalist_bird_response):
         """Test successfully manifesting a bird"""
         cog, manifested_birds, _ = manifest_cog
@@ -312,6 +352,49 @@ class TestManifestBirdCommand:
 
 
 class TestManifestPlantCommand:
+    @pytest.mark.asyncio
+    async def test_manifest_plant_only_use_needed_actions(self, manifest_cog, mock_interaction, mock_data, mock_inaturalist_plant_response):
+        """Test that only the necessary actions are used when manifesting a plant"""
+        cog, _, manifested_plants = manifest_cog
+        
+        # Add actions to the user
+        nest = get_personal_nest(mock_data, mock_interaction.user.id)
+        nest["bonus_actions"] = 50
+        
+        # Add a partially manifested plant that needs 5 more points to be fully manifested
+        points_needed = 30  # common plant needs 30 points
+        manifested_plants.append({
+            "commonName": "Sturt's Desert Pea",
+            "scientificName": "Swainsona formosa",
+            "rarityWeight": 7,
+            "effect": "+10% chance of your eggs needing one less brood (when laying an egg)",
+            "rarity": "common",
+            "seedCost": 30,
+            "sizeCost": 1,
+            "inspirationCost": 1,
+            "manifested_points": 25,  # Only needs 5 more points
+            "fully_manifested": False
+        })
+        
+        # Mock fetch_species_data to return a plant
+        cog.fetch_species_data = AsyncMock(return_value=mock_inaturalist_plant_response)
+        
+        # Mock download_species_image to do nothing
+        cog.download_species_image = AsyncMock(return_value=True)
+        
+        # Call the command callback with more actions than needed (15 instead of 5)
+        await cog.manifest_plant.callback(cog, mock_interaction, "Swainsona formosa", 15)
+        
+        # Check that the plant was fully manifested
+        assert len(manifested_plants) == 1
+        assert manifested_plants[0]["manifested_points"] == 30  # Should be exactly 30, not 40
+        assert manifested_plants[0]["fully_manifested"]  # Should be fully manifested
+        
+        # Check that only 5 actions were used, not 15
+        assert nest["bonus_actions"] == 45  # Started with 50, used 5
+        
+        # Check that the response was sent
+        assert mock_interaction.followup.send.call_count >= 1
     @pytest.mark.asyncio
     async def test_manifest_plant_success(self, manifest_cog, mock_interaction, mock_data, mock_inaturalist_plant_response):
         """Test successfully manifesting a plant"""
@@ -523,4 +606,3 @@ class TestManifestHelperFunctions:
             # Test finding a non-existent rarity (should return any plant)
             any_plant = cog.find_similar_plant("nonexistent")
             assert any_plant["rarity"] in ["common", "uncommon", "rare"]
-

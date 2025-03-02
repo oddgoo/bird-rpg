@@ -112,11 +112,14 @@ class GardeningCommands(commands.Cog):
         
         nest["plants"].append(new_plant)
         
-        return (plant, nest), None  # Return the full plant data for the response
+        # Calculate new space remaining after planting
+        space_remaining = space_remaining - plant["sizeCost"]
+        
+        return (plant, nest, space_remaining), None  # Return the full plant data and space remaining for the response
         
     async def send_planting_response(self, interaction, result):
         """Send a response for successful planting"""
-        plant, nest = result
+        plant, nest, space_remaining = result
         
         # Fetch image path and create embed
         image_path = self.get_plant_image_path(plant['scientificName'])
@@ -134,7 +137,7 @@ class GardeningCommands(commands.Cog):
         
         embed.add_field(
             name="Resources Remaining",
-            value=f"Seeds: {nest['seeds']}\nInspiration: {nest['inspiration']}\nGarden Size: {nest['garden_size']}",
+            value=f"Seeds: {nest['seeds']}\nInspiration: {nest['inspiration']}\nGarden Space: {space_remaining}/{nest['garden_size']} remaining",
             inline=False
         )
         
@@ -243,11 +246,29 @@ class GardeningCommands(commands.Cog):
         # Remove plant from garden
         removed_plant = nest["plants"].pop(plant_index)
         
-        return (removed_plant, plant_data, seed_refund, inspiration_refund, nest), None
+        # Calculate garden space remaining after composting
+        total_space_used = 0
+        for existing_plant in nest.get("plants", []):
+            # Find the plant species data for each planted plant
+            plant_found = False
+            # Check in main plant species
+            for species in plant_species:
+                if species["commonName"] == existing_plant["commonName"]:
+                    total_space_used += species["sizeCost"]
+                    plant_found = True
+                    break
+            
+            if not plant_found:
+                # Default to 1 if plant data not found
+                total_space_used += 1
+        
+        space_remaining = nest.get("garden_size", 0) - total_space_used
+        
+        return (removed_plant, plant_data, seed_refund, inspiration_refund, nest, space_remaining), None
         
     async def send_composting_response(self, interaction, result):
         """Send a response for successful composting"""
-        removed_plant, plant_data, seed_refund, inspiration_refund, nest = result
+        removed_plant, plant_data, seed_refund, inspiration_refund, nest, space_remaining = result
         
         embed = discord.Embed(
             title="🧺 Plant Composted",
@@ -263,7 +284,7 @@ class GardeningCommands(commands.Cog):
         
         embed.add_field(
             name="Resources Remaining",
-            value=f"Seeds: {nest['seeds']}\nInspiration: {nest['inspiration']}\nGarden Size: {nest['garden_size']}",
+            value=f"Seeds: {nest['seeds']}\nInspiration: {nest['inspiration']}\nGarden Space: {space_remaining}/{nest['garden_size']} remaining",
             inline=False
         )
         
