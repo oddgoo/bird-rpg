@@ -446,7 +446,7 @@ class IncubationCommands(commands.Cog):
             if extra_birds:
                 result_tuple = ("hatch", chick, target_nest, target_user, extra_birds)
 
-            return ("hatch", chick, target_nest, target_user), None
+            return result_tuple, None
         else:
             remaining = 10 - target_nest["egg"]["brooding_progress"]
             return ("progress", remaining, target_nest, target_user), None
@@ -460,17 +460,11 @@ class IncubationCommands(commands.Cog):
             _, chick, target_nest, target_user = result
             extra_birds = []
             
-        # Fetch image path and create embed
+        # Fetch image path and create embed for the main bird
         image_path, taxon_url = await self.fetch_bird_image(chick['scientificName'])
         
-        # Create the base description
+        # Create the base description for the main bird
         description = f"{target_user.mention}'s egg has hatched into a **{chick['commonName']}** (*{chick['scientificName']}*)!"
-        
-        # Add extra birds to the description if any
-        if extra_birds:
-            description += "\n\n**Extra birds hatched from plant effects:**"
-            for i, extra_chick in enumerate(extra_birds):
-                description += f"\n{i+1}. **{extra_chick['commonName']}** (*{extra_chick['scientificName']}*)"
         
         embed = discord.Embed(
             title="🐣 Egg Hatched!",
@@ -520,7 +514,51 @@ class IncubationCommands(commands.Cog):
                 await interaction_or_ctx.followup.send(embed=embed)
             else:
                 await interaction_or_ctx.send(embed=embed)
+        
+        # Send individual messages for each extra bird
+        for extra_chick in extra_birds:
+            await self.send_extra_bird_message(interaction_or_ctx, extra_chick, target_user)
 
+    async def send_extra_bird_message(self, interaction_or_ctx, extra_chick, target_user):
+        """Helper function to send a message for each extra bird"""
+        # Fetch image path for the extra bird
+        image_path, _ = await self.fetch_bird_image(extra_chick['scientificName'])
+        
+        # Create embed for the extra bird
+        extra_embed = discord.Embed(
+            title="🐣 Extra Bird Hatched!",
+            description=f"{target_user.mention} received an extra bird: **{extra_chick['commonName']}** (*{extra_chick['scientificName']}*)!",
+            color=discord.Color.gold()
+        )
+        
+        extra_embed.add_field(
+            name="Plant Effect",
+            value="This extra bird hatched thanks to your garden's plants! 🌱",
+            inline=False
+        )
+        
+        # Handle different context types with image attachment if it exists
+        if os.path.exists(image_path):
+            # Create a safe filename for the attachment
+            filename = f"{urllib.parse.quote(extra_chick['scientificName'])}.jpg"
+            if extra_chick['scientificName'] == "Casspie":
+                filename = "Casspie.png"
+                
+            # Create the file attachment
+            file = discord.File(image_path, filename=filename)
+            extra_embed.set_image(url=f"attachment://{filename}")
+            
+            if hasattr(interaction_or_ctx, 'followup'):
+                await interaction_or_ctx.followup.send(file=file, embed=extra_embed)
+            else:
+                await interaction_or_ctx.send(file=file, embed=extra_embed)
+        else:
+            # If image doesn't exist, send embed without image
+            if hasattr(interaction_or_ctx, 'followup'):
+                await interaction_or_ctx.followup.send(embed=extra_embed)
+            else:
+                await interaction_or_ctx.send(embed=extra_embed)
+    
     async def fetch_bird_image(self, scientific_name):
         """Fetches the bird image path and taxon URL."""
         # Check if this is a special bird

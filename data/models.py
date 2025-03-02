@@ -618,4 +618,5 @@ def get_extra_bird_chance(nest):
                     total_chance += percentage
             except ValueError:
                 continue
+    print(f"total extra chance for a bird is: {total_chance}")
     return total_chance
