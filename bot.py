@@ -80,7 +80,8 @@ async def load_cogs(bot):
         'commands.swooping',
         'commands.gardening',
         'commands.weather',
-        'commands.research'
+        'commands.research',
+        'commands.manifest'
     ]
 
 

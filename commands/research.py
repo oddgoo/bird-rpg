@@ -2,6 +2,7 @@ from discord.ext import commands
 from discord import app_commands
 import discord
 import aiohttp
+import urllib.parse
 
 from data.storage import load_data, save_data
 from data.models import get_personal_nest, load_bird_species
@@ -100,7 +101,7 @@ class ResearchCommands(commands.Cog):
         await interaction.followup.send(embed=embed)
         
     async def fetch_bird_image(self, scientific_name):
-        """Fetches the bird image URL from iNaturalist."""
+        """Fetches the bird image URL."""
         # Check if this is a special bird
         bird_species = load_bird_species()
         for bird in bird_species:
@@ -108,20 +109,9 @@ class ResearchCommands(commands.Cog):
                 # For special birds, return the local image path
                 return f"/static/images/special-birds/{scientific_name}.png"
                 
-        # For regular birds, use iNaturalist API
-        api_url = f"https://api.inaturalist.org/v1/taxa?q={scientific_name}&limit=1"
-        async with aiohttp.ClientSession() as session:
-            try:
-                async with session.get(api_url) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        if data['results']:
-                            taxon = data['results'][0]
-                            image_url = taxon.get('default_photo', {}).get('medium_url')
-                            return image_url
-            except Exception as e:
-                log_debug(f"Error fetching image from iNaturalist: {e}")
-        return None
+        # For regular birds and manifested birds, check the species_images directory
+        image_url = f"/species_images/{urllib.parse.quote(scientific_name)}.jpg"
+        return image_url
 
 async def setup(bot):
     await bot.add_cog(ResearchCommands(bot))

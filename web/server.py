@@ -109,11 +109,12 @@ def user_page(user_id):
                     "name": target_nest.get("name", "Some Bird's Nest")
                 })
     
-    # Load plant species data
+    # Load plant species data (including manifested plants)
     plant_species_data = {}
     try:
-        with open('data/plant_species.json') as f:
-            plant_species_data = {plant["scientificName"]: plant for plant in json.load(f)}
+        from data.models import load_plant_species
+        plants = load_plant_species()
+        plant_species_data = {plant["scientificName"]: plant for plant in plants}
     except Exception as e:
         print(f"Error loading plant species data: {e}")
     
@@ -170,12 +171,12 @@ def species_images(filename):
 
 @app.route('/codex')
 def codex():
-    # Load bird species data
+    # Load bird species data (including manifested birds)
     birds = load_bird_species()
     
-    # Load plant species data
-    with open('data/plant_species.json') as f:
-        plants = json.load(f)
+    # Load plant species data (including manifested plants)
+    from data.models import load_plant_species
+    plants = load_plant_species()
     
     # Load game data and get discovered species
     data = load_data()

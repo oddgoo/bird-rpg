@@ -490,7 +490,31 @@ class TestIncubationModule:
         ]
         assert get_total_chicks(nest) == 3
 
-    def test_select_random_bird_species_with_multipliers(self, mock_data):
+def test_select_random_bird_species_includes_manifested(mock_data):
+        """Test that manifested birds are included in random selection"""
+        # Create a controlled set of standard birds
+        standard_birds = [
+            {"scientificName": "Bird A", "rarityWeight": 10, "commonName": "Bird A"},
+            {"scientificName": "Bird B", "rarityWeight": 10, "commonName": "Bird B"}
+        ]
+        
+        # Create a manifested bird
+        manifested_bird = {"scientificName": "Manifestus birdus", "rarityWeight": 10, "commonName": "Manifested Bird", "fully_manifested": True}
+        
+        # Mock load_bird_species to return standard birds
+        with patch('data.models.load_bird_species', return_value=standard_birds + [manifested_bird]):
+            # Test that the manifested bird can be selected
+            selected_birds = [select_random_bird_species() for _ in range(100)]
+            manifested_count = sum(1 for bird in selected_birds if bird["scientificName"] == "Manifestus birdus")
+            
+            # The manifested bird should be selected approximately 1/3 of the time
+            assert manifested_count > 0, "Manifested bird was never selected"
+            
+            # Special case in select_random_bird_species should always return Manifestus birdus
+            # when it's present in the list
+            assert any(bird["scientificName"] == "Manifestus birdus" for bird in selected_birds)
+
+def test_select_random_bird_species_with_multipliers(mock_data):
         """Test that bird selection respects multipliers"""
         # Create a controlled set of test birds
         test_birds = [

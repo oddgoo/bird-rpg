@@ -4,9 +4,11 @@ import discord
 from datetime import datetime
 import aiohttp
 import random
+import urllib.parse
+import os
 
-from config.config import MAX_BIRDS_PER_NEST
-from data.storage import load_data, save_data
+from config.config import MAX_BIRDS_PER_NEST, SPECIES_IMAGES_DIR
+from data.storage import load_data, save_data, load_manifested_birds
 from data.models import (
     get_personal_nest, get_remaining_actions, record_actions,
     has_brooded_egg, record_brooding, get_egg_cost,
@@ -371,6 +373,7 @@ class IncubationCommands(commands.Cog):
 
             # Get multipliers if they exist
             multipliers = target_nest["egg"].get("multipliers", {})
+            print(multipliers)
 
             # Get the main bird species
             bird_species = select_random_bird_species(multipliers)
@@ -446,8 +449,8 @@ class IncubationCommands(commands.Cog):
             _, chick, target_nest, target_user = result
             extra_birds = []
             
-        # Fetch image and create embed
-        image_url, taxon_url = await self.fetch_bird_image(chick['scientificName'])
+        # Fetch image path and create embed
+        image_path, taxon_url = await self.fetch_bird_image(chick['scientificName'])
         
         # Create the base description
         description = f"{target_user.mention}'s egg has hatched into a **{chick['commonName']}** (*{chick['scientificName']}*)!"
@@ -463,9 +466,6 @@ class IncubationCommands(commands.Cog):
             description=description,
             color=discord.Color.green()
         )
-        
-        if image_url:
-            embed.set_image(url=image_url)
             
         embed.add_field(
             name="Total Chicks",
@@ -488,37 +488,40 @@ class IncubationCommands(commands.Cog):
             inline=False
         )
         
-        # Handle different context types
-        if hasattr(interaction_or_ctx, 'followup'):
-            await interaction_or_ctx.followup.send(embed=embed)
+        # Handle different context types with image attachment if it exists
+        if os.path.exists(image_path):
+            # Create a safe filename for the attachment
+            filename = f"{urllib.parse.quote(chick['scientificName'])}.jpg"
+            if chick['scientificName'] == "Casspie":
+                filename = "Casspie.png"
+                
+            # Create the file attachment
+            file = discord.File(image_path, filename=filename)
+            embed.set_image(url=f"attachment://{filename}")
+            
+            if hasattr(interaction_or_ctx, 'followup'):
+                await interaction_or_ctx.followup.send(file=file, embed=embed)
+            else:
+                await interaction_or_ctx.send(file=file, embed=embed)
         else:
-            await interaction_or_ctx.send(embed=embed)
+            # If image doesn't exist, send embed without image
+            if hasattr(interaction_or_ctx, 'followup'):
+                await interaction_or_ctx.followup.send(embed=embed)
+            else:
+                await interaction_or_ctx.send(embed=embed)
 
     async def fetch_bird_image(self, scientific_name):
-        """Fetches the bird image URL and taxon URL from iNaturalist."""
-        # First check if this is a special bird by looking it up in bird_species.json
-        data = load_data()
-        for bird in data.get("bird_species", []):
-            if bird["scientificName"] == scientific_name and bird.get("rarity") == "Special":
-                # For special birds, return the local image path
-                local_image_url = f"/static/images/special-birds/{scientific_name}.png"
-                return local_image_url, None
-
-        # For regular birds, continue with iNaturalist API
-        api_url = f"https://api.inaturalist.org/v1/taxa?q={scientific_name}&limit=1"
-        async with aiohttp.ClientSession() as session:
-            try:
-                async with session.get(api_url) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        if data['results']:
-                            taxon = data['results'][0]
-                            image_url = taxon.get('default_photo', {}).get('medium_url')
-                            taxon_url = taxon.get('url')
-                            return image_url, taxon_url
-            except Exception as e:
-                log_debug(f"Error fetching image from iNaturalist: {e}")
-        return None, None
+        """Fetches the bird image path and taxon URL."""
+        # Check if this is a special bird
+        if scientific_name == "Casspie":
+            # For special birds, return the local image path
+            image_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 
+                                     "static", "images", "special-birds", f"{scientific_name}.png")
+            return image_path, None
+        
+        # For regular birds and manifested birds, check the species_images directory
+        image_path = os.path.join(SPECIES_IMAGES_DIR, f"{urllib.parse.quote(scientific_name)}.jpg")
+        return image_path, None
 
     @app_commands.command(name='pray_for_bird', description='Pray for a specific bird to increase its hatching chance')
     @app_commands.describe(
@@ -554,17 +557,18 @@ class IncubationCommands(commands.Cog):
             )
             return
 
-        # Validate bird species exists
-        bird_species = load_bird_species()
+        # Validate bird species exists in either main codex or manifested birds
+        all_birds = load_bird_species()  # This now includes both standard and manifested birds
+        
         valid_species = False
-        for species in bird_species:
+        for species in all_birds:
             if species["scientificName"].lower() == scientific_name.lower():
                 scientific_name = species["scientificName"]  # Use correct casing
                 valid_species = True
                 break
 
         if not valid_species:
-            await interaction.response.send_message(f"Invalid bird species: {scientific_name}")
+            await interaction.response.send_message(f"Invalid bird species: {scientific_name}. Make sure it exists in the codex or has been fully manifested.")
             return
 
         # Initialize multipliers if they don't exist
@@ -581,7 +585,7 @@ class IncubationCommands(commands.Cog):
         target_base_weight = 0
         
         # Calculate total weights with multipliers
-        for species in bird_species:
+        for species in all_birds:
             base_weight = species["rarityWeight"]
             if species["scientificName"] == scientific_name:
                 target_base_weight = base_weight
@@ -595,7 +599,7 @@ class IncubationCommands(commands.Cog):
                 else:
                     total_weight += base_weight
 
-        base_percentage = (target_base_weight / sum(s["rarityWeight"] for s in bird_species)) * 100
+        base_percentage = (target_base_weight / sum(s["rarityWeight"] for s in all_birds)) * 100
         actual_percentage = (target_weight / total_weight) * 100
 
         # Consume actions

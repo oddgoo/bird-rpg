@@ -1,6 +1,6 @@
 import os
 import json
-from config.config import NESTS_FILE, LORE_FILE, REALM_LORE_FILE
+from config.config import NESTS_FILE, LORE_FILE, REALM_LORE_FILE, DATA_PATH
 from utils.logging import log_debug
 
 def load_data():
@@ -82,4 +82,60 @@ def save_realm_lore(data):
         log_debug("Realm lore data saved successfully")
     except Exception as e:
         log_debug(f"Error saving realm lore data: {e}")
+        raise
+
+def load_manifested_birds():
+    """Load manifested birds data from JSON file"""
+    manifested_birds_file = os.path.join(DATA_PATH, 'manifested_birds.json')
+    try:
+        if os.path.exists(manifested_birds_file):
+            with open(manifested_birds_file, 'r') as f:
+                data = json.load(f)
+                log_debug("Manifested birds data loaded successfully")
+                return data
+        log_debug("No existing manifested birds data, creating new")
+        default_data = []
+        save_manifested_birds(default_data)
+        return default_data
+    except Exception as e:
+        log_debug(f"Error loading manifested birds data: {e}")
+        raise
+
+def save_manifested_birds(data):
+    """Save manifested birds data to JSON file"""
+    manifested_birds_file = os.path.join(DATA_PATH, 'manifested_birds.json')
+    try:
+        with open(manifested_birds_file, 'w') as f:
+            json.dump(data, f, indent=4)
+        log_debug("Manifested birds data saved successfully")
+    except Exception as e:
+        log_debug(f"Error saving manifested birds data: {e}")
+        raise
+
+def load_manifested_plants():
+    """Load manifested plants data from JSON file"""
+    manifested_plants_file = os.path.join(DATA_PATH, 'manifested_plants.json')
+    try:
+        if os.path.exists(manifested_plants_file):
+            with open(manifested_plants_file, 'r') as f:
+                data = json.load(f)
+                log_debug("Manifested plants data loaded successfully")
+                return data
+        log_debug("No existing manifested plants data, creating new")
+        default_data = []
+        save_manifested_plants(default_data)
+        return default_data
+    except Exception as e:
+        log_debug(f"Error loading manifested plants data: {e}")
+        raise
+
+def save_manifested_plants(data):
+    """Save manifested plants data to JSON file"""
+    manifested_plants_file = os.path.join(DATA_PATH, 'manifested_plants.json')
+    try:
+        with open(manifested_plants_file, 'w') as f:
+            json.dump(data, f, indent=4)
+        log_debug("Manifested plants data saved successfully")
+    except Exception as e:
+        log_debug(f"Error saving manifested plants data: {e}")
         raise

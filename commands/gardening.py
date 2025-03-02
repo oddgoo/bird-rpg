@@ -4,15 +4,17 @@ import discord
 from datetime import datetime
 import aiohttp
 import random
+import urllib.parse
+import os
+import json
 
-from data.storage import load_data, save_data
+from config.config import SPECIES_IMAGES_DIR
+from data.storage import load_data, save_data, load_manifested_plants
 from data.models import (
     get_personal_nest, get_remaining_actions, record_actions
 )
 from utils.logging import log_debug
 from utils.time_utils import get_time_until_reset, get_current_date
-import os
-import json
 
 class GardeningCommands(commands.Cog):
     def __init__(self, bot):
@@ -54,7 +56,7 @@ class GardeningCommands(commands.Cog):
         
     def process_planting_logic(self, plant_name, nest):
         """Process planting a new plant - core logic without Discord dependencies"""
-        # Load plant species data
+        # Load plant species data (including manifested plants)
         plant_species = self.load_plant_species()
         
         # Find the plant by name (common or scientific)
@@ -78,10 +80,17 @@ class GardeningCommands(commands.Cog):
         total_space_used = 0
         for existing_plant in nest.get("plants", []):
             # Find the plant species data for each planted plant
+            plant_found = False
+            # Check in main plant species
             for species in plant_species:
                 if species["commonName"] == existing_plant["commonName"]:
                     total_space_used += species["sizeCost"]
+                    plant_found = True
                     break
+            
+            if not plant_found:
+                # Default to 1 if plant data not found
+                total_space_used += 1
         
         space_remaining = nest.get("garden_size", 0) - total_space_used
         
@@ -109,17 +118,14 @@ class GardeningCommands(commands.Cog):
         """Send a response for successful planting"""
         plant, nest = result
         
-        # Fetch image and create embed
-        image_url = await self.fetch_plant_image(plant['scientificName'])
+        # Fetch image path and create embed
+        image_path = self.get_plant_image_path(plant['scientificName'])
         embed = discord.Embed(
             title="🌱 New Plant Adopted!",
             description=f"You've planted a **{plant['commonName']}** (*{plant['scientificName']}*) in your garden!",
             color=discord.Color.green()
         )
         
-        if image_url:
-            embed.set_image(url=image_url)
-            
         embed.add_field(
             name="Effect",
             value=plant['effect'],
@@ -138,30 +144,30 @@ class GardeningCommands(commands.Cog):
             inline=False
         )
         
-        await interaction.followup.send(embed=embed)
+        # Handle image attachment if it exists
+        if os.path.exists(image_path):
+            # Create a safe filename for the attachment
+            filename = f"{urllib.parse.quote(plant['scientificName'])}.jpg"
+                
+            # Create the file attachment
+            file = discord.File(image_path, filename=filename)
+            embed.set_image(url=f"attachment://{filename}")
+            
+            await interaction.followup.send(file=file, embed=embed)
+        else:
+            # If image doesn't exist, send embed without image
+            await interaction.followup.send(embed=embed)
         
-    async def fetch_plant_image(self, scientific_name):
-        """Fetches the plant image URL from iNaturalist."""
-        api_url = f"https://api.inaturalist.org/v1/taxa?q={scientific_name}&limit=1"
-        async with aiohttp.ClientSession() as session:
-            try:
-                async with session.get(api_url) as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        if data['results']:
-                            taxon = data['results'][0]
-                            image_url = taxon.get('default_photo', {}).get('medium_url')
-                            return image_url
-            except Exception as e:
-                log_debug(f"Error fetching image from iNaturalist: {e}")
-        return None
+    def get_plant_image_path(self, scientific_name):
+        """Get the plant image file path from the species_images directory"""
+        # All images are stored in the species_images directory
+        return os.path.join(SPECIES_IMAGES_DIR, f"{urllib.parse.quote(scientific_name)}.jpg")
         
     def load_plant_species(self):
-        """Load plant species from the JSON file"""
-        file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'plant_species.json')
-        with open(file_path, 'r') as file:
-            data = json.load(file)
-        return data
+        """Load plant species from the JSON file and include manifested plants"""
+        # Use the updated function from data/models.py
+        from data.models import load_plant_species as models_load_plant_species
+        return models_load_plant_species()
         
     @app_commands.command(name='plant_compost', description='Give back a plant for 80% of its cost')
     @app_commands.describe(plant_name='Common or scientific name of the plant you want to compost')
@@ -200,7 +206,7 @@ class GardeningCommands(commands.Cog):
         
     def process_composting_logic(self, plant_name, nest):
         """Process composting a plant - core logic without Discord dependencies"""
-        # Load plant species data
+        # Load plant species data (including manifested plants)
         plant_species = self.load_plant_species()
         
         # Find the plant in user's garden
@@ -219,7 +225,7 @@ class GardeningCommands(commands.Cog):
         # Find the plant species data
         plant_data = None
         for p in plant_species:
-            if p["commonName"].lower() == plant_to_compost["commonName"].lower():
+            if p["commonName"].lower() == plant_to_compost["commonName"].lower() or p["scientificName"].lower() == plant_to_compost["scientificName"].lower():
                 plant_data = p
                 break
                 

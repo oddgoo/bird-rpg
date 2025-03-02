@@ -3,7 +3,7 @@ from discord import app_commands
 import discord
 
 from data.storage import load_data, save_data
-from data.models import get_personal_nest, load_bird_species, get_discovered_species
+from data.models import get_personal_nest
 from utils.logging import log_debug
 
 class CustomisationCommands(commands.Cog):
