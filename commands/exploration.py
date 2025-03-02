@@ -79,7 +79,7 @@ class ExplorationCommands(commands.Cog):
         region='The region to explore',
         amount='Number of exploration points to add'
     )
-    async def explore(self, interaction: discord.Interaction, region: str, amount: int = 1):
+    async def explore(self, interaction: discord.Interaction, region: str, amount: int):
         try:
             log_debug(f"explore called by {interaction.user.id} for {amount} in {region}")
             region = region.lower()
