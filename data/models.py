@@ -338,7 +338,7 @@ def select_random_bird_species(multipliers=None):
     
     if not all_birds:
         return None  # No birds available
-            
+    
     return random.choices(all_birds, weights=weights, k=1)[0]
 
 def get_discovered_species(data):
@@ -587,10 +587,14 @@ def get_less_brood_chance(nest):
     for plant in nest.get("plants", []):
         effect = get_plant_effect(plant["commonName"])
         if "chance of your eggs needing one less brood" in effect:
-            # Extract the percentage from strings like "+25% chance of your eggs needing one less brood"
+            # Extract the percentage from strings like "+2.5% chance of your eggs needing one less brood"
             try:
-                percentage = int(''.join(filter(str.isdigit, effect)))
-                total_chance += percentage
+                # Find the percentage value with potential decimal point
+                import re
+                percentage_match = re.search(r'([0-9]*\.?[0-9]+)%', effect)
+                if percentage_match:
+                    percentage = float(percentage_match.group(1))
+                    total_chance += percentage
             except ValueError:
                 continue
     return total_chance
@@ -604,10 +608,14 @@ def get_extra_bird_chance(nest):
     for plant in nest.get("plants", []):
         effect = get_plant_effect(plant["commonName"])
         if "chance of your eggs hatching an extra bird" in effect:
-            # Extract the percentage from strings like "+25% chance of your eggs hatching an extra bird"
+            # Extract the percentage from strings like "+0.2% chance of your eggs hatching an extra bird"
             try:
-                percentage = int(''.join(filter(str.isdigit, effect)))
-                total_chance += percentage
+                # Find the percentage value with potential decimal point
+                import re
+                percentage_match = re.search(r'([0-9]*\.?[0-9]+)%', effect)
+                if percentage_match:
+                    percentage = float(percentage_match.group(1))
+                    total_chance += percentage
             except ValueError:
                 continue
     return total_chance

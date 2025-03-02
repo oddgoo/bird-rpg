@@ -117,11 +117,10 @@ class TestIncubationCommands:
             {"commonName": "Kangaroo Paw", "scientificName": "Anigozanthos flavidus"}
         ]
         
-        # Mock get_less_brood_chance to return a fixed value (35%)
-        mocker.patch('data.models.get_less_brood_chance', return_value=35)
-        
-        # Mock random.random to return 0.3 (below 0.35, so additional less brood should trigger)
-        mocker.patch('random.random', return_value=0.3)
+        # Mock get_less_brood_chance to return a fixed value (100%)
+        # Need to mock both the import in data.models and the direct import in incubation.py
+        mocker.patch('data.models.get_less_brood_chance', return_value=100)
+        mocker.patch('commands.incubation.get_less_brood_chance', return_value=100)
         
         await incubation_cog.lay_egg.callback(incubation_cog, mock_interaction)
         

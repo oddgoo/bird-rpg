@@ -4,10 +4,10 @@
     "scientificName": "Acacia pycnantha",
     "rarityWeight": 8,
     "rarity": "common",
-    "effect": "+2% chance of your eggs hatching an extra bird",
+    "effect": "+0.2% chance of your eggs hatching an extra bird",
     "habitat": "Woodlands, forests",
-    "seedCost": 30,
-    "sizeCost": 1,
+    "seedCost": 10,
+    "sizeCost": 0.1,
     "inspirationCost" : 1
   },
   {
@@ -15,10 +15,10 @@
     "scientificName": "Anigozanthos flavidus",
     "rarityWeight": 7,
     "rarity": "common",
-    "effect": "+10% chance of your eggs needing one less brood (when laying an egg)",
+    "effect": "+1% chance of your eggs needing one less brood (when laying an egg)",
     "habitat": "Coastal areas, heathlands",
-    "seedCost": 30,
-    "sizeCost": 1,
+    "seedCost": 10,
+    "sizeCost": 0.1,
     "inspirationCost" : 1
   },
   {
@@ -28,8 +28,8 @@
     "rarity": "common",
     "effect": "To be Awakened",
     "habitat": "Gardens, coastal regions",
-    "seedCost": 30,
-    "sizeCost": 1,
+    "seedCost": 10,
+    "sizeCost": 0.1,
     "inspirationCost" : 1
   },
   {
@@ -37,22 +37,22 @@
     "scientificName": "Telopea speciosissima",
     "rarityWeight": 5,
     "rarity": "uncommon",
-    "effect": "+7% chance of your eggs hatching an extra bird",
+    "effect": "+0.7% chance of your eggs hatching an extra bird",
     "habitat": "Coastal areas of NSW",
-    "seedCost": 100,
-    "sizeCost": 2,
-    "inspirationCost" : 3
+    "seedCost": 25,
+    "sizeCost": 0.2,
+    "inspirationCost" : 1
   },
   {
     "commonName": "Sturt's Desert Pea",
     "scientificName": "Swainsona formosa",
     "rarityWeight": 4,
     "rarity": "uncommon",
-    "effect": "+25% chance of your eggs needing one less brood (when laying an egg)",
+    "effect": "+2.5% chance of your eggs needing one less brood (when laying an egg)",
     "habitat": "Arid regions",
-    "seedCost": 100,
-    "sizeCost": 2,
-    "inspirationCost" : 3
+    "seedCost": 25,
+    "sizeCost": 0.2,
+    "inspirationCost" : 1
   },
   {
     "commonName": "Flannel Flower",
@@ -61,20 +61,20 @@
     "rarity": "uncommon",
     "effect": "To be Awakened",
     "habitat": "Coastal heath, woodlands",
-    "seedCost": 100,
-    "sizeCost": 2,
-    "inspirationCost" : 3
+    "seedCost": 25,
+    "sizeCost": 0.2,
+    "inspirationCost" : 1
   },
   {
     "commonName": "Wollemi Pine",
     "scientificName": "Wollemia nobilis",
     "rarityWeight": 2,
     "rarity": "rare",
-    "effect": "+25% chance of your eggs hatching an extra bird",
+    "effect": "+2.5% chance of your eggs hatching an extra bird",
     "habitat": "Remote canyon systems",
-    "seedCost": 300,
-    "sizeCost": 5,
-    "inspirationCost" : 5
+    "seedCost": 50,
+    "sizeCost": 0.5,
+    "inspirationCost" : 2
   },
   {
     "commonName": "Western Underground Orchid",
@@ -83,19 +83,19 @@
     "rarity": "rare",
     "effect": "To be Awakened",
     "habitat": "Underground in Western Australia",
-    "seedCost": 250,
-    "sizeCost": 5,
-    "inspirationCost" : 5
+    "seedCost": 50,
+    "sizeCost": 0.5,
+    "inspirationCost" : 2
   },
   {
     "commonName": "Queen of Sheba Orchid",
     "scientificName": "Thelymitra speciosa",
     "rarityWeight": 0.5,
     "rarity": "mythical",
-    "effect": "+100% chance of your eggs hatching an extra bird",
+    "effect": "+10% chance of your eggs hatching an extra bird",
     "habitat": "Southwest Western Australia",
-    "seedCost": 750,
-    "sizeCost": 15,
-    "inspirationCost" : 10
+    "seedCost": 100,
+    "sizeCost": 1.5,
+    "inspirationCost" : 5
   }
 ]

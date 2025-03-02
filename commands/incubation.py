@@ -52,8 +52,8 @@ class IncubationCommands(commands.Cog):
         less_brood_message = ""
         
         if less_brood_chance > 0:
-            # Calculate how many guaranteed less broods
-            guaranteed_less_broods = less_brood_chance // 100
+            # Calculate how many guaranteed less broods (each 100% is one guaranteed brood)
+            guaranteed_less_broods = int(less_brood_chance // 100)
             # Calculate chance for an additional less brood
             remaining_chance = less_brood_chance % 100
             
@@ -65,7 +65,7 @@ class IncubationCommands(commands.Cog):
             # Check for chance of additional less brood
             if remaining_chance > 0 and random.random() < (remaining_chance / 100):
                 initial_brooding_progress += 1
-                less_brood_message += f"\nYour plants gave you an additional less brood needed (had a {remaining_chance}% chance)! 🍀"
+                less_brood_message += f"\nYour plants gave you an additional less brood needed (had a {remaining_chance:.1f}% chance)! 🍀"
         
         nest["egg"] = {
             "brooding_progress": initial_brooding_progress,
@@ -75,9 +75,20 @@ class IncubationCommands(commands.Cog):
         broods_needed = 10 - initial_brooding_progress
         
         save_data(data)
-        await interaction.response.send_message(f"You laid an egg! It cost {egg_cost} seeds. 🥚\n"
-                      f"The egg needs to be brooded {broods_needed} times to hatch.{less_brood_message}\n"
-                      f"Your nest now has {nest['seeds']} seeds remaining.")
+        
+        # Create the response message
+        message = f"You laid an egg! It cost {egg_cost} seeds. 🥚\n"
+        
+        # Add plants effect information if applicable
+        if less_brood_chance > 0:
+            message += f"Your plants reduced the brooding needed! "
+            message += f"The egg needs to be brooded {broods_needed} times to hatch.{less_brood_message}\n"
+        else:
+            message += f"The egg needs to be brooded {broods_needed} times to hatch.\n"
+            
+        message += f"Your nest now has {nest['seeds']} seeds remaining."
+        
+        await interaction.response.send_message(message)
 
     @app_commands.command(name='brood', description='Brood eggs to help them hatch')
     @app_commands.describe(target_users='The users whose eggs you want to brood (mention them)')
@@ -391,8 +402,8 @@ class IncubationCommands(commands.Cog):
             extra_birds = []
             
             if extra_bird_chance > 0:
-                # Calculate how many guaranteed extra birds
-                guaranteed_extra_birds = extra_bird_chance // 100
+                # Calculate how many guaranteed extra birds (each 100% is one guaranteed bird)
+                guaranteed_extra_birds = int(extra_bird_chance // 100)
                 # Calculate chance for an additional extra bird
                 remaining_chance = extra_bird_chance % 100
                 

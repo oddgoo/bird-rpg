@@ -424,7 +424,7 @@ class ManifestCommands(commands.Cog):
         image_path = os.path.join(SPECIES_IMAGES_DIR, image_filename)
         
         embed = discord.Embed(
-            title="🐦 Bird Fully Manifested!",
+            title="🐦 Bird Fully Manifested! ✨",
             description=f"You have fully manifested **{bird['commonName']}** (*{bird['scientificName']}*)!",
             color=discord.Color.green()
         )
@@ -464,7 +464,7 @@ class ManifestCommands(commands.Cog):
         image_path = os.path.join(SPECIES_IMAGES_DIR, image_filename)
         
         embed = discord.Embed(
-            title="🌱 Plant Fully Manifested!",
+            title="🌱 Plant Fully Manifested! ✨",
             description=f"You have fully manifested **{plant['commonName']}** (*{plant['scientificName']}*)!",
             color=discord.Color.green()
         )

@@ -125,14 +125,14 @@ class TestManifestBirdCommand:
         nest["bonus_actions"] = 50
         
         # Add a partially manifested bird that needs 10 more points to be fully manifested
-        points_needed = 100  # uncommon bird needs 100 points
+        points_needed = 70  # uncommon bird needs 70 points
         manifested_birds.append({
             "commonName": "Southern Cassowary",
             "scientificName": "Casuarius casuarius",
             "rarityWeight": 4,
             "effect": "Your first nest-building action of the day gives +3 twigs.",
             "rarity": "uncommon",
-            "manifested_points": 90,  # Only needs 10 more points
+            "manifested_points": 60,  # Only needs 10 more points
             "fully_manifested": False
         })
         
@@ -147,11 +147,11 @@ class TestManifestBirdCommand:
         
         # Check that the bird was fully manifested
         assert len(manifested_birds) == 1
-        assert manifested_birds[0]["manifested_points"] == 100  # Should be exactly 100, not 110
+        assert manifested_birds[0]["manifested_points"] == 70 
         assert manifested_birds[0]["fully_manifested"]  # Should be fully manifested
         
         # Check that only 10 actions were used, not 20
-        assert nest["bonus_actions"] == 40  # Started with 50, used 10
+        assert nest["bonus_actions"] == 40 
         
         # Check that the response was sent
         assert mock_interaction.followup.send.call_count >= 1
@@ -217,7 +217,7 @@ class TestManifestBirdCommand:
         # Check that the bird was fully manifested
         assert len(manifested_birds) == 1
         assert manifested_birds[0]["scientificName"] == "Casuarius casuarius"
-        assert manifested_birds[0]["manifested_points"] == 100
+        assert manifested_birds[0]["manifested_points"] == 70
         assert manifested_birds[0]["fully_manifested"]  # Should be fully manifested
         
         # Check that the response was sent
@@ -286,7 +286,7 @@ class TestManifestBirdCommand:
         
         # Check that the bird was updated and fully manifested
         assert len(manifested_birds) == 1
-        assert manifested_birds[0]["manifested_points"] == 100
+        assert manifested_birds[0]["manifested_points"] == 70
         assert manifested_birds[0]["fully_manifested"]  # Should now be fully manifested
         
     @pytest.mark.asyncio
@@ -361,8 +361,8 @@ class TestManifestPlantCommand:
         nest = get_personal_nest(mock_data, mock_interaction.user.id)
         nest["bonus_actions"] = 50
         
-        # Add a partially manifested plant that needs 5 more points to be fully manifested
-        points_needed = 30  # common plant needs 30 points
+        # Add a partially manifested plant that needs 15 more points to be fully manifested
+        points_needed = 40  # common plant needs 40 points
         manifested_plants.append({
             "commonName": "Sturt's Desert Pea",
             "scientificName": "Swainsona formosa",
@@ -387,11 +387,11 @@ class TestManifestPlantCommand:
         
         # Check that the plant was fully manifested
         assert len(manifested_plants) == 1
-        assert manifested_plants[0]["manifested_points"] == 30  # Should be exactly 30, not 40
+        assert manifested_plants[0]["manifested_points"] == 40  
         assert manifested_plants[0]["fully_manifested"]  # Should be fully manifested
         
         # Check that only 5 actions were used, not 15
-        assert nest["bonus_actions"] == 45  # Started with 50, used 5
+        assert nest["bonus_actions"] == 35  
         
         # Check that the response was sent
         assert mock_interaction.followup.send.call_count >= 1
@@ -463,7 +463,7 @@ class TestManifestPlantCommand:
         # Check that the plant was fully manifested
         assert len(manifested_plants) == 1
         assert manifested_plants[0]["scientificName"] == "Swainsona formosa"
-        assert manifested_plants[0]["manifested_points"] == 100
+        assert manifested_plants[0]["manifested_points"] == 70
         assert manifested_plants[0]["fully_manifested"]  # Should be fully manifested
         
         # Check that the response was sent
@@ -474,10 +474,10 @@ class TestManifestHelperFunctions:
         """Test the get_points_needed function"""
         cog, _, _ = manifest_cog
         
-        assert cog.get_points_needed("common") == 30
-        assert cog.get_points_needed("uncommon") == 100
-        assert cog.get_points_needed("rare") == 150
-        assert cog.get_points_needed("mythical") == 200
+        assert cog.get_points_needed("common") == 40
+        assert cog.get_points_needed("uncommon") == 70
+        assert cog.get_points_needed("rare") == 110
+        assert cog.get_points_needed("mythical") == 160
         assert cog.get_points_needed("unknown") == 100  # Default
         
     def test_generate_progress_bar(self, manifest_cog):
