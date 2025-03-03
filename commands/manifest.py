@@ -70,8 +70,23 @@ class ManifestCommands(commands.Cog):
         # Load manifested birds
         manifested_birds = load_manifested_birds()
         
-        # Check if the bird already exists in the manifested birds list
-        existing_bird = self.find_bird_by_name(name, manifested_birds)
+        # First, fetch from iNaturalist API to get the canonical scientific name
+        species_data = await self.fetch_species_data(name)
+        if not species_data:
+            await interaction.followup.send(f"Species '{name}' might not exist. Please check the name and try again.")
+            return
+        
+        # Check if it's a bird
+        if species_data.get("iconic_taxon_name") != "Aves":
+            await interaction.followup.send(f"'{name}' is not a bird! It's classified as {species_data.get('iconic_taxon_name', 'unknown')}.")
+            return
+        
+        # Get the scientific name from the species data
+        scientific_name = species_data.get("name")
+        common_name = species_data.get("preferred_common_name", "")
+        
+        # Now check if the bird already exists in the manifested birds list using the scientific name
+        existing_bird = self.find_bird_by_name(scientific_name, manifested_birds)
         
         if existing_bird:
             # Bird already exists in our database
@@ -86,20 +101,7 @@ class ManifestCommands(commands.Cog):
             # Use the existing bird data
             bird = existing_bird
         else:
-            # Bird doesn't exist in our database, need to fetch from iNaturalist
-            species_data = await self.fetch_species_data(name)
-            if not species_data:
-                await interaction.followup.send(f"Species '{name}' might not exist. Please check the name and try again.")
-                return
-            
-            # Check if it's a bird
-            if species_data.get("iconic_taxon_name") != "Aves":
-                await interaction.followup.send(f"'{name}' is not a bird! It's classified as {species_data.get('iconic_taxon_name', 'unknown')}.")
-                return
-            
-            # Get the scientific name from the species data
-            scientific_name = species_data.get("name")
-            common_name = species_data.get("preferred_common_name", "")
+            # Bird doesn't exist in our database, create a new entry
             
             # Determine rarity based on observations count
             observations_count = species_data.get("observations_count", 0)
@@ -199,8 +201,23 @@ class ManifestCommands(commands.Cog):
         # Load manifested plants
         manifested_plants = load_manifested_plants()
         
-        # Check if the plant already exists in the manifested plants list
-        existing_plant = self.find_plant_by_name(name, manifested_plants)
+        # First, fetch from iNaturalist API to get the canonical scientific name
+        species_data = await self.fetch_species_data(name)
+        if not species_data:
+            await interaction.followup.send(f"Species '{name}' might not exist. Please check the name and try again.")
+            return
+        
+        # Check if it's a plant
+        if species_data.get("iconic_taxon_name") != "Plantae":
+            await interaction.followup.send(f"'{name}' is not a plant! It's classified as {species_data.get('iconic_taxon_name', 'unknown')}.")
+            return
+        
+        # Get the scientific name from the species data
+        scientific_name = species_data.get("name")
+        common_name = species_data.get("preferred_common_name", "")
+        
+        # Now check if the plant already exists in the manifested plants list using the scientific name
+        existing_plant = self.find_plant_by_name(scientific_name, manifested_plants)
         
         if existing_plant:
             # Plant already exists in our database
@@ -215,20 +232,7 @@ class ManifestCommands(commands.Cog):
             # Use the existing plant data
             plant = existing_plant
         else:
-            # Plant doesn't exist in our database, need to fetch from iNaturalist
-            species_data = await self.fetch_species_data(name)
-            if not species_data:
-                await interaction.followup.send(f"Species '{name}' might not exist. Please check the name and try again.")
-                return
-            
-            # Check if it's a plant
-            if species_data.get("iconic_taxon_name") != "Plantae":
-                await interaction.followup.send(f"'{name}' is not a plant! It's classified as {species_data.get('iconic_taxon_name', 'unknown')}.")
-                return
-            
-            # Get the scientific name from the species data
-            scientific_name = species_data.get("name")
-            common_name = species_data.get("preferred_common_name", "")
+            # Plant doesn't exist in our database, create a new entry
             
             # Determine rarity based on observations count
             observations_count = species_data.get("observations_count", 0)
