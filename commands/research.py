@@ -3,9 +3,11 @@ from discord import app_commands
 import discord
 import aiohttp
 import urllib.parse
+import os
 
 from data.storage import load_data, save_data
 from data.models import get_personal_nest, load_bird_species
+from config.config import SPECIES_IMAGES_DIR
 from utils.logging import log_debug
 
 class ResearchCommands(commands.Cog):
@@ -69,17 +71,13 @@ class ResearchCommands(commands.Cog):
         # Save data
         save_data(data)
         
-        # Fetch image and create embed
-        image_url = await self.fetch_bird_image(removed_bird['scientificName'])
+        # Create embed
         embed = discord.Embed(
             title="🕊️ Bird Graduated!",
             description=f" **{removed_bird['commonName']}** (*{removed_bird['scientificName']}*) has graduated from your nest!",
             color=discord.Color.blue()
         )
         
-        if image_url:
-            embed.set_image(url=image_url)
-            
         embed.add_field(
             name="Research",
             value="It is doing something that it not yet fully understood.",
@@ -98,20 +96,33 @@ class ResearchCommands(commands.Cog):
             inline=False
         )
         
-        await interaction.followup.send(embed=embed)
+        # Get the image path and check if it exists
+        image_path = await self.fetch_bird_image_path(removed_bird['scientificName'])
         
-    async def fetch_bird_image(self, scientific_name):
-        """Fetches the bird image URL."""
+        if image_path and os.path.exists(image_path):
+            # Send the file as an attachment with the embed
+            file = discord.File(image_path, filename=f"{removed_bird['scientificName']}.jpg")
+            embed.set_image(url=f"attachment://{removed_bird['scientificName']}.jpg")
+            await interaction.followup.send(file=file, embed=embed)
+        else:
+            # If image doesn't exist, send embed without image
+            await interaction.followup.send(embed=embed)
+        
+    async def fetch_bird_image_path(self, scientific_name):
+        """Fetches the bird image file path."""
         # Check if this is a special bird
         bird_species = load_bird_species()
         for bird in bird_species:
             if bird["scientificName"] == scientific_name and bird.get("rarity") == "Special":
                 # For special birds, return the local image path
-                return f"/static/images/special-birds/{scientific_name}.png"
+                special_bird_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 
+                                                'static', 'images', 'special-birds', f"{scientific_name}.png")
+                return special_bird_path
                 
         # For regular birds and manifested birds, check the species_images directory
-        image_url = f"/species_images/{urllib.parse.quote(scientific_name)}.jpg"
-        return image_url
+        image_filename = f"{urllib.parse.quote(scientific_name)}.jpg"
+        image_path = os.path.join(SPECIES_IMAGES_DIR, image_filename)
+        return image_path
 
 async def setup(bot):
     await bot.add_cog(ResearchCommands(bot))
