@@ -1125,45 +1125,45 @@ def test_can_bless_egg():
     assert "don't have an egg" in error
 
     # Test not enough inspiration
-    nest = {"inspiration": 2, "seeds": 20, "egg": {}}
+    nest = {"inspiration": 0, "seeds": 20, "egg": {}}
     can_bless, error = can_bless_egg(nest)
     assert not can_bless
-    assert "need 3 inspiration" in error
+    assert "need 1 inspiration" in error
 
     # Test not enough seeds
     nest = {"inspiration": 5, "seeds": 5, "egg": {}}
     can_bless, error = can_bless_egg(nest)
     assert not can_bless
-    assert "need 3 inspiration and 10 seeds" in error
+    assert "need 1 inspiration and 30 seeds" in error
 
     # Test already blessed
-    nest = {"inspiration": 5, "seeds": 20, "egg": {"protected_prayers": True}}
+    nest = {"inspiration": 5, "seeds": 30, "egg": {"protected_prayers": True}}
     can_bless, error = can_bless_egg(nest)
     assert not can_bless
     assert "already blessed" in error
 
     # Test can bless
-    nest = {"inspiration": 5, "seeds": 20, "egg": {}}
+    nest = {"inspiration": 1, "seeds": 30, "egg": {}}
     can_bless, error = can_bless_egg(nest)
     assert can_bless
     assert error is None
 
 def test_bless_egg():
     # Test successful blessing
-    nest = {"inspiration": 5, "seeds": 20, "egg": {}}
+    nest = {"inspiration": 5, "seeds": 40, "egg": {}}
     success, message = bless_egg(nest)
     assert success
     assert "has been blessed" in message
-    assert nest["inspiration"] == 2
+    assert nest["inspiration"] == 4
     assert nest["seeds"] == 10
     assert nest["egg"]["protected_prayers"] is True
 
     # Test failed blessing
-    nest = {"inspiration": 1, "seeds": 5, "egg": {}}
+    nest = {"inspiration": 0.5, "seeds": 5, "egg": {}}
     success, message = bless_egg(nest)
     assert not success
-    assert "need 3 inspiration" in message
-    assert nest["inspiration"] == 1  # Resources shouldn't be consumed
+    assert "need 1 inspiration" in message
+    assert nest["inspiration"] == 0.5  # Resources shouldn't be consumed
     assert nest["seeds"] == 5
 
 def test_handle_blessed_egg_hatching():

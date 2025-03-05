@@ -6,9 +6,9 @@
     "rarity": "common",
     "effect": "+0.2% chance of your eggs hatching an extra bird",
     "habitat": "Woodlands, forests",
-    "seedCost": 10,
+    "seedCost": 20,
     "sizeCost": 0.1,
-    "inspirationCost" : 1
+    "inspirationCost" : 0.2
   },
   {
     "commonName": "Kangaroo Paw",
@@ -17,9 +17,9 @@
     "rarity": "common",
     "effect": "+1% chance of your eggs needing one less brood (when laying an egg)",
     "habitat": "Coastal areas, heathlands",
-    "seedCost": 10,
+    "seedCost": 20,
     "sizeCost": 0.1,
-    "inspirationCost" : 1
+    "inspirationCost" : 0.2
   },
   {
     "commonName": "Bottlebrush",
@@ -28,9 +28,9 @@
     "rarity": "common",
     "effect": "To be Awakened",
     "habitat": "Gardens, coastal regions",
-    "seedCost": 10,
+    "seedCost": 20,
     "sizeCost": 0.1,
-    "inspirationCost" : 1
+    "inspirationCost" : 0.2
   },
   {
     "commonName": "Waratah",

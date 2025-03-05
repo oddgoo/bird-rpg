@@ -453,13 +453,16 @@ def get_seed_gathering_bonus(data, nest):
             
     return total_bonus
 
+EGG_BLESS_INSPIRATION_COST = 1
+EGG_BLESS_SEED_COST = 30
+
 def can_bless_egg(nest):
     """Check if an egg can be blessed and return (can_bless, error_message)"""
     if "egg" not in nest or nest["egg"] is None:
         return False, "You don't have an egg to bless! 🥚"
 
-    if nest["inspiration"] < 3 or nest["seeds"] < 10:
-        return False, f"You need 3 inspiration and 10 seeds to bless your egg! You have {nest['inspiration']} inspiration and {nest['seeds']} seeds. ✨🌰"
+    if nest["inspiration"] < EGG_BLESS_INSPIRATION_COST or nest["seeds"] < EGG_BLESS_SEED_COST:
+        return False, f"You need {EGG_BLESS_INSPIRATION_COST} inspiration and {EGG_BLESS_SEED_COST} seeds to bless your egg! You have {nest['inspiration']} inspiration and {nest['seeds']} seeds. ✨🌰"
 
     if nest["egg"].get("protected_prayers", False):
         return False, "Your egg is already blessed! 🛡️✨"
@@ -473,7 +476,7 @@ def bless_egg(nest):
     
     Requirements:
     - Nest must have an egg
-    - Nest must have 3 inspiration and 10 seeds
+    - Nest must have 1 inspiration and 30 seeds
     - Egg must not already be blessed
     """
     can_do_it, error = can_bless_egg(nest)
@@ -481,8 +484,8 @@ def bless_egg(nest):
         return False, error
 
     # Bless the egg
-    nest["inspiration"] -= 3
-    nest["seeds"] -= 10
+    nest["inspiration"] -= EGG_BLESS_INSPIRATION_COST
+    nest["seeds"] -= EGG_BLESS_SEED_COST
     nest["egg"]["protected_prayers"] = True
     return True, "Your egg has been blessed! ✨ If a bird other than your most-prayed one hatches, your prayers will be preserved and a new egg will be created immediately! 🥚🛡️"
 
