@@ -3,6 +3,7 @@ from threading import Thread
 from config.config import PORT, DEBUG, ADMIN_PASSWORD, NESTS_FILE, LORE_FILE, REALM_LORE_FILE, SPECIES_IMAGES_DIR
 from web.home import get_home_page
 from web.admin import admin_routes
+from web.research import get_research_page
 from data.storage import load_data, load_lore, load_realm_lore, save_data
 from data.models import get_personal_nest, get_total_chicks, get_total_bird_species, load_bird_species, get_discovered_species, get_discovered_plants
 from utils.time_utils import get_time_until_reset, get_current_date, get_australian_time
@@ -192,6 +193,10 @@ def codex():
                          discovered_birds=discovered_birds,
                          discovered_plants=discovered_plants,
                          realm_messages=realm_lore["messages"])
+
+@app.route('/research')
+def research():
+    return get_research_page()
 
 
 def run_server():

@@ -5,7 +5,7 @@ import discord
 from config.config import MAX_GARDEN_SIZE
 from data.storage import load_data, save_data
 from data.models import (get_personal_nest, get_common_nest, get_remaining_actions, 
-                        record_actions, get_seed_gathering_bonus)
+                        record_actions, get_seed_gathering_bonus, get_extra_garden_space)
 from utils.logging import log_debug
 from utils.time_utils import get_time_until_reset
 
@@ -37,14 +37,18 @@ class SeedCommands(commands.Cog):
         # Apply garden size bonus if it's first action
         garden_bonus = get_seed_gathering_bonus(data, nest)
         if garden_bonus > 0:
-            # Check if garden size would exceed the maximum
-            if nest["garden_size"] >= MAX_GARDEN_SIZE:
-                bonus_msg = f"\nYour garden is already at maximum size ({MAX_GARDEN_SIZE})! 🌱"
-            elif nest["garden_size"] + garden_bonus > MAX_GARDEN_SIZE:
+            # Get extra garden space from research progress
+            extra_garden_space = get_extra_garden_space()
+            max_size = MAX_GARDEN_SIZE + extra_garden_space
+            
+            # Check if garden size would exceed the maximum (including extra space)
+            if nest["garden_size"] >= max_size:
+                bonus_msg = f"\nYour garden is already at maximum size ({max_size})! 🌱"
+            elif nest["garden_size"] + garden_bonus > max_size:
                 # Only increase up to the maximum
-                actual_bonus = MAX_GARDEN_SIZE - nest["garden_size"]
-                nest["garden_size"] = MAX_GARDEN_SIZE
-                bonus_msg = f"\nYour cockatoos helped expand your garden by {actual_bonus} (reached maximum size of {MAX_GARDEN_SIZE})! 🦜"
+                actual_bonus = max_size - nest["garden_size"]
+                nest["garden_size"] = max_size
+                bonus_msg = f"\nYour cockatoos helped expand your garden by {actual_bonus} (reached maximum size of {max_size})! 🦜"
             else:
                 nest["garden_size"] += garden_bonus
                 bonus_msg = f"\nYour cockatoos helped expand your garden by {garden_bonus}! 🦜"
@@ -91,15 +95,19 @@ class SeedCommands(commands.Cog):
         if garden_bonus > 0:
             if "garden_size" not in nest:
                 nest["garden_size"] = 0
+            
+            # Get extra garden space from research progress
+            extra_garden_space = get_extra_garden_space()
+            max_size = MAX_GARDEN_SIZE + extra_garden_space
                 
-            # Check if garden size would exceed the maximum
-            if nest["garden_size"] >= MAX_GARDEN_SIZE:
-                bonus_msg = f"\nYour garden is already at maximum size ({MAX_GARDEN_SIZE})! 🌱"
-            elif nest["garden_size"] + garden_bonus > MAX_GARDEN_SIZE:
+            # Check if garden size would exceed the maximum (including extra space)
+            if nest["garden_size"] >= max_size:
+                bonus_msg = f"\nYour garden is already at maximum size ({max_size})! 🌱"
+            elif nest["garden_size"] + garden_bonus > max_size:
                 # Only increase up to the maximum
-                actual_bonus = MAX_GARDEN_SIZE - nest["garden_size"]
-                nest["garden_size"] = MAX_GARDEN_SIZE
-                bonus_msg = f"\nYour cockatoos helped expand your garden by {actual_bonus} (reached maximum size of {MAX_GARDEN_SIZE})! 🦜"
+                actual_bonus = max_size - nest["garden_size"]
+                nest["garden_size"] = max_size
+                bonus_msg = f"\nYour cockatoos helped expand your garden by {actual_bonus} (reached maximum size of {max_size})! 🦜"
             else:
                 nest["garden_size"] += garden_bonus
                 bonus_msg = f"\nYour cockatoos helped expand your garden by {garden_bonus}! 🦜"

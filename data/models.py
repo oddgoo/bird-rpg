@@ -334,7 +334,6 @@ def select_random_bird_species(multipliers=None):
         else:
             weights.append(base_weight)
 
-        
     
     if not all_birds:
         return None  # No birds available
@@ -623,3 +622,91 @@ def get_extra_bird_chance(nest):
                 continue
     print(f"total extra chance for a bird is: {total_chance}")
     return total_chance
+
+import os
+import json
+from commands.research import MILESTONE_THRESHOLDS
+
+def get_extra_garden_space():
+    """
+    Calculate the extra garden space from research progress
+    Returns the extra garden space as an integer based on researchers with garden size milestones
+    """
+    # Load research progress
+    research_progress_path = os.path.join(os.path.dirname(__file__), 'research_progress.json')
+    if not os.path.exists(research_progress_path):
+        return 0
+        
+    with open(research_progress_path, 'r', encoding='utf-8') as f:
+        research_progress = json.load(f)
+    
+    # Load research entities
+    research_entities_path = os.path.join(os.path.dirname(__file__), 'research_entities.json')
+    with open(research_entities_path, 'r', encoding='utf-8') as f:
+        research_entities = json.load(f)
+    
+    extra_space = 0
+    
+    # Check each garden size researcher
+    for entity in research_entities:
+        author_name = entity["author"]
+        current_progress = research_progress.get(author_name, 0)
+        
+        # Skip if author has no milestones affecting garden size
+        if "+1 Max Garden Size" not in entity["milestones"][0]:
+            continue
+            
+        # Count how many milestones have been reached
+        milestones_reached = 0
+        for threshold in MILESTONE_THRESHOLDS:
+            if current_progress >= threshold:
+                milestones_reached += 1
+            else:
+                break
+                
+        # Add the milestones reached to the extra space
+        extra_space += milestones_reached
+        
+    return extra_space
+
+def get_extra_bird_space():
+    """
+    Calculate the extra bird space from research progress
+    Returns the extra bird capacity as an integer based on researchers with bird limit milestones
+    """
+    # Load research progress
+    research_progress_path = os.path.join(os.path.dirname(__file__), 'research_progress.json')
+    if not os.path.exists(research_progress_path):
+        return 0
+        
+    with open(research_progress_path, 'r', encoding='utf-8') as f:
+        research_progress = json.load(f)
+    
+    # Load research entities
+    research_entities_path = os.path.join(os.path.dirname(__file__), 'research_entities.json')
+    with open(research_entities_path, 'r', encoding='utf-8') as f:
+        research_entities = json.load(f)
+    
+    extra_space = 0
+    
+    # Check each bird limit researcher
+    for entity in research_entities:
+        author_name = entity["author"]
+        current_progress = research_progress.get(author_name, 0)
+        
+        # Skip if author has no milestones affecting bird limit
+        if "+1 Bird Limit" not in entity["milestones"][0]:
+            continue
+            
+        # Count how many milestones have been reached
+        milestones_reached = 0
+        for threshold in MILESTONE_THRESHOLDS:
+            if current_progress >= threshold:
+                milestones_reached += 1
+            else:
+                break
+                
+        # Add the milestones reached to the extra space
+        extra_space += milestones_reached
+        
+    return extra_space

@@ -13,6 +13,7 @@ from data.storage import (
     load_manifested_plants, save_manifested_plants
 )
 from data.models import get_personal_nest, get_remaining_actions, record_actions
+from data.manifest_constants import get_points_needed
 from utils.logging import log_debug
 from config.config import SPECIES_IMAGES_DIR
 
@@ -130,7 +131,7 @@ class ManifestCommands(commands.Cog):
             manifested_birds.append(bird)
         
         # Calculate how many more points are needed to fully manifest
-        points_needed = self.get_points_needed(bird["rarity"])
+        points_needed = get_points_needed(bird["rarity"])
         points_remaining = max(0, points_needed - bird["manifested_points"])
         
         # Only use as many actions as needed to fully manifest
@@ -264,7 +265,7 @@ class ManifestCommands(commands.Cog):
             manifested_plants.append(plant)
         
         # Calculate how many more points are needed to fully manifest
-        points_needed = self.get_points_needed(plant["rarity"])
+        points_needed = get_points_needed(plant["rarity"])
         points_remaining = max(0, points_needed - plant["manifested_points"])
         
         # Only use as many actions as needed to fully manifest
@@ -374,15 +375,6 @@ class ManifestCommands(commands.Cog):
                 "inspirationCost": 1
             }
     
-    def get_points_needed(self, rarity):
-        """Get the number of points needed to fully manifest a species based on rarity"""
-        rarity_points = {
-            "common": 40,
-            "uncommon": 70,
-            "rare": 110,
-            "mythical": 160
-        }
-        return rarity_points.get(rarity.lower(), 100)
     
     async def download_species_image(self, scientific_name):
         """Download species image from iNaturalist"""

@@ -14,7 +14,7 @@ from data.models import (
     has_brooded_egg, record_brooding, get_egg_cost,
     get_total_chicks, select_random_bird_species, load_bird_species,
     bless_egg, handle_blessed_egg_hatching, get_less_brood_chance,
-    get_extra_bird_chance
+    get_extra_bird_chance, get_extra_bird_space
 )
 from utils.logging import log_debug
 from utils.time_utils import get_time_until_reset, get_current_date
@@ -186,8 +186,12 @@ class IncubationCommands(commands.Cog):
                 # Skip locked nests
                 if nest.get("locked", False) and str(interaction.user.id) != user_id:
                     continue
+                # Get extra bird space from research progress
+                extra_bird_space = get_extra_bird_space()
+                max_birds = MAX_BIRDS_PER_NEST + extra_bird_space
+                
                 # Skip users who are at their bird limit
-                if get_total_chicks(nest) >= MAX_BIRDS_PER_NEST:
+                if get_total_chicks(nest) >= max_birds:
                     continue
                 if not has_brooded_egg(data, interaction.user.id, user_id):
                     try:
@@ -267,8 +271,12 @@ class IncubationCommands(commands.Cog):
                 # Skip locked nests
                 if nest.get("locked", False) and str(interaction.user.id) != user_id:
                     continue
+                # Get extra bird space from research progress
+                extra_bird_space = get_extra_bird_space()
+                max_birds = MAX_BIRDS_PER_NEST + extra_bird_space
+                
                 # Skip users who are at their bird limit
-                if get_total_chicks(nest) >= MAX_BIRDS_PER_NEST:
+                if get_total_chicks(nest) >= max_birds:
                     continue
                 if not has_brooded_egg(data, interaction.user.id, user_id):
                     try:
@@ -376,10 +384,14 @@ class IncubationCommands(commands.Cog):
 
         # Check if egg is ready to hatch
         if target_nest["egg"]["brooding_progress"] >= 10:
+            # Get extra bird space from research progress
+            extra_bird_space = get_extra_bird_space()
+            max_birds = MAX_BIRDS_PER_NEST + extra_bird_space
+            
             # Check if the nest has reached the maximum bird limit
             current_birds = get_total_chicks(target_nest)
-            if current_birds >= MAX_BIRDS_PER_NEST:
-                return None, f"nest already has the maximum of {MAX_BIRDS_PER_NEST} birds"
+            if current_birds >= max_birds:
+                return None, f"nest already has the maximum of {max_birds} birds"
 
             # Get multipliers if they exist
             multipliers = target_nest["egg"].get("multipliers", {})

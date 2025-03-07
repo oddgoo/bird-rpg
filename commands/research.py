@@ -12,6 +12,9 @@ from data.models import get_personal_nest, load_bird_species, get_remaining_acti
 from config.config import SPECIES_IMAGES_DIR, DATA_PATH
 from utils.logging import log_debug
 
+
+MILESTONE_THRESHOLDS = [30,75,150,300,600,1200,2400,4800,6700,10000]
+
 class ResearchCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -157,8 +160,29 @@ class ResearchCommands(commands.Cog):
         with open(research_entities_path, 'r', encoding='utf-8') as f:
             research_entities = json.load(f)
             
-        # Randomly select an author
-        random_author_data = random.choice(research_entities)
+        # Load research progress
+        research_progress = load_research_progress()
+        
+        # Filter out authors who have reached the maximum threshold
+        available_authors = []
+        for entity in research_entities:
+            author_name = entity["author"]
+            current_progress = research_progress.get(author_name, 0)
+            
+            # Skip authors who have reached the maximum threshold
+            if current_progress < MILESTONE_THRESHOLDS[-1]:
+                available_authors.append(entity)
+        
+        # Check if there are any available authors
+        if not available_authors:
+            await interaction.response.send_message(
+                "All authors have reached their maximum research threshold! The research is complete. 🎓",
+                ephemeral=True
+            )
+            return
+            
+        # Randomly select an author from available authors
+        random_author_data = random.choice(available_authors)
         author_name = random_author_data["author"]
         
         # Randomly select a quote from that author
@@ -253,9 +277,20 @@ class ResearchCommands(commands.Cog):
             else:
                 result_embed.description = f"**Incorrect!** That quote was actually written by **{correct_author}**, not {selected_author}.\n\nYou earned **{points_earned}** study points for your effort."
             
+            # Calculate milestone information
+            current_progress = research_progress[correct_author]
+            milestone_info = self.get_milestone_info(correct_author, current_progress, research_entities)
+            
             result_embed.add_field(
                 name=f"{correct_author} Study Progress",
-                value=f"{research_progress[correct_author]} points",
+                value=f"{current_progress} points",
+                inline=False
+            )
+            
+            # Add milestone information
+            result_embed.add_field(
+                name="Next Milestone",
+                value=milestone_info,
                 inline=False
             )
             
@@ -291,11 +326,47 @@ class ResearchCommands(commands.Cog):
                 inline=True
             )
             
+            # Add milestone information to public message
+            public_embed.add_field(
+                name="Next Milestone",
+                value=milestone_info,
+                inline=False
+            )
+            
             # Send the public message in the channel
             await interaction.channel.send(embed=public_embed)
             
         # Set the callback for the select menu
         select.callback = select_callback
+        
+    def get_milestone_info(self, author_name, current_progress, research_entities):
+        """Get information about the next milestone for an author"""
+        # Find the author in research entities
+        author_data = None
+        for entity in research_entities:
+            if entity["author"] == author_name:
+                author_data = entity
+                break
+                
+        if not author_data:
+            return "Unknown author"
+            
+        # Find the current milestone index
+        current_milestone_index = 0
+        for i, threshold in enumerate(MILESTONE_THRESHOLDS):
+            if current_progress < threshold:
+                current_milestone_index = i
+                break
+            elif i == len(MILESTONE_THRESHOLDS) - 1:
+                # If we've reached the last threshold
+                return f"Maximum milestone reached! ({current_progress}/{MILESTONE_THRESHOLDS[-1]} points)"
+                
+        # Get the next milestone threshold and effect
+        next_threshold = MILESTONE_THRESHOLDS[current_milestone_index]
+        next_milestone = author_data["milestones"][current_milestone_index]
+        points_needed = next_threshold - current_progress
+        
+        return f"**{next_milestone}** ({current_progress}/{next_threshold} points, {points_needed} more needed)"
 
 async def setup(bot):
     await bot.add_cog(ResearchCommands(bot))

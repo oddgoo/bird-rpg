@@ -5,7 +5,7 @@ import asyncio
 from data.storage import load_data, save_data
 from datetime import datetime, timedelta
 from config.config import MAX_GARDEN_SIZE
-from data.models import add_bonus_actions, get_personal_nest
+from data.models import add_bonus_actions, get_personal_nest, get_extra_garden_space
 
 class FlockCommands(commands.Cog):
     def __init__(self, bot):
@@ -45,8 +45,11 @@ class FlockCommands(commands.Cog):
                 if "garden_size" not in nest:
                     nest["garden_size"] = 0
                 
-                # Check if garden size would exceed the maximum
-                if nest["garden_size"] < MAX_GARDEN_SIZE:
+                # Get extra garden space from research progress
+                extra_garden_space = get_extra_garden_space()
+                
+                # Check if garden size would exceed the maximum (considering extra space)
+                if nest["garden_size"] < MAX_GARDEN_SIZE + extra_garden_space:
                     nest["garden_size"] += 1
                 
                 # Add bonus actions
