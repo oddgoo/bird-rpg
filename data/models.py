@@ -487,7 +487,7 @@ def bless_egg(nest):
     nest["inspiration"] -= EGG_BLESS_INSPIRATION_COST
     nest["seeds"] -= EGG_BLESS_SEED_COST
     nest["egg"]["protected_prayers"] = True
-    return True, "Your egg has been blessed! ✨ If a bird other than your most-prayed one hatches, your prayers will be preserved and a new egg will be created immediately! 🥚🛡️"
+    return True, "Your egg has been blessed! ✨ If a bird other than your most-prayed one hatches, your prayers will be preserved and a new egg will be created! 🥚🛡️"
 
 def handle_blessed_egg_hatching(nest, hatched_bird_name):
     """

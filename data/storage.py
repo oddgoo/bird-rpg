@@ -139,3 +139,31 @@ def save_manifested_plants(data):
     except Exception as e:
         log_debug(f"Error saving manifested plants data: {e}")
         raise
+
+def load_research_progress():
+    """Load research progress data from JSON file"""
+    research_progress_file = os.path.join(DATA_PATH, 'research_progress.json')
+    try:
+        if os.path.exists(research_progress_file):
+            with open(research_progress_file, 'r') as f:
+                data = json.load(f)
+                log_debug("Research progress data loaded successfully")
+                return data
+        log_debug("No existing research progress data, creating new")
+        default_data = {}
+        save_research_progress(default_data)
+        return default_data
+    except Exception as e:
+        log_debug(f"Error loading research progress data: {e}")
+        raise
+
+def save_research_progress(data):
+    """Save research progress data to JSON file"""
+    research_progress_file = os.path.join(DATA_PATH, 'research_progress.json')
+    try:
+        with open(research_progress_file, 'w') as f:
+            json.dump(data, f, indent=4)
+        log_debug("Research progress data saved successfully")
+    except Exception as e:
+        log_debug(f"Error saving research progress data: {e}")
+        raise

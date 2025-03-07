@@ -257,7 +257,7 @@ class ManifestCommands(commands.Cog):
                 "rarity": rarity,
                 "seedCost": similar_plant.get("seedCost", 30),
                 "sizeCost": similar_plant.get("sizeCost", 1),
-                "inspirationCost": similar_plant.get("inspirationCost", 1),
+                "inspirationCost": similar_plant.get("inspirationCost", 0.2),
                 "manifested_points": 0,
                 "fully_manifested": False
             }

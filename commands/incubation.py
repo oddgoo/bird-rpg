@@ -335,7 +335,7 @@ class IncubationCommands(commands.Cog):
         save_data(data)
         await interaction.response.send_message("Your nest is now unlocked! Other players can brood your eggs. 🔓")
 
-    @app_commands.command(name='bless_egg', description='Use 1 💡Inspiration and 30 🌰Seeds to bless your egg, preserving it and its prayers if a less-prayed bird hatches')
+    @app_commands.command(name='bless_egg', description='Use 1 💡Inspiration and 30 🌰Seeds to bless your egg, preserving it and its prayers.')
     async def bless_egg(self, interaction: discord.Interaction):
         log_debug(f"bless_egg called by {interaction.user.id}")
         data = load_data()
