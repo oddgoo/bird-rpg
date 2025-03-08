@@ -124,6 +124,9 @@ def get_research_page():
             "progress_percent": progress_percent
         })
     
+    # Sort authors alphabetically by name
+    authors.sort(key=lambda x: x["name"])
+    
     # Return the rendered template
     return render_template('research.html', 
                           authors=authors, 

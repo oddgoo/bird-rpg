@@ -85,7 +85,7 @@ class ResearchCommands(commands.Cog):
         
         embed.add_field(
             name="Research",
-            value="It is doing something that it not yet fully understood.",
+            value="It will boost studies by 1%!",
             inline=False
         )
         
@@ -223,9 +223,19 @@ class ResearchCommands(commands.Cog):
             inline=True
         )
         
+        # Calculate bonus from released birds
+        released_birds_bonus = 0
+        released_birds_text = ""
+        if "released_birds" in data:
+            total_released_birds = sum(bird["count"] for bird in data["released_birds"])
+            if total_released_birds > 0:
+                base_points = actions * 2  # If correct
+                released_birds_bonus = round(base_points * (total_released_birds / 100))
+                released_birds_text = f" (+{released_birds_bonus} from {total_released_birds} released birds)"
+        
         embed.add_field(
             name="Reward",
-            value=f"If correct: {actions * 2} study points",
+            value=f"If correct: {actions * 2}{released_birds_text} study points",
             inline=True
         )
         
@@ -251,8 +261,19 @@ class ResearchCommands(commands.Cog):
             # Check if the answer is correct
             is_correct = selected_author == correct_author
             
-            # Calculate points earned
-            points_earned = invested_actions * 2 if is_correct else invested_actions
+            # Calculate base points earned
+            base_points = invested_actions * 2 if is_correct else invested_actions
+            
+            # Calculate bonus from released birds
+            released_birds_bonus = 0
+            if "released_birds" in data:
+                # Sum up all counts in released_birds array
+                total_released_birds = sum(bird["count"] for bird in data["released_birds"])
+                # Each bird adds +1% bonus
+                released_birds_bonus = base_points * (total_released_birds / 100)
+                
+            # Apply the bonus to the base points and round to integer
+            points_earned = round(base_points + released_birds_bonus)
             
             # Load research progress
             research_progress = load_research_progress()
@@ -281,9 +302,15 @@ class ResearchCommands(commands.Cog):
             current_progress = research_progress[correct_author]
             milestone_info = self.get_milestone_info(correct_author, current_progress, research_entities)
             
+            # Create bonus text if there's a bonus
+            bonus_text = ""
+            if "released_birds" in data and sum(bird["count"] for bird in data["released_birds"]) > 0:
+                total_released_birds = sum(bird["count"] for bird in data["released_birds"])
+                bonus_text = f"\n\n**Released Birds Bonus**: +{total_released_birds}% (+{round(released_birds_bonus)} points from {total_released_birds} birds)"
+            
             result_embed.add_field(
                 name=f"{correct_author} Study Progress",
-                value=f"{current_progress} points",
+                value=f"{current_progress} points{bonus_text}",
                 inline=False
             )
             
@@ -314,9 +341,15 @@ class ResearchCommands(commands.Cog):
                 inline=False
             )
             
+            # Create bonus text for public message
+            public_bonus_text = ""
+            if "released_birds" in data and sum(bird["count"] for bird in data["released_birds"]) > 0:
+                total_released_birds = sum(bird["count"] for bird in data["released_birds"])
+                public_bonus_text = f" (includes +{total_released_birds}% bonus from released birds)"
+            
             public_embed.add_field(
                 name="Study Points Earned",
-                value=f"**{points_earned}** points",
+                value=f"**{points_earned}** points{public_bonus_text}",
                 inline=True
             )
             
