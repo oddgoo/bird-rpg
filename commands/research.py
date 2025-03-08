@@ -173,6 +173,9 @@ class ResearchCommands(commands.Cog):
             if current_progress < MILESTONE_THRESHOLDS[-1]:
                 available_authors.append(entity)
         
+        # Sort available authors alphabetically by author name
+        available_authors.sort(key=lambda x: x["author"])
+        
         # Check if there are any available authors
         if not available_authors:
             await interaction.response.send_message(
@@ -190,7 +193,9 @@ class ResearchCommands(commands.Cog):
         
         # Create a dropdown with all authors
         options = []
-        for entity in research_entities:
+        # Sort research entities by author name for the dropdown
+        sorted_entities = sorted(research_entities, key=lambda x: x["author"])
+        for entity in sorted_entities:
             options.append(
                 discord.SelectOption(
                     label=entity["author"],
