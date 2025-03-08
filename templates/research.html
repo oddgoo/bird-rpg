@@ -3,27 +3,27 @@
 {% block title %}Research | bird-rpg Village{% endblock %}
 
 {% block content %}
-<h2 class="text-center text-4xl text-yellow-900 mb-8 font-mystical font-bold">📔 Research Progress</h2>
+<h2 class="text-center text-4xl text-navy-900 mb-8 font-mystical font-bold">📔 Research Progress</h2>
 
 <!-- Author Studies Section -->
-<div class="rounded-xl p-6 mb-8 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
-    <div class="border border-amber-300/50 rounded-lg p-4">
-        <h2 class="text-2xl text-center text-yellow-900 mb-4 font-mystical font-bold">🔍 Author Studies</h2>
+<div class="rounded-xl p-6 mb-8 shadow-lg border-4 border-purple-900" style="background-image: url('/static/images/ui/bg_purple_stones.png'); background-repeat: repeat;">
+    <div class="">
+        <h2 class="text-2xl text-center text-purple-900 mb-4 font-mystical font-bold">🔍 Author Studies</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for author in authors %}
-            <div class="bg-white rounded-xl p-4 shadow-md flex flex-col">
+            <div class="rounded-xl p-4 shadow-lg flex flex-col" style="background-image: url('/static/images/ui/bg_purple_card.png'); background-color: black; background-repeat: repeat; background-size: 70%; ">
                 <div class="w-full">
-                    <h3 class="text-xl font-bold text-orange-700 mb-3">{{ author.name }}</h3>
+                    <h3 class="text-4xl font-bold text-yellow-200 mb-3 text-center w-full">{{ author.name }}</h3>
                     
                     <div class="mb-4">
                         <div class="flex justify-between items-center mb-1">
-                            <span class="text-sm font-medium text-gray-700">Next Milestone Progress</span>
-                            <span class="text-sm font-medium text-gray-700">{{ author.current_points }}/{{ author.next_threshold }}</span>
+                            <span class="text-sm font-medium text-white">Next Milestone Progress</span>
+                            <span class="text-sm font-medium text-white">{{ author.current_points }}/{{ author.next_threshold }}</span>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
                             <div class="bg-amber-500 h-2.5 rounded-full" style="width: {{ author.progress_percent }}%"></div>
                         </div>
-                        <div class="text-xs text-gray-500 mt-1 text-right">
+                        <div class="text-xs text-white mt-1 text-right">
                             {% if author.milestones_unlocked == 10 %}
                             All milestones unlocked!
                             {% else %}
@@ -33,11 +33,11 @@
                     </div>
                     
                     <div class="mt-3">
-                        <h4 class="text-md font-semibold text-gray-700 mb-2">Milestones:</h4>
+                        <h4 class="text-md font-semibold text-gray-200 mb-2">Milestones:</h4>
                         <ul class="space-y-1 ml-1 text-sm">
                             {% for milestone in author.milestones %}
-                            <li class="flex items-start {% if loop.index > author.milestones_unlocked %}text-gray-400 opacity-60{% else %}text-gray-800{% endif %}">
-                                <span class="flex-shrink-0 mt-0.5 mr-2">
+                            <li class="flex items-start {% if loop.index > author.milestones_unlocked %}text-white opacity-20{% else %}text-white{% endif %}">
+                                <span class="flex-shrink-0 mt-0.1 mr-2">
                                     {% if loop.index <= author.milestones_unlocked %}
                                     <span class="text-green-600">✅</span>
                                     {% else %}
