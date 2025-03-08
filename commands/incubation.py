@@ -184,7 +184,7 @@ class IncubationCommands(commands.Cog):
         for user_id, nest in data["personal_nests"].items():
             if "egg" in nest and nest["egg"] is not None:
                 # Skip locked nests
-                if nest.get("locked", False) and str(interaction.user.id) != user_id:
+                if nest.get("locked", False):
                     continue
                 # Get extra bird space from research progress
                 extra_bird_space = get_extra_bird_space()
