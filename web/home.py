@@ -47,6 +47,14 @@ def get_home_page():
                 **featured_bird,
                 "rarity": bird_data.get("rarity", "common")
             }
+        # If no featured bird but there are chicks, use the first chick as featured bird
+        elif nest.get("chicks") and len(nest.get("chicks", [])) > 0:
+            first_chick = nest["chicks"][0]
+            bird_data = bird_species_data.get(first_chick["scientificName"], {})
+            featured_bird = {
+                **first_chick,
+                "rarity": bird_data.get("rarity", "common")
+            }
         
         personal_nests.append({
             "user_id": user_id,

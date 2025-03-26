@@ -62,18 +62,16 @@
         {% for nest in personal_nests %}
         <a href="/user/{{ nest.user_id }}" class="no-underline block">
             <div class="h-full bg-white/80 rounded-lg shadow-lg transition-transform transform hover:-translate-y-1 border border-amber-200/50 hover:border-amber-300/70">
-                {% if nest.featured_bird %}
                 <div class="relative w-full h-60 rounded-t-lg overflow-hidden mb-0">
                     <img 
                         src=""
-                        alt="{{ nest.featured_bird.commonName }}"
+                        alt="{{ nest.featured_bird.commonName if nest.featured_bird else '' }}"
                         id="featured-bird-{{ nest.user_id }}"
                         class="w-full h-full object-cover"
                     >
                     
                 </div>
                 <img src="/static/images/ui/nest.png" style="position: absolute; left: 50%; transform: translateX(-50%); top: 190px; z-index: 1; width: 120%; max-width: none; height: 80px;" />
-                {% endif %}
                 <div class="p-4 flex flex-col h-full mt-5">
                     <div class="text-md font-bold font-mystical text-orange-700 mb-2">{{ nest.name }}</div>
                     <div class="flex flex-col flex-grow space-y-1 text-sm">
@@ -159,15 +157,18 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
-        var featuredBirds = [{% for nest in personal_nests if nest.featured_bird %}{ "user_id": {{ nest.user_id|tojson }}, "isSpecial": {{ (nest.featured_bird.rarity=='Special')|tojson }}, "scientificName": {{ nest.featured_bird.scientificName|tojson }} }{% if not loop.last %}, {% endif %}{% endfor %}];
-        featuredBirds.forEach(function(bird) {
-            if (bird.isSpecial) {
-                document.getElementById('featured-bird-' + bird.user_id).src = '/static/images/special-birds/' + bird.scientificName + '.png';
-            } else {
-                // Use local image if available
-                document.getElementById('featured-bird-' + bird.user_id).src = '/species_images/' + encodeURIComponent(bird.scientificName) + '.jpg';
-            }
-        });
+        {% for nest in personal_nests %}
+            {% if nest.featured_bird %}
+                var imgElement = document.getElementById('featured-bird-{{ nest.user_id }}');
+                if (imgElement) {
+                    {% if nest.featured_bird.rarity == 'Special' %}
+                        imgElement.src = '/static/images/special-birds/{{ nest.featured_bird.scientificName }}.png';
+                    {% else %}
+                        imgElement.src = '/species_images/{{ nest.featured_bird.scientificName|urlencode }}.jpg';
+                    {% endif %}
+                }
+            {% endif %}
+        {% endfor %}
     });
     </script>
 {% endblock %}
