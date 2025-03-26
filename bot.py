@@ -6,6 +6,7 @@ from config.config import DEBUG
 from web.server import start_server
 from utils.logging import log_debug
 from data.storage import load_data, save_data
+from commands.admin_utils import update_discord_usernames
 import asyncio
 
 # Bot setup
@@ -62,6 +63,16 @@ async def on_ready():
             print("Song data migration completed!")
     except Exception as e:
         print(f"Error during data migration: {e}")
+    
+    # Update Discord usernames in nests.json
+    try:
+        print("Updating Discord usernames...")
+        updated, errors, not_found = await update_discord_usernames(bot)
+        print(f"Username update complete: {updated} updated, {errors} errors")
+        if not_found:
+            print(f"IDs not found: {', '.join(not_found)}")
+    except Exception as e:
+        print(f"Error during username update: {e}")
 
 # Move cog loading into a function
 async def load_cogs(bot):
@@ -81,7 +92,8 @@ async def load_cogs(bot):
         'commands.gardening',
         'commands.weather',
         'commands.research',
-        'commands.manifest'
+        'commands.manifest',
+        'commands.admin_utils' # Added admin utilities cog
     ]
 
 

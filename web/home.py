@@ -69,6 +69,7 @@ def get_home_page():
             "garden_size": nest.get("garden_size", 0),
             "garden_life": nest.get("garden_life", 0),
             "inspiration": nest.get("inspiration", 0),
+            "discord_username": nest.get("discord_username", "Unknown User"), # Add discord username
             "featured_bird": featured_bird
         })
     
