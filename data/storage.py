@@ -167,3 +167,18 @@ def save_research_progress(data):
     except Exception as e:
         log_debug(f"Error saving research progress data: {e}")
         raise
+
+def load_research_entities():
+    """Load research entities data from JSON file"""
+    research_entities_file = os.path.join(os.path.dirname(__file__), 'research_entities.json') # Use relative path within data dir
+    try:
+        if os.path.exists(research_entities_file):
+            with open(research_entities_file, 'r', encoding='utf-8') as f: # Added encoding
+                data = json.load(f)
+                log_debug("Research entities data loaded successfully")
+                return data
+        log_debug("No existing research entities data, returning empty list")
+        return [] # Research entities is a list
+    except Exception as e:
+        log_debug(f"Error loading research entities data: {e}")
+        raise # Re-raise the exception after logging

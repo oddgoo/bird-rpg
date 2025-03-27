@@ -626,25 +626,17 @@ def get_extra_bird_chance(nest):
 import os
 import json
 from commands.research import MILESTONE_THRESHOLDS
+from data.storage import load_research_progress, load_research_entities # Added imports
 
 def get_extra_garden_space():
     """
     Calculate the extra garden space from research progress
     Returns the extra garden space as an integer based on researchers with garden size milestones
     """
-    # Load research progress
-    research_progress_path = os.path.join(os.path.dirname(__file__), 'research_progress.json')
-    if not os.path.exists(research_progress_path):
-        return 0
-        
-    with open(research_progress_path, 'r', encoding='utf-8') as f:
-        research_progress = json.load(f)
-    
-    # Load research entities
-    research_entities_path = os.path.join(os.path.dirname(__file__), 'research_entities.json')
-    with open(research_entities_path, 'r', encoding='utf-8') as f:
-        research_entities = json.load(f)
-    
+    # Load research data using storage functions
+    research_progress = load_research_progress()
+    research_entities = load_research_entities()
+
     extra_space = 0
     
     # Check each garden size researcher
@@ -674,19 +666,10 @@ def get_extra_bird_space():
     Calculate the extra bird space from research progress
     Returns the extra bird capacity as an integer based on researchers with bird limit milestones
     """
-    # Load research progress
-    research_progress_path = os.path.join(os.path.dirname(__file__), 'research_progress.json')
-    if not os.path.exists(research_progress_path):
-        return 0
-        
-    with open(research_progress_path, 'r', encoding='utf-8') as f:
-        research_progress = json.load(f)
-    
-    # Load research entities
-    research_entities_path = os.path.join(os.path.dirname(__file__), 'research_entities.json')
-    with open(research_entities_path, 'r', encoding='utf-8') as f:
-        research_entities = json.load(f)
-    
+    # Load research data using storage functions
+    research_progress = load_research_progress()
+    research_entities = load_research_entities()
+
     extra_space = 0
     
     # Check each bird limit researcher
