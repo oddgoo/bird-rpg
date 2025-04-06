@@ -43,6 +43,13 @@
         "effect": "Your first swoop of the day is +3 points more effective."
       },
       {
+        "commonName": "Casspie",
+        "scientificName": "Casspie",
+        "rarityWeight": 0,
+        "rarity": "Special",
+        "effect": "Your first swoop of the day is +7 points more effective."
+      },
+      {
         "commonName": "Sulphur-crested Cockatoo",
         "scientificName": "Cacatua galerita",
         "rarityWeight": 7,
@@ -211,13 +218,6 @@
         "effect": "All your songs give +10 actions."
       },
       {
-        "commonName": "Casspie",
-        "scientificName": "Casspie",
-        "rarityWeight": 0,
-        "rarity": "Special",
-        "effect": "Your first swoop of the day is +7 points more effective."
-      },
-      {
         "commonName": "Magpie Lark",
         "scientificName": "Grallina cyanoleuca",
         "rarityWeight": 8,
@@ -244,6 +244,13 @@
         "rarityWeight": 7,
         "rarity": "common",
         "effect": "Your first swoop of the day is +3 points more effective."
+      },
+      {
+        "commonName": "Australian Raven (Photoshoot Edition)",
+        "scientificName": "raven_photoshoot",
+        "rarityWeight": 0,
+        "rarity": "Special",
+        "effect": "To be awakened..."
       },
       {
         "commonName": "Pied Currawong",
