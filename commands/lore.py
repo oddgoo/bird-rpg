@@ -19,8 +19,8 @@ class LoreCommands(commands.Cog):
     async def add_memoir(self, interaction: discord.Interaction, text: str):
         log_debug(f"add_memoir called by {interaction.user.id}")
         
-        if len(text) > 256:
-            await interaction.response.send_message("Your memoir is too long! Please keep it under 256 characters.")
+        if len(text) > 2048:
+            await interaction.response.send_message("Your memoir is too long! Please keep it under 2048 characters.")
             return
 
         data = load_data()
