@@ -31,6 +31,8 @@ def get_personal_nest(data, user_id):
         nest["inspiration"] = 0
     if "bonus_actions" not in nest:  # New field for persistent bonus actions
         nest["bonus_actions"] = 0
+    if "last_song_target_ids" not in nest: # New field for repeating last song (list of IDs)
+        nest["last_song_target_ids"] = []
     return nest
 
 def get_common_nest(data):

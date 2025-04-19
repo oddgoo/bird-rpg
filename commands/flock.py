@@ -26,7 +26,8 @@ class FlockCommands(commands.Cog):
             'leader': interaction.user,
             'members': [interaction.user],
             'start_time': datetime.now(),
-            'end_time': datetime.now() + timedelta(minutes=60)
+            'end_time': datetime.now() + timedelta(minutes=60),
+            'channel': interaction.channel  # Store the channel
         }
 
         await interaction.response.send_message(f"🍅 {interaction.user.mention} has started a pomodoro flock! The tomato goddess is pleased! Join anytime during the next hour with `/join_flock` to be part of the group (then head to the #pomobirdo channel if you wish).")
@@ -57,8 +58,9 @@ class FlockCommands(commands.Cog):
             save_data(data)
 
             # End session and notify
+            channel = self.active_flock['channel'] # Get the stored channel
             members_mentions = ' '.join([member.mention for member in self.active_flock['members']])
-            await interaction.followup.send(f"🍅 The pomodoro flock has ended! {members_mentions} have received 3 bonus actions for today and may have grown their garden capacity (if not already at the maximum)")
+            await channel.send(f"🍅 The pomodoro flock has ended! {members_mentions} have received 3 bonus actions for today and may have grown their garden capacity (if not already at the maximum)")
             self.active_flock = None
 
     @app_commands.command(name='join_flock', description='Join the active flock session')
