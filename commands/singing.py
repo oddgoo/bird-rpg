@@ -154,7 +154,7 @@ class SingingCommands(commands.Cog):
         last_target_ids = singer_nest.get("last_song_target_ids") # Get the list of IDs
 
         if not last_target_ids:
-            await interaction.response.send_message("You haven't used the `/sing` command recently, or your last attempt had no valid users, so there's no song to repeat! 🤷")
+            await interaction.followup.send("You haven't used the `/sing` command recently, or your last attempt had no valid users, so there's no song to repeat! 🤷") # Use followup
             return
 
         # Fetch user objects from IDs
@@ -176,7 +176,7 @@ class SingingCommands(commands.Cog):
             msg = "Could not find any valid users from your last song."
             if invalid_ids:
                 msg += f" Failed to find users with IDs: {', '.join(invalid_ids)}"
-            await interaction.response.send_message(msg + " 🤔")
+            await interaction.followup.send(msg + " 🤔") # Use followup
             return
             
         # Call the helper method to process singing
@@ -188,7 +188,7 @@ class SingingCommands(commands.Cog):
         # Construct response message
         if not successful_targets and not skipped_targets:
              # This case should ideally not happen if target_users was not empty, but good to handle
-             await interaction.response.send_message("Something went wrong while trying to repeat the song.")
+             await interaction.followup.send("Something went wrong while trying to repeat the song.") # Use followup
              return
         elif not successful_targets:
             message = ["❌ Couldn't repeat the song for any of the previous targets:"]

@@ -3,7 +3,7 @@ from discord import app_commands
 import discord
 
 from data.storage import load_data, save_data
-from data.models import get_personal_nest, get_total_chicks, get_extra_bird_space
+from data.models import get_personal_nest, get_total_chicks, get_extra_bird_space, record_actions, add_bonus_actions
 from utils.logging import log_debug
 from config.config import MAX_BIRDS_PER_NEST
 
@@ -86,6 +86,63 @@ class SocialCommands(commands.Cog):
         except Exception as e:
             log_debug(f"Error in entrust command: {e}")
             await interaction.response.send_message("❌ Usage: /entrust <bird_name> <@user>")
+
+    @app_commands.command(name='regurgitate', description='Give some of your bonus actions to another user')
+    @app_commands.describe(
+        target_user='The user to give bonus actions to',
+        amount='The number of bonus actions to give'
+    )
+    async def regurgitate(self, interaction: discord.Interaction, target_user: discord.User, amount: int):
+        try:
+            # Don't allow giving actions to yourself
+            if target_user.id == interaction.user.id:
+                await interaction.response.send_message("❌ You can't regurgitate actions to yourself!")
+                return
+
+            if amount <= 0:
+                await interaction.response.send_message("❌ You must regurgitate a positive amount of actions!")
+                return
+
+            log_debug(f"regurgitate called by {interaction.user.id} giving {amount} bonus_actions to {target_user.id}")
+            data = load_data()
+
+            # Get both nests
+            giver_nest = get_personal_nest(data, interaction.user.id)
+            receiver_nest = get_personal_nest(data, target_user.id)
+
+            # Check if giver has enough bonus actions
+            if giver_nest.get("bonus_actions", 0) < amount:
+                await interaction.response.send_message(f"❌ You don't have enough bonus actions! You only have {giver_nest.get('bonus_actions', 0)}.")
+                return
+
+            # Transfer bonus actions
+            giver_nest["bonus_actions"] = giver_nest.get("bonus_actions", 0) - amount
+            add_bonus_actions(data, target_user.id, amount) # Uses the existing function from models.py
+
+            save_data(data)
+
+            # Create embed for success message
+            embed = discord.Embed(
+                title="❤️ Actions Regurgitated",
+                description=f"You have successfully given **{amount} bonus action(s)** to {target_user.mention}!",
+                color=discord.Color.magenta()
+            )
+            embed.add_field(
+                name="From",
+                value=f"{interaction.user.display_name} (now has {giver_nest.get('bonus_actions', 0)} bonus actions)",
+                inline=True
+            )
+            embed.add_field(
+                name="To",
+                value=f"{target_user.display_name} (now has {receiver_nest.get('bonus_actions', 0)} bonus actions)",
+                inline=True
+            )
+
+            await interaction.response.send_message(embed=embed)
+
+        except Exception as e:
+            log_debug(f"Error in regurgitate command: {e}")
+            await interaction.response.send_message(f"❌ An error occurred. Usage: /regurgitate <@user> <amount>")
 
 async def setup(bot):
     await bot.add_cog(SocialCommands(bot))
