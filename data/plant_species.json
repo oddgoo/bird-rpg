@@ -81,7 +81,7 @@
     "scientificName": "Rhizanthella gardneri",
     "rarityWeight": 1,
     "rarity": "rare",
-    "effect": "To be Awakened",
+    "effect": "+7% chance of your eggs needing one less brood (when laying an egg)",
     "habitat": "Underground in Western Australia",
     "seedCost": 50,
     "sizeCost": 0.5,
@@ -94,6 +94,17 @@
     "rarity": "mythical",
     "effect": "+10% chance of your eggs hatching an extra bird",
     "habitat": "Southwest Western Australia",
+    "seedCost": 100,
+    "sizeCost": 1.5,
+    "inspirationCost" : 5
+  },
+  {
+    "commonName": "Nellie Corycactus",
+    "scientificName": "Escobaria minima",
+    "rarityWeight": 0.5,
+    "rarity": "mythical",
+    "effect": "+25% chance of your eggs needing one less brood (when laying an egg)",
+    "habitat": "Texas",
     "seedCost": 100,
     "sizeCost": 1.5,
     "inspirationCost" : 5
