@@ -250,7 +250,7 @@
         "scientificName": "raven_photoshoot",
         "rarityWeight": 0,
         "rarity": "Special",
-        "effect": "To be awakened..."
+        "effect": "Just looks amazing."
       },
       {
         "commonName": "Pied Currawong",
@@ -530,7 +530,7 @@
         "scientificName": "Androphobus viridis",
         "rarityWeight": 4,
         "rarity": "uncommon",
-        "effect": "To be awakened..."
+        "effect": "Extra foraging (soon)"
       },
       {
         "commonName": "Papuan Frogmouth",
@@ -565,7 +565,7 @@
         "scientificName": "Tanysiptera danae",
         "rarityWeight": 3,
         "rarity": "uncommon",
-        "effect": "To be awakened..."
+        "effect": "To be awakened... (one day)"
       },
       {
         "commonName": "New Zealand Kaka",
@@ -614,7 +614,7 @@
         "scientificName": "Semioptera wallacii",
         "rarityWeight": 2,
         "rarity": "uncommon",
-        "effect": "To be awakened..."
+        "effect": "To be awakened... (eventually)"
       },
       {
         "commonName": "Splendid Fairy-wren",
@@ -635,7 +635,7 @@
         "scientificName": "Diphyllodes respublica",
         "rarityWeight": 1,
         "rarity": "rare",
-        "effect": "To be awakened..."
+        "effect": "Extra foraging (soon)"
       },
       {
         "commonName": "King Bird-of-Paradise",
@@ -656,7 +656,7 @@
         "scientificName": "Astrapia mayeri",
         "rarityWeight": 1,
         "rarity": "rare",
-        "effect": "To be awakened..."
+        "effect": "To be awakened... (one day)"
       },
       {
         "commonName": "Wahnes's Parotia",
@@ -698,14 +698,14 @@
         "scientificName": "Astrapia rothschildi",
         "rarityWeight": 0.2,
         "rarity": "mythical",
-        "effect": "To be awakened..."
+        "effect": "To be awakened... (one day)"
       },
       {
         "commonName": "Emperor Bird-of-Paradise",
         "scientificName": "Paradisaea guilielmi",
         "rarityWeight": 0.1,
         "rarity": "mythical",
-        "effect": "To be awakened..."
+        "effect": "Geat at Foraging (soon)"
       }
     ]
   }
