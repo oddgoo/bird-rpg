@@ -190,13 +190,6 @@
         "effect": "All your songs give +2 actions."
       },
       {
-        "commonName": "Helmeted Honeyeater",
-        "scientificName": "Lichenostomus melanops cassidix",
-        "rarityWeight": 2,
-        "rarity": "uncommon",
-        "effect": "Your first nest-building action of the day gives +2 twigs."
-      },
-      {
         "commonName": "Plains-wanderer",
         "scientificName": "Pedionomus torquatus",
         "rarityWeight": 1,
