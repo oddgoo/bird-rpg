@@ -665,6 +665,38 @@ def get_extra_garden_space():
         
     return extra_space
 
+def get_prayer_effectiveness_bonus():
+    """
+    Calculate the prayer effectiveness exponent from research progress.
+    Starts with a base exponent of 1.0. Each relevant milestone adds 0.01 to this exponent.
+    Returns the total prayer effectiveness exponent (e.g., 1.02 for two 1% milestones).
+    """
+    research_progress = load_research_progress()
+    research_entities = load_research_entities()
+    prayer_exponent = 1.0  # Base exponent for prayers
+    
+    # The specific string that identifies this bonus in research milestones
+    # This should match the text used in your research_entities.json for this bonus
+    bonus_milestone_string = "Prayers are 1% more effective. Compounding!"
+
+    for entity in research_entities:
+        # Check if the first milestone description contains the prayer bonus string.
+        if entity["milestones"] and bonus_milestone_string in entity["milestones"][0]:
+            author_name = entity["author"]
+            current_progress = research_progress.get(author_name, 0)
+            
+            milestones_reached_for_this_entity = 0
+            for threshold in MILESTONE_THRESHOLDS:
+                if current_progress >= threshold:
+                    milestones_reached_for_this_entity += 1
+                else:
+                    break
+            
+            # Add 0.01 to the exponent for each milestone reached for this specific bonus
+            prayer_exponent += (milestones_reached_for_this_entity * 0.01)
+                
+    return prayer_exponent
+
 def get_extra_bird_space():
     """
     Calculate the extra bird space from research progress

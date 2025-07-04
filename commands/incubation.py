@@ -14,7 +14,7 @@ from data.models import (
     has_brooded_egg, record_brooding, get_egg_cost,
     get_total_chicks, select_random_bird_species, load_bird_species,
     bless_egg, handle_blessed_egg_hatching, get_less_brood_chance,
-    get_extra_bird_chance, get_extra_bird_space
+    get_extra_bird_chance, get_extra_bird_space, get_prayer_effectiveness_bonus
 )
 from utils.logging import log_debug
 from utils.time_utils import get_time_until_reset, get_current_date
@@ -637,7 +637,19 @@ class IncubationCommands(commands.Cog):
 
         # Add or update multiplier
         current_multiplier = nest["egg"]["multipliers"].get(scientific_name, 0)
-        nest["egg"]["multipliers"][scientific_name] = current_multiplier + amount_of_prayers
+        
+        # Get prayer effectiveness exponent from research
+        prayer_exponent = get_prayer_effectiveness_bonus()
+        
+        # Calculate effective prayers to add using exponentiation
+        # Ensure amount_of_prayers is not 0 to avoid 0^0 issues if prayer_exponent is also 0 (though it starts at 1.0)
+        # Also, if amount_of_prayers is 1, 1 to any power is 1.
+        if amount_of_prayers > 0:
+            effective_prayers_to_add = amount_of_prayers ** prayer_exponent
+        else:
+            effective_prayers_to_add = 0 # Or handle as an error earlier if amount_of_prayers can't be 0
+            
+        nest["egg"]["multipliers"][scientific_name] = current_multiplier + effective_prayers_to_add
 
         # Calculate actual percentage chance
         total_weight = 0
@@ -666,11 +678,18 @@ class IncubationCommands(commands.Cog):
         record_actions(data, interaction.user.id, amount_of_prayers, "pray")
         save_data(data)
 
-        await interaction.response.send_message(
+        response_message = (
             f"🙏 You offered {amount_of_prayers} {'prayer' if amount_of_prayers == 1 else 'prayers'} for {scientific_name}! 🙏\n"
-            f"Their hatching chance multiplier is now {nest['egg']['multipliers'][scientific_name]}x\n"
+        )
+        if prayer_exponent > 1.0: # Check if there's any bonus
+            response_message += f"Your research empowered your prayers (exponent: {prayer_exponent:.2f}), resulting in {effective_prayers_to_add:.2f} effective prayers added!\n"
+        
+        response_message += (
+            f"Their hatching chance multiplier is now {nest['egg']['multipliers'][scientific_name]:.2f}x\n"
             f"Base chance: {base_percentage:.1f}% → Current chance: {actual_percentage:.1f}%"
         )
+        
+        await interaction.response.send_message(response_message)
 
 async def setup(bot):
     await bot.add_cog(IncubationCommands(bot))
