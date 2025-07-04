@@ -84,6 +84,7 @@ async def load_cogs(bot):
         'commands.testing' if DEBUG else None,
         'commands.customisation',
         'commands.incubation',
+        'commands.foraging',
         'commands.flock',
         'commands.lore',
         'commands.social',
