@@ -1,11 +1,14 @@
 from discord.ext import commands
 from discord import app_commands
 import discord
+import json
+import os
 
 from data.storage import load_data, save_data
 from data.models import get_personal_nest, get_total_chicks, get_extra_bird_space, record_actions, add_bonus_actions
 from utils.logging import log_debug
 from config.config import MAX_BIRDS_PER_NEST
+from commands.foraging import load_treasures
 
 class SocialCommands(commands.Cog):
     def __init__(self, bot):
@@ -143,6 +146,75 @@ class SocialCommands(commands.Cog):
         except Exception as e:
             log_debug(f"Error in regurgitate command: {e}")
             await interaction.response.send_message(f"❌ An error occurred. Usage: /regurgitate <@user> <amount>")
+
+    @app_commands.command(name='gift_treasure', description='Give a treasure to another user')
+    @app_commands.describe(target_user='The user to give the treasure to')
+    async def gift_treasure(self, interaction: discord.Interaction, target_user: discord.User):
+        if target_user.id == interaction.user.id:
+            await interaction.response.send_message("You can't gift a treasure to yourself!", ephemeral=True)
+            return
+        # if target_user.bot:
+        #     await interaction.response.send_message("You can't gift treasures to bots!", ephemeral=True)
+        #     return
+
+        data = load_data()
+        giver_nest = get_personal_nest(data, interaction.user.id)
+        
+        if not giver_nest.get("treasures"):
+            await interaction.response.send_message("You don't have any treasures to gift!", ephemeral=True)
+            return
+
+        treasures_data = load_treasures()
+        all_treasures = {t["id"]: t for loc in treasures_data.values() for t in loc}
+
+        options = []
+        for i, treasure_id in enumerate(giver_nest["treasures"]):
+            treasure_info = all_treasures.get(treasure_id)
+            if treasure_info:
+                options.append(discord.SelectOption(label=treasure_info["name"], value=str(i)))
+
+        if not options:
+            await interaction.response.send_message("You don't have any treasures to gift!", ephemeral=True)
+            return
+
+        select = discord.ui.Select(placeholder="Choose a treasure to gift...", options=options)
+        
+        async def select_callback(select_interaction: discord.Interaction):
+            if select_interaction.user.id != interaction.user.id:
+                await select_interaction.response.send_message("This is not your gift!", ephemeral=True)
+                return
+
+            selected_index = int(select.values[0])
+            
+            # Reload data to ensure it's fresh
+            data = load_data()
+            giver_nest = get_personal_nest(data, interaction.user.id)
+            receiver_nest = get_personal_nest(data, target_user.id)
+
+            # Check if the giver still has the treasure
+            if selected_index >= len(giver_nest["treasures"]):
+                await select_interaction.response.edit_message(content="You no longer have this treasure.", view=None)
+                return
+            
+            treasure_id = giver_nest["treasures"].pop(selected_index)
+
+            if "treasures" not in receiver_nest:
+                receiver_nest["treasures"] = []
+            receiver_nest["treasures"].append(treasure_id)
+            save_data(data)
+
+            treasure_info = all_treasures.get(treasure_id)
+            embed = discord.Embed(
+                title="🎁 Treasure Gifted!",
+                description=f"{interaction.user.mention} has gifted a **{treasure_info['name']}** to {target_user.mention}!",
+                color=discord.Color.blue()
+            )
+            await select_interaction.response.edit_message(content=None, embed=embed, view=None)
+
+        select.callback = select_callback
+        view = discord.ui.View()
+        view.add_item(select)
+        await interaction.response.send_message("Which treasure would you like to gift?", view=view, ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(SocialCommands(bot))

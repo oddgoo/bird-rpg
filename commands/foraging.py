@@ -20,12 +20,18 @@ def load_treasures():
 class ForagingCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.active_foraging_tasks = {}
 
     @app_commands.command(name='forage', description='Forage for treasures in different locations')
-    @app_commands.describe(location='The location to forage in', actions='Number of actions to invest (more=faster)')
-    async def forage(self, interaction: discord.Interaction, location: str, actions: int):
+    @app_commands.describe(actions='Number of actions to invest (more=faster)')
+    async def forage(self, interaction: discord.Interaction, actions: int):
         """Forage for treasures in different locations"""
-        log_debug(f"forage called by {interaction.user.id} in {location} with {actions} actions")
+        user_id = interaction.user.id
+        log_debug(f"forage called by {user_id} with {actions} actions")
+
+        if user_id in self.active_foraging_tasks:
+            await interaction.response.send_message("You are already foraging! Use `/cancel_forage` if you want to stop.", ephemeral=True)
+            return
 
         # Validate actions
         if actions <= 0:
@@ -34,7 +40,7 @@ class ForagingCommands(commands.Cog):
 
         # Load data and check remaining actions
         data = load_data()
-        remaining_actions = get_remaining_actions(data, interaction.user.id)
+        remaining_actions = get_remaining_actions(data, user_id)
 
         if remaining_actions < actions:
             await interaction.response.send_message(
@@ -43,60 +49,90 @@ class ForagingCommands(commands.Cog):
             )
             return
 
-        # Load treasures and validate location
         treasures_data = load_treasures()
-        if location.lower() not in treasures_data:
-            await interaction.response.send_message(f"Invalid location! Please choose from: {', '.join(treasures_data.keys())}", ephemeral=True)
+        options = [discord.SelectOption(label=loc.capitalize()) for loc in treasures_data.keys()]
+
+        select = discord.ui.Select(placeholder="Choose a location to forage in...", options=options)
+
+        async def select_callback(select_interaction: discord.Interaction):
+            if select_interaction.user.id != interaction.user.id:
+                await select_interaction.response.send_message("This is not your foraging session!", ephemeral=True)
+                return
+
+            location = select.values[0].lower()
+            
+            # Record actions used
+            record_actions(data, user_id, actions, "forage")
+            save_data(data)
+
+            # Calculate foraging time
+            b = math.log(3600) / 470
+            a = math.exp(500 * b)
+            foraging_time = a * math.exp(-b * actions)
+            foraging_time = max(1, foraging_time)
+
+            await select_interaction.response.edit_message(content=f"You started foraging in the {location.capitalize()} with {actions} actions. It will take approximately {int(foraging_time)} seconds... 🕰️", view=None)
+
+            task = asyncio.create_task(self.forage_task(interaction, location, actions, foraging_time))
+            self.active_foraging_tasks[user_id] = {"task": task, "actions": actions}
+
+        select.callback = select_callback
+        view = discord.ui.View()
+        view.add_item(select)
+        await interaction.response.send_message("Where would you like to forage?", view=view, ephemeral=True)
+
+
+    async def forage_task(self, interaction, location, actions, foraging_time):
+        try:
+            await asyncio.sleep(foraging_time)
+
+            data = load_data()
+            treasures_data = load_treasures()
+            location_treasures = treasures_data[location.lower()]
+            treasures = [item for item in location_treasures]
+            weights = [item["rarityWeight"] for item in location_treasures]
+            
+            found_treasure = random.choices(treasures, weights=weights, k=1)[0]
+
+            nest = get_personal_nest(data, interaction.user.id)
+            nest["treasures"].append(found_treasure["id"])
+            save_data(data)
+
+            embed = discord.Embed(
+                title="🎉 Treasure Found! 🎉",
+                description=f"You found a **{found_treasure['name']}**!",
+                color=discord.Color.gold()
+            )
+            embed.add_field(name="Location", value=location.capitalize(), inline=True)
+            embed.add_field(name="Rarity", value=found_treasure['rarity'].capitalize(), inline=True)
+            embed.add_field(name="Type", value=found_treasure['type'].capitalize(), inline=True)
+            
+            await interaction.followup.send(embed=embed)
+        except asyncio.CancelledError:
+            await interaction.followup.send("Foraging cancelled.", ephemeral=True)
+        finally:
+            if interaction.user.id in self.active_foraging_tasks:
+                del self.active_foraging_tasks[interaction.user.id]
+
+    @app_commands.command(name='cancel_forage', description='Cancel your ongoing foraging action')
+    async def cancel_forage(self, interaction: discord.Interaction):
+        """Cancel your ongoing foraging action"""
+        user_id = interaction.user.id
+        if user_id not in self.active_foraging_tasks:
+            await interaction.response.send_message("You are not currently foraging.", ephemeral=True)
             return
 
-        # Record actions used
-        record_actions(data, interaction.user.id, 1, "forage")
+        task_info = self.active_foraging_tasks[user_id]
+        task_info["task"].cancel()
+        
+        # Refund actions
+        data = load_data()
+        nest = get_personal_nest(data, user_id)
+        nest["bonus_actions"] += task_info["actions"]
         save_data(data)
 
-        # Calculate foraging time (logarithmic scale)
-        # 30 actions = 1 hour (3600s), 500 actions = 1 second
-        # Using a formula: time = a * exp(-b * actions)
-        # We can solve for a and b with the two points
-        # 3600 = a * exp(-b * 30)
-        # 1 = a * exp(-b * 500)
-        # From the second eq: a = exp(b * 500)
-        # Substitute into first: 3600 = exp(b * 500) * exp(-b * 30) = exp(470b)
-        # ln(3600) = 470b => b = ln(3600) / 470
-        b = math.log(3600) / 470
-        # a = exp(500 * b)
-        a = math.exp(500 * b)
-        
-        foraging_time = a * math.exp(-b * actions)
-        foraging_time = max(1, foraging_time) # Ensure at least 1 second
-
-        await interaction.response.send_message(f"You started foraging in the {location} with {actions} actions. It will take approximately {int(foraging_time)} seconds... 🕰️")
-
-        # Wait for the foraging to complete
-        await asyncio.sleep(foraging_time)
-
-        # Select a treasure
-        location_treasures = treasures_data[location.lower()]
-        treasures = [item for item in location_treasures]
-        weights = [item["rarityWeight"] for item in location_treasures]
-        
-        found_treasure = random.choices(treasures, weights=weights, k=1)[0]
-
-        # Add treasure to the nest
-        nest = get_personal_nest(data, interaction.user.id)
-        nest["treasures"].append(found_treasure["id"])
-        save_data(data)
-
-        # Announce the result
-        embed = discord.Embed(
-            title="🎉 Treasure Found! 🎉",
-            description=f"You found a **{found_treasure['name']}**!",
-            color=discord.Color.gold()
-        )
-        embed.add_field(name="Location", value=location.capitalize(), inline=True)
-        embed.add_field(name="Rarity", value=found_treasure['rarity'].capitalize(), inline=True)
-        embed.add_field(name="Type", value=found_treasure['type'].capitalize(), inline=True)
-        
-        await interaction.followup.send(embed=embed)
+        del self.active_foraging_tasks[user_id]
+        await interaction.response.send_message(f"Foraging cancelled. {task_info['actions']} actions have been refunded.", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(ForagingCommands(bot))
