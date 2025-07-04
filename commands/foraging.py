@@ -21,11 +21,11 @@ class ForagingCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @app_commands.command(name='find_treasure', description='Forage for treasures in different locations')
-    @app_commands.describe(location='The location to forage in', actions='Number of actions to invest')
-    async def find_treasure(self, interaction: discord.Interaction, location: str, actions: int):
+    @app_commands.command(name='forage', description='Forage for treasures in different locations')
+    @app_commands.describe(location='The location to forage in', actions='Number of actions to invest (more=faster)')
+    async def forage(self, interaction: discord.Interaction, location: str, actions: int):
         """Forage for treasures in different locations"""
-        log_debug(f"find_treasure called by {interaction.user.id} in {location} with {actions} actions")
+        log_debug(f"forage called by {interaction.user.id} in {location} with {actions} actions")
 
         # Validate actions
         if actions <= 0:
@@ -50,7 +50,7 @@ class ForagingCommands(commands.Cog):
             return
 
         # Record actions used
-        record_actions(data, interaction.user.id, actions, "forage")
+        record_actions(data, interaction.user.id, 1, "forage")
         save_data(data)
 
         # Calculate foraging time (logarithmic scale)
@@ -83,7 +83,7 @@ class ForagingCommands(commands.Cog):
 
         # Add treasure to the nest
         nest = get_personal_nest(data, interaction.user.id)
-        nest["treasures"].append(found_treasure)
+        nest["treasures"].append(found_treasure["id"])
         save_data(data)
 
         # Announce the result

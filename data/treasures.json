@@ -38,7 +38,7 @@
             "rarity": "common",
             "type":"sticker"
         },
-                {
+        {
             "name": "Flower II", 
             "x": 50, 
             "y": 100, 
@@ -46,7 +46,7 @@
             "rarityWeight": 2,
             "rarity": "rare",
             "type":"sticker"
-        },
+        }
     ],
     "forest": [
         {
@@ -66,6 +66,6 @@
             "rarityWeight": 1,
             "rarity": "rare",
             "type":"nest"
-        },
+        }
     ]
 }
