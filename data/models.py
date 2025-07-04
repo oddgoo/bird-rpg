@@ -35,6 +35,8 @@ def get_personal_nest(data, user_id):
         nest["last_song_target_ids"] = []
     if "treasures" not in nest:
         nest["treasures"] = []
+    if "treasures_applied_on_nest" not in nest:
+        nest["treasures_applied_on_nest"] = []
     return nest
 
 def get_common_nest(data):

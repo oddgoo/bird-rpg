@@ -62,7 +62,7 @@ class ForagingCommands(commands.Cog):
             location = select.values[0].lower()
             
             # Record actions used
-            record_actions(data, user_id, actions, "forage")
+            record_actions(data, user_id, 1, "forage")
             save_data(data)
 
             # Calculate foraging time
