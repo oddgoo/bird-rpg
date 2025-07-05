@@ -3,7 +3,7 @@
         {
             "name": "Cone I", 
             "x": 50, 
-            "y": 10, 
+            "y": 100, 
             "size": 40,
             "id": "cone_i",
             "rarityWeight": 1,
@@ -34,8 +34,8 @@
     "meadow": [
         {
             "name": "Flower I", 
-            "x": 50, 
-            "y": 100, 
+            "x": 10, 
+            "y": 90, 
             "size": 40,
             "id": "flower_i",
             "rarityWeight": 8,
