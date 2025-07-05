@@ -43,14 +43,25 @@
         {% if nest.chicks %}
         <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {% for chick in nest.chicks %}
-            <li class="bg-white rounded-xl p-4 shadow-md flex flex-col items-center transition-transform transform hover:-translate-y-1 cursor-pointer relative overflow-hidden aspect-[5/7]">
+            <li class="bg-white rounded-xl p-4 shadow-md flex flex-col items-center transition-transform transform hover:-translate-y-1 cursor-pointer relative aspect-[5/7]">
                 <a href="#" class="flex flex-col items-center no-underline w-full h-full" target="_blank" id="chick-link-{{ loop.index }}">
-                    <img 
-                        class="w-90% h-3/5 rounded-lg object-cover mb-4 transition-transform duration-200"
-                        id="bird-{{ loop.index }}"
-                        src=""
-                        alt="{{ chick.commonName }}"
-                    >
+                    <div class="relative w-90% h-3/5">
+                        <img 
+                            class="w-full h-full rounded-lg object-cover mb-4 transition-transform duration-200"
+                            id="bird-{{ loop.index }}"
+                            src=""
+                            alt="{{ chick.commonName }}"
+                        >
+                        {% if chick.treasures %}
+                            {% for treasure in chick.treasures %}
+                                {% if treasure.type == 'sticker' %}
+                                <img src="/static/images/decorations/{{ treasure.id }}.png" 
+                                     class="absolute" 
+                                     style="left: {{ treasure.x }}%; top: {{ treasure.y }}%; transform: translate(-50%, -50%); width: 25%;">
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
                     <div class="text-center">
                         <div class="text-lg font-bold text-orange-700">{{ chick.commonName }}</div>
                         <div class="italic text-gray-600 text-sm">{{ chick.scientificName }}</div>
@@ -90,12 +101,23 @@
             {% for plant in nest.plants %}
             <li class="bg-lime-50 rounded-xl p-4 shadow-md flex flex-col items-center transition-transform transform hover:-translate-y-1 cursor-pointer relative overflow-hidden aspect-[5/7]">
                 <a href="#" class="flex flex-col items-center no-underline w-full h-full" target="_blank" id="plant-link-{{ loop.index }}">
-                    <img 
-                        class="w-90% h-3/5 rounded-lg object-cover mb-4 transition-transform duration-200"
-                        id="plant-{{ loop.index }}"
-                        src=""
-                        alt="{{ plant.commonName }}"
-                    >
+                    <div class="relative w-90% h-3/5">
+                        <img 
+                            class="w-full h-full rounded-lg object-cover mb-4 transition-transform duration-200"
+                            id="plant-{{ loop.index }}"
+                            src=""
+                            alt="{{ plant.commonName }}"
+                        >
+                        {% if plant.treasures %}
+                            {% for treasure in plant.treasures %}
+                                {% if treasure.type == 'sticker' %}
+                                <img src="/static/images/decorations/{{ treasure.id }}.png" 
+                                     class="absolute" 
+                                     style="left: {{ treasure.x }}%; top: {{ treasure.y }}%; transform: translate(-50%, -50%); width: 25%;">
+                                {% endif %}
+                            {% endfor %}
+                        {% endif %}
+                    </div>
                     <div class="text-center">
                         <div class="text-lg font-bold text-lime-700">{{ plant.commonName }}</div>
                         <div class="italic text-gray-600 text-sm">{{ plant.scientificName }}</div>

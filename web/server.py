@@ -67,14 +67,32 @@ def user_page(user_id):
     nest = get_personal_nest(data, user_id)
     bird_species_data = {species["scientificName"]: species for species in load_bird_species()}
 
+    # Load treasures data
+    with open('data/treasures.json', 'r') as f:
+        treasures_data = json.load(f)
+    
+    all_treasures = {}
+    for category in treasures_data.values():
+        for treasure in category:
+            all_treasures[treasure['id']] = treasure
+
     # Enrich chicks data with species info
     enriched_chicks = []
     for chick in nest.get("chicks", []):
         species_info = bird_species_data.get(chick["scientificName"], {})
+        
+        # Get treasure details
+        chick_treasures = []
+        if 'treasures' in chick:
+            for treasure_id in chick['treasures']:
+                if treasure_id in all_treasures:
+                    chick_treasures.append(all_treasures[treasure_id])
+        
         enriched_chicks.append({
             **chick,
             "rarity": species_info.get("rarity", "common"),
-            "effect": species_info.get("effect", "")
+            "effect": species_info.get("effect", ""),
+            "treasures": chick_treasures
         })
 
     today = get_current_date()
@@ -123,10 +141,19 @@ def user_page(user_id):
     enriched_plants = []
     for plant in nest.get("plants", []):
         species_info = plant_species_data.get(plant["scientificName"], {})
+        
+        # Get treasure details
+        plant_treasures = []
+        if 'treasures' in plant:
+            for treasure_id in plant['treasures']:
+                if treasure_id in all_treasures:
+                    plant_treasures.append(all_treasures[treasure_id])
+
         enriched_plants.append({
             **plant,
             "rarity": species_info.get("rarity", "common"),
-            "effect": species_info.get("effect", "")
+            "effect": species_info.get("effect", ""),
+            "treasures": plant_treasures
         })
     
     # Add all data to nest_data
