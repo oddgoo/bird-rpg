@@ -1,78 +1,934 @@
 {
     "city": [
         {
-            "name": "Cone I", 
-            "x": 50, 
-            "y": 100, 
+            "name": "Cone I",
+            "x": 50,
+            "y": 100,
             "size": 40,
             "id": "cone_i",
             "rarityWeight": 1,
             "rarity": "rare",
-            "type":"sticker"
+            "type": "sticker"
         },
         {
-            "name": "Hat I", 
-            "x": 50, 
-            "y": 100, 
+            "name": "Hat I",
+            "x": 50,
+            "y": 100,
             "size": 40,
             "id": "hat_i",
             "rarityWeight": 8,
             "rarity": "common",
-            "type":"sticker"
+            "type": "sticker"
         },
         {
-            "name": "Cone II", 
-            "x": 50, 
-            "y": 100, 
+            "name": "Cone II",
+            "x": 50,
+            "y": 100,
             "size": 40,
             "id": "cone_ii",
             "rarityWeight": 1,
             "rarity": "rare",
-            "type":"sticker"
+            "type": "sticker"
+        },
+        {
+            "name": "Burger",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "burger",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Compliment 3",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "compliment_3",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Compliment 1",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "compliment_1",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Compliment 2",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "compliment_2",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Compliment 4",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "compliment_4",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Compliment 5",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "compliment_5",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Compliment 6",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "compliment_6",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Corpo 1",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "corpo_1",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Corpo 2",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "corpo_2",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Corpo 3",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "corpo_3",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Corpo 4",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "corpo_4",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Corpo 5",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "corpo_5",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Corpo 6",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "corpo_6",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Corpo 7",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "corpo_7",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Corpo 8",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "corpo_8",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Corpo 9",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "corpo_9",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Icecream",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "icecream",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Lollipop",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "lollipop",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Pizza",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "pizza",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
         }
     ],
     "meadow": [
         {
-            "name": "Flower I", 
-            "x": 10, 
-            "y": 90, 
+            "name": "Flower I",
+            "x": 10,
+            "y": 90,
             "size": 40,
             "id": "flower_i",
             "rarityWeight": 8,
             "rarity": "common",
-            "type":"sticker"
+            "type": "sticker"
         },
         {
-            "name": "Flower II", 
-            "x": 50, 
-            "y": 100, 
+            "name": "Flower II",
+            "x": 50,
+            "y": 100,
             "size": 40,
             "id": "flower_ii",
             "rarityWeight": 2,
             "rarity": "rare",
-            "type":"sticker"
+            "type": "sticker"
+        },
+        {
+            "name": "Apple",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "apple",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Flower 1",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "flower_1",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Flower 2",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "flower_2",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Flower 3",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "flower_3",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Flower Iii",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "flower_iii",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Pear",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "pear",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Pineapple",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "pineapple",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Strawberry",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "strawberry",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Watermelon",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "watermelon",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
         }
     ],
     "forest": [
         {
-            "name": "Nest of lights I", 
-            "x": 0, 
-            "y": 0, 
+            "name": "Nest of lights I",
+            "x": 0,
+            "y": 0,
             "size": 40,
             "id": "nest_lights_i",
             "rarityWeight": 1,
             "rarity": "rare",
-            "type":"nest"
+            "type": "nest"
         },
-                {
-            "name": "Nest of lights II", 
-            "x": 0, 
-            "y": 0, 
+        {
+            "name": "Nest of lights II",
+            "x": 0,
+            "y": 0,
             "size": 40,
             "id": "nest_lights_ii",
             "rarityWeight": 1,
             "rarity": "rare",
-            "type":"nest"
+            "type": "nest"
+        }
+    ],
+    "library": [
+        {
+            "name": "Book Birds 1",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "book_birds_1",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Book Birds 2",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "book_birds_2",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Book Ciara",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "book_ciara",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Book Cyborg",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "book_cyborg",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Book Industry",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "book_industry",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Book Journal",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "book_journal",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Book Leguin",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "book_leguin",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Book Magpie 1",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "book_magpie_1",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Book Magpie 2",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "book_magpie_2",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Book Magpie 3",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "book_magpie_3",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Book Maya",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "book_maya",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Book Metagaming",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "book_metagaming",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Book Trouble",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "book_trouble",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Book Videogames",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "book_videogames",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        }
+    ],
+    "westfield": [
+        {
+            "name": "Hat 1",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "hat_1",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Hat 10",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "hat_10",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Hat 11",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "hat_11",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Hat 2",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "hat_2",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Hat 3",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "hat_3",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Hat 4",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "hat_4",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Hat 5",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "hat_5",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Hat 6",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "hat_6",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Hat 7",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "hat_7",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Hat 8",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "hat_8",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Hat 9",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "hat_9",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Hat Ii",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "hat_ii",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        }
+    ],
+    "survivorship": [
+        {
+            "name": "Bird Magpie",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "bird_magpie",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Bowl",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "bowl",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Cone 1",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "cone_1",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Cone 2",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "cone_2",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Crown",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "crown",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Diamond",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "diamond",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Eye",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "eye",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Heart 1",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "heart_1",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Heart 2",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "heart_2",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Jacqui Art 1",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "jacqui_art_1",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Jacqui Art 2",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "jacqui_art_2",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Jacqui Art 3",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "jacqui_art_3",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Jacqui Art 4",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "jacqui_art_4",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Logo Game Workers",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "logo_game_workers",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Logo Magpie",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "logo_magpie",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Logo Pmg",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "logo_pmg",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Logo Sabby",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "logo_sabby",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Logo Serenade",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "logo_serenade",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Mail",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "mail",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Moon",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "moon",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Mouth",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "mouth",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Rainbow",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "rainbow",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Sad",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "sad",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Shooting Star",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "shooting_star",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Star 1",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "star_1",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Star 2",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "star_2",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Star 3",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "star_3",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Summer",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "summer",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Sun",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "sun",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Thunder",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "thunder",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
+        },
+        {
+            "name": "Wreath",
+            "x": 50,
+            "y": 100,
+            "size": 40,
+            "id": "wreath",
+            "rarityWeight": 8,
+            "rarity": "common",
+            "type": "sticker"
         }
     ]
 }
