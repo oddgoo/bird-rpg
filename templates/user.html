@@ -99,7 +99,7 @@
         {% if nest.plants %}
         <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {% for plant in nest.plants %}
-            <li class="bg-lime-50 rounded-xl p-4 shadow-md flex flex-col items-center transition-transform transform hover:-translate-y-1 cursor-pointer relative overflow-hidden aspect-[5/7]">
+            <li class="bg-lime-50 rounded-xl p-4 shadow-md flex flex-col items-center transition-transform transform hover:-translate-y-1 cursor-pointer relative aspect-[5/7]">
                 <a href="#" class="flex flex-col items-center no-underline w-full h-full" target="_blank" id="plant-link-{{ loop.index }}">
                     <div class="relative w-90% h-3/5">
                         <img 
