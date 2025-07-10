@@ -151,6 +151,32 @@
 
 <div class="rounded-xl p-6 mb-8 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
     <div class="border border-amber-300/50 rounded-lg p-4">
+        <h2 class="text-2xl text-center text-yellow-900 mb-4 font-mystical font-bold">💎 Treasures</h2>
+        {% if nest.treasures %}
+        <ul class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+            {% for treasure in nest.treasures %}
+            <li class="flex flex-col items-center transition-transform transform hover:-translate-y-1 cursor-pointer ">
+                <div class="relative w-full h-24">
+                    <img 
+                        class="absolute inset-0 w-full h-full object-contain"
+                        src="/static/images/decorations/{{ treasure.id }}.png"
+                        alt="{{ treasure.name }}"
+                    >
+                </div>
+                <div class="text-center mt-1">
+                    <div class="text-sm font-bold text-orange-700">{{ treasure.name }}</div>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-center">This nest has no treasures yet! 💎</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="rounded-xl p-6 mb-8 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+    <div class="border border-amber-300/50 rounded-lg p-4">
         <h2 class="text-2xl text-center text-yellow-900 mb-4 font-mystical font-bold">🎵 Today's Songs</h2>
         {% if nest.songs_given_to %}
         <div class="flex flex-wrap justify-center gap-4">

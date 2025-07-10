@@ -168,6 +168,12 @@ def user_page(user_id):
             "treasures": plant_treasures
         })
     
+    # Enrich treasures data
+    enriched_treasures = []
+    for treasure_id in nest.get("treasures", []):
+        if treasure_id in all_treasures:
+            enriched_treasures.append(all_treasures[treasure_id])
+
     # Add all data to nest_data
     nest_data = {
         "name": nest.get("name", "Some Bird's Nest"),
@@ -175,6 +181,7 @@ def user_page(user_id):
         "seeds": nest["seeds"],
         "chicks": enriched_chicks,
         "plants": enriched_plants,
+        "treasures": enriched_treasures,
         "songs_given": songs_given,
         "egg": nest.get("egg", None),
         "songs_given_to": songs_given_to,
