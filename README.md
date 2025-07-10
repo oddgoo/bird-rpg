@@ -2,6 +2,7 @@
  Bird RPG discord BOT
 
 # run
+python -m venv ./venv/
 activate venv: 'venv\Scripts\activate'
 pip install -r requirements.txt
 python bot.py
