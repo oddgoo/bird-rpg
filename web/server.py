@@ -84,9 +84,15 @@ def user_page(user_id):
         # Get treasure details
         chick_treasures = []
         if 'treasures' in chick:
-            for treasure_id in chick['treasures']:
+            for decoration in chick['treasures']:
+                treasure_id = decoration.get('id')
                 if treasure_id in all_treasures:
-                    chick_treasures.append(all_treasures[treasure_id])
+                    treasure_info = all_treasures[treasure_id].copy()
+                    if 'x' in decoration:
+                        treasure_info['x'] = decoration['x']
+                    if 'y' in decoration:
+                        treasure_info['y'] = decoration['y']
+                    chick_treasures.append(treasure_info)
         
         enriched_chicks.append({
             **chick,
@@ -145,9 +151,15 @@ def user_page(user_id):
         # Get treasure details
         plant_treasures = []
         if 'treasures' in plant:
-            for treasure_id in plant['treasures']:
+            for decoration in plant['treasures']:
+                treasure_id = decoration.get('id')
                 if treasure_id in all_treasures:
-                    plant_treasures.append(all_treasures[treasure_id])
+                    treasure_info = all_treasures[treasure_id].copy()
+                    if 'x' in decoration:
+                        treasure_info['x'] = decoration['x']
+                    if 'y' in decoration:
+                        treasure_info['y'] = decoration['y']
+                    plant_treasures.append(treasure_info)
 
         enriched_plants.append({
             **plant,

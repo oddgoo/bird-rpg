@@ -69,9 +69,15 @@ def get_home_page():
         # Get treasure details for the nest
         nest_treasures = []
         if 'treasures_applied_on_nest' in nest:
-            for treasure_id in nest['treasures_applied_on_nest']:
+            for decoration in nest['treasures_applied_on_nest']:
+                treasure_id = decoration.get('id')
                 if treasure_id in all_treasures:
-                    nest_treasures.append(all_treasures[treasure_id])
+                    treasure_info = all_treasures[treasure_id].copy()
+                    if 'x' in decoration:
+                        treasure_info['x'] = decoration['x']
+                    if 'y' in decoration:
+                        treasure_info['y'] = decoration['y']
+                    nest_treasures.append(treasure_info)
 
         personal_nests.append({
             "user_id": user_id,

@@ -61,18 +61,21 @@ class CustomisationCommands(commands.Cog):
         await interaction.response.send_message(f"✨ Your nest now features the {target_bird['commonName']} ({target_bird['scientificName']})!")
 
     @app_commands.command(name='decorate_nest', description='Decorate your nest with a treasure')
-    async def decorate_nest(self, interaction: discord.Interaction):
-        await self.decoration_handler(interaction, 'nest')
+    @app_commands.describe(x='The x-position of the sticker (0-100). optional.', y='The y-position of the sticker (0-100). optional')
+    async def decorate_nest(self, interaction: discord.Interaction, x: app_commands.Range[int, 0, 100]=None, y: app_commands.Range[int, 0, 100]=None):
+        await self.decoration_handler(interaction, 'nest', x, y)
 
     @app_commands.command(name='decorate_bird', description='Decorate a bird with a treasure')
-    async def decorate_bird(self, interaction: discord.Interaction):
-        await self.decoration_handler(interaction, 'bird')
+    @app_commands.describe(x='The x-position of the sticker (0-100). optional', y='The y-position of the sticker (0-100). optional')
+    async def decorate_bird(self, interaction: discord.Interaction, x: app_commands.Range[int, 0, 100]=None, y: app_commands.Range[int, 0, 100]=None):
+        await self.decoration_handler(interaction, 'bird', x, y)
 
     @app_commands.command(name='decorate_plant', description='Decorate a plant with a treasure')
-    async def decorate_plant(self, interaction: discord.Interaction):
-        await self.decoration_handler(interaction, 'plant')
+    @app_commands.describe(x='The x-position of the sticker (0-100). optional', y='The y-position of the sticker (0-100). optional')
+    async def decorate_plant(self, interaction: discord.Interaction, x: app_commands.Range[int, 0, 100]=None, y: app_commands.Range[int, 0, 100]=None):
+        await self.decoration_handler(interaction, 'plant', x, y)
 
-    async def decoration_handler(self, interaction: discord.Interaction, entity_type: str):
+    async def decoration_handler(self, interaction: discord.Interaction, entity_type: str, x: int=None, y: int=None):
         user_id = interaction.user.id
         data = load_data()
         nest = get_personal_nest(data, user_id)
@@ -133,11 +136,26 @@ class CustomisationCommands(commands.Cog):
             treasure_index = int(treasure_select.values[0])
             treasure_id = nest["treasures"].pop(treasure_index)
 
+            # Get the base treasure info
+            base_treasure = all_treasures.get(treasure_id, {})
+            
+            decoration = {
+                "id": treasure_id,
+                "x": base_treasure.get('x', 0),
+                "y": base_treasure.get('y', 0)
+            }
+
+            # Override with user-provided values if they exist
+            if x is not None:
+                decoration["x"] = x
+            if y is not None:
+                decoration["y"] = y
+
             target_name = "your nest"
             if entity_type == 'nest':
                 if "treasures_applied_on_nest" not in nest:
                     nest["treasures_applied_on_nest"] = []
-                nest["treasures_applied_on_nest"].append(treasure_id)
+                nest["treasures_applied_on_nest"].append(decoration)
             else:
                 entity_index = int(entity_select.values[0])
                 target_list = nest.get("chicks" if entity_type == 'bird' else "plants", [])
@@ -145,7 +163,7 @@ class CustomisationCommands(commands.Cog):
                     target_entity = target_list[entity_index]
                     if "treasures" not in target_entity:
                         target_entity["treasures"] = []
-                    target_entity["treasures"].append(treasure_id)
+                    target_entity["treasures"].append(decoration)
                     target_name = target_entity["commonName"]
                 else:
                     await button_interaction.response.edit_message(content="The selected item is no longer available.", view=None)
@@ -187,8 +205,9 @@ class CustomisationCommands(commands.Cog):
                 await interaction.response.send_message("Your nest has no decorations to remove!", ephemeral=True)
                 return
             
-            nest["treasures"].extend(nest["treasures_applied_on_nest"])
-            removed_count = len(nest["treasures_applied_on_nest"])
+            removed_decorations = nest.get("treasures_applied_on_nest", [])
+            nest["treasures"].extend([t['id'] for t in removed_decorations])
+            removed_count = len(removed_decorations)
             nest["treasures_applied_on_nest"] = []
             save_data(data)
             await interaction.response.send_message(f"Removed {removed_count} decorations from your nest. They have been returned to your inventory.", ephemeral=True)
@@ -242,8 +261,9 @@ class CustomisationCommands(commands.Cog):
                             break
                 
                 if original_entity and original_entity.get("treasures"):
-                    nest["treasures"].extend(original_entity["treasures"])
-                    removed_count = len(original_entity["treasures"])
+                    removed_decorations = original_entity.get("treasures", [])
+                    nest["treasures"].extend([t['id'] for t in removed_decorations])
+                    removed_count = len(removed_decorations)
                     original_entity["treasures"] = []
                     save_data(data)
                     await select_interaction.response.edit_message(content=f"Removed {removed_count} decorations from {original_entity['commonName']}. They have been returned to your inventory.", view=None)
