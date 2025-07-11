@@ -106,8 +106,16 @@ class ForagingCommands(commands.Cog):
             embed.add_field(name="Location", value=location.capitalize(), inline=True)
             embed.add_field(name="Rarity", value=found_treasure['rarity'].capitalize(), inline=True)
             embed.add_field(name="Type", value=found_treasure['type'].capitalize(), inline=True)
-            
-            await interaction.followup.send(embed=embed)
+
+            treasure_id = found_treasure["id"]
+            image_path = f"static/images/decorations/{treasure_id}.png"
+            if os.path.exists(image_path):
+                file = discord.File(image_path, filename=f"{treasure_id}.png")
+                embed.set_image(url=f"attachment://{treasure_id}.png")
+                await interaction.followup.send(embed=embed, file=file)
+            else:
+                log_debug(f"Image not found for treasure: {treasure_id}")
+                await interaction.followup.send(embed=embed)
         except asyncio.CancelledError:
             await interaction.followup.send("Foraging cancelled.", ephemeral=True)
         finally:
