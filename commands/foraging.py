@@ -83,6 +83,8 @@ class ForagingCommands(commands.Cog):
 
 
     async def forage_task(self, interaction, location, actions, foraging_time):
+        user = interaction.user
+        channel = interaction.channel
         try:
             await asyncio.sleep(foraging_time)
 
@@ -112,12 +114,12 @@ class ForagingCommands(commands.Cog):
             if os.path.exists(image_path):
                 file = discord.File(image_path, filename=f"{treasure_id}.png")
                 embed.set_image(url=f"attachment://{treasure_id}.png")
-                await interaction.followup.send(embed=embed, file=file)
+                await channel.send(content=user.mention, embed=embed, file=file)
             else:
                 log_debug(f"Image not found for treasure: {treasure_id}")
-                await interaction.followup.send(embed=embed)
+                await channel.send(content=user.mention, embed=embed)
         except asyncio.CancelledError:
-            await interaction.followup.send("Foraging cancelled.", ephemeral=True)
+            await channel.send(f"Foraging cancelled for {user.mention}.")
         finally:
             if interaction.user.id in self.active_foraging_tasks:
                 del self.active_foraging_tasks[interaction.user.id]
