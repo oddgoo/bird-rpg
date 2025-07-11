@@ -50,7 +50,7 @@ class ForagingCommands(commands.Cog):
             return
 
         treasures_data = load_treasures()
-        options = [discord.SelectOption(label=loc.capitalize()) for loc in treasures_data.keys()]
+        options = [discord.SelectOption(label=loc) for loc in treasures_data.keys()]
 
         select = discord.ui.Select(placeholder="Choose a location to forage in...", options=options)
 
@@ -59,7 +59,7 @@ class ForagingCommands(commands.Cog):
                 await select_interaction.response.send_message("This is not your foraging session!", ephemeral=True)
                 return
 
-            location = select.values[0].lower()
+            location = select.values[0]
             
             # Record actions used
             record_actions(data, user_id, 1, "forage")
@@ -88,7 +88,7 @@ class ForagingCommands(commands.Cog):
 
             data = load_data()
             treasures_data = load_treasures()
-            location_treasures = treasures_data[location.lower()]
+            location_treasures = treasures_data[location]
             treasures = [item for item in location_treasures]
             weights = [item["rarityWeight"] for item in location_treasures]
             

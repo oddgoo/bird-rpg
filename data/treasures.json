@@ -1,5 +1,5 @@
 {
-    "city": [
+    "Remnants of the old city": [
         {
             "name": "Burger",
             "x": 5,
@@ -76,8 +76,8 @@
             "y": 100,
             "size": 45,
             "id": "corpo_1",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -106,8 +106,8 @@
             "y": 15,
             "size": 45,
             "id": "corpo_4",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -146,8 +146,8 @@
             "y": 15,
             "size": 45,
             "id": "corpo_8",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 1,
+            "rarity": "rare",
             "type": "sticker"
         },
         {
@@ -156,8 +156,8 @@
             "y": 10,
             "size": 45,
             "id": "corpo_9",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 1,
+            "rarity": "rare",
             "type": "sticker"
         },
         {
@@ -166,8 +166,8 @@
             "y": 100,
             "size": 45,
             "id": "icecream",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -186,12 +186,12 @@
             "y": 15,
             "size": 45,
             "id": "pizza",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 1,
+            "rarity": "rare",
             "type": "sticker"
         }
     ],
-    "meadow": [
+    "Overgrown Meadow": [
         {
             "name": "Apple",
             "x": 35,
@@ -228,8 +228,8 @@
             "y": 100,
             "size": 55,
             "id": "flower_3",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -238,8 +238,8 @@
             "y": 45,
             "size": 45,
             "id": "pear",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 1,
+            "rarity": "rare",
             "type": "sticker"
         },
         {
@@ -258,8 +258,8 @@
             "y": 50,
             "size": 45,
             "id": "strawberry",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 1,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -288,12 +288,12 @@
             "y": 85,
             "size": 95,
             "id": "nest_lights",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 1,
+            "rarity": "rare",
             "type": "sticker"
         }
     ],
-    "library": [
+    "Strangely Intact Library": [
         {
             "name": "Book Birds 1",
             "x": 10,
@@ -310,8 +310,8 @@
             "y": 50,
             "size": 35,
             "id": "book_birds_2",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -330,8 +330,8 @@
             "y": 100,
             "size": 45,
             "id": "book_cyborg",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -340,8 +340,8 @@
             "y": 100,
             "size": 35,
             "id": "book_industry",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -360,8 +360,8 @@
             "y": 100,
             "size": 45,
             "id": "book_leguin",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 1,
+            "rarity": "rare",
             "type": "sticker"
         },
         {
@@ -380,8 +380,8 @@
             "y": 100,
             "size": 40,
             "id": "book_magpie_2",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -390,8 +390,8 @@
             "y": 15,
             "size": 40,
             "id": "book_magpie_3",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 1,
+            "rarity": "rare",
             "type": "sticker"
         },
         {
@@ -401,7 +401,7 @@
             "size": 45,
             "id": "book_maya",
             "rarityWeight": 8,
-            "rarity": "common",
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -420,8 +420,8 @@
             "y": 100,
             "size": 35,
             "id": "book_trouble",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -430,8 +430,8 @@
             "y": 100,
             "size": 35,
             "id": "book_videogames",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 1,
+            "rarity": "rare",
             "type": "sticker"
         },
         {
@@ -450,8 +450,8 @@
             "y": 5,
             "size": 35,
             "id": "book_reading_romance",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -460,12 +460,12 @@
             "y": 100,
             "size": 35,
             "id": "book_second_sex",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         }
     ],
-    "westfield": [
+    "The East Ruins of West Field": [
         {
             "name": "Hat 1",
             "x": 40,
@@ -492,8 +492,8 @@
             "y": 5,
             "size": 90,
             "id": "hat_11",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -512,8 +512,8 @@
             "y": 7,
             "size": 80,
             "id": "hat_3",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -552,8 +552,8 @@
             "y": 0,
             "size": 70,
             "id": "hat_7",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -562,8 +562,8 @@
             "y": 5,
             "size": 70,
             "id": "hat_8",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 1,
+            "rarity": "rare",
             "type": "sticker"
         },
         {
@@ -572,20 +572,20 @@
             "y": 5,
             "size": 70,
             "id": "hat_9",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 1,
+            "rarity": "rare",
             "type": "sticker"
         }
     ],
-    "survivorship": [
+    "A Survivorship of Cool Humans": [
         {
             "name": "Bird Magpie",
             "x": 5,
             "y": 100,
             "size": 45,
             "id": "bird_magpie",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 1,
+            "rarity": "rare",
             "type": "sticker"
         },
         {
@@ -664,8 +664,8 @@
             "y": 15,
             "size": 45,
             "id": "heart_2",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -674,8 +674,8 @@
             "y": 100,
             "size": 45,
             "id": "jacqui_art_1",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -684,8 +684,8 @@
             "y": 100,
             "size": 45,
             "id": "jacqui_art_2",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -694,8 +694,8 @@
             "y": 100,
             "size": 45,
             "id": "jacqui_art_3",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -704,8 +704,8 @@
             "y": 100,
             "size": 45,
             "id": "jacqui_art_4",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 1,
+            "rarity": "rare",
             "type": "sticker"
         },
         {
@@ -714,8 +714,8 @@
             "y": 90,
             "size": 45,
             "id": "logo_game_workers",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -734,8 +734,8 @@
             "y": 20,
             "size": 45,
             "id": "logo_pmg",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -744,8 +744,8 @@
             "y": 85,
             "size": 55,
             "id": "logo_sabby",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -754,8 +754,8 @@
             "y": 80,
             "size": 45,
             "id": "logo_serenade",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -844,8 +844,8 @@
             "y": 5,
             "size": 45,
             "id": "star_3",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         },
         {
@@ -854,8 +854,8 @@
             "y": 90,
             "size": 45,
             "id": "summer",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 1,
+            "rarity": "rare",
             "type": "sticker"
         },
         {
@@ -884,8 +884,8 @@
             "y": 50,
             "size": 100,
             "id": "wreath",
-            "rarityWeight": 8,
-            "rarity": "common",
+            "rarityWeight": 4,
+            "rarity": "uncommon",
             "type": "sticker"
         }
     ]
