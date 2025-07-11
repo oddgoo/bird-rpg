@@ -600,9 +600,9 @@
         },
         {
             "name": "Cone 1",
-            "x": 45,
-            "y": 110,
-            "size": 35,
+            "x": 51,
+            "y": 108,
+            "size": 44,
             "id": "cone_1",
             "rarityWeight": 8,
             "rarity": "common",
