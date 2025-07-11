@@ -6,6 +6,7 @@ python3 -m venv venv
 source ./venv/bin/activate
 
 # run
+python -m venv ./venv/
 activate venv: 'venv\Scripts\activate'
 pip install -r requirements.txt
 python bot.py

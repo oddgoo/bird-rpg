@@ -50,7 +50,7 @@ class ForagingCommands(commands.Cog):
             return
 
         treasures_data = load_treasures()
-        options = [discord.SelectOption(label=loc.capitalize()) for loc in treasures_data.keys()]
+        options = [discord.SelectOption(label=loc) for loc in treasures_data.keys()]
 
         select = discord.ui.Select(placeholder="Choose a location to forage in...", options=options)
 
@@ -59,7 +59,7 @@ class ForagingCommands(commands.Cog):
                 await select_interaction.response.send_message("This is not your foraging session!", ephemeral=True)
                 return
 
-            location = select.values[0].lower()
+            location = select.values[0]
             
             # Record actions used
             record_actions(data, user_id, 1, "forage")
@@ -83,12 +83,14 @@ class ForagingCommands(commands.Cog):
 
 
     async def forage_task(self, interaction, location, actions, foraging_time):
+        user = interaction.user
+        channel = interaction.channel
         try:
             await asyncio.sleep(foraging_time)
 
             data = load_data()
             treasures_data = load_treasures()
-            location_treasures = treasures_data[location.lower()]
+            location_treasures = treasures_data[location]
             treasures = [item for item in location_treasures]
             weights = [item["rarityWeight"] for item in location_treasures]
             
@@ -106,10 +108,18 @@ class ForagingCommands(commands.Cog):
             embed.add_field(name="Location", value=location.capitalize(), inline=True)
             embed.add_field(name="Rarity", value=found_treasure['rarity'].capitalize(), inline=True)
             embed.add_field(name="Type", value=found_treasure['type'].capitalize(), inline=True)
-            
-            await interaction.followup.send(embed=embed)
+
+            treasure_id = found_treasure["id"]
+            image_path = f"static/images/decorations/{treasure_id}.png"
+            if os.path.exists(image_path):
+                file = discord.File(image_path, filename=f"{treasure_id}.png")
+                embed.set_image(url=f"attachment://{treasure_id}.png")
+                await channel.send(content=user.mention, embed=embed, file=file)
+            else:
+                log_debug(f"Image not found for treasure: {treasure_id}")
+                await channel.send(content=user.mention, embed=embed)
         except asyncio.CancelledError:
-            await interaction.followup.send("Foraging cancelled.", ephemeral=True)
+            await channel.send(f"Foraging cancelled for {user.mention}.")
         finally:
             if interaction.user.id in self.active_foraging_tasks:
                 del self.active_foraging_tasks[interaction.user.id]

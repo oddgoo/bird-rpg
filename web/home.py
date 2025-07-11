@@ -1,4 +1,5 @@
 from flask import render_template
+import json
 from datetime import datetime
 from data.storage import load_data
 from data.models import (
@@ -14,6 +15,15 @@ from utils.human_spawner import HumanSpawner
 def get_home_page():
     data = load_data()
     
+    # Load treasures data
+    with open('data/treasures.json', 'r') as f:
+        treasures_data = json.load(f)
+    
+    all_treasures = {}
+    for category in treasures_data.values():
+        for treasure in category:
+            all_treasures[treasure['id']] = treasure
+
     # Get common nest data
     common_nest = get_common_nest(data)
     
@@ -56,6 +66,19 @@ def get_home_page():
                 "rarity": bird_data.get("rarity", "common")
             }
         
+        # Get treasure details for the nest
+        nest_treasures = []
+        if 'treasures_applied_on_nest' in nest:
+            for decoration in nest['treasures_applied_on_nest']:
+                treasure_id = decoration.get('id')
+                if treasure_id in all_treasures:
+                    treasure_info = all_treasures[treasure_id].copy()
+                    if 'x' in decoration:
+                        treasure_info['x'] = decoration['x']
+                    if 'y' in decoration:
+                        treasure_info['y'] = decoration['y']
+                    nest_treasures.append(treasure_info)
+
         personal_nests.append({
             "user_id": user_id,
             "name": nest.get("name", "Some Bird's Nest"),
@@ -70,7 +93,8 @@ def get_home_page():
             "garden_life": nest.get("garden_life", 0),
             "inspiration": nest.get("inspiration", 0),
             "discord_username": nest.get("discord_username", "Unknown User"), # Add discord username
-            "featured_bird": featured_bird
+            "featured_bird": featured_bird,
+            "treasures": nest_treasures
         })
     
     # Sort nests by songs given, descending
