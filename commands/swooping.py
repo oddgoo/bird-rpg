@@ -5,7 +5,7 @@ from pathlib import Path
 import os
 
 from discord.ext import commands
-from discord import app_commands
+from discord import app_commands, File
 
 from data.models import (
     get_personal_nest, get_common_nest, get_remaining_actions, 
@@ -21,9 +21,9 @@ class Swooping(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.defeat_gifs = {
-            "small child": "https://media1.tenor.com/m/tXwrrX82m8sAAAAd/magpie-australia.gif",
-            "average human on a bike": "https://media1.tenor.com/m/9asisfNB76gAAAAd/bird-attack-viralhog.gif",
-            "bully kid": "https://media1.tenor.com/m/5lHDGVVvRIQAAAAC/birds-attack-all-that.gif"
+            "small child": "static/gifs/small_child.gif",
+            "average human on a bike": "static/gifs/average_human.gif",
+            "bully kid": "static/gifs/bully_kid.gif"
         }
 
     def _record_defeated_human(self, human, blessing_name, blessing_amount):
@@ -94,8 +94,9 @@ class Swooping(commands.Cog):
     )
     @has_birds()
     async def swoop(self, interaction, amount: int):
+        await interaction.response.defer()
         if amount <= 0:
-            await interaction.response.send_message("You need to use at least 1 action to swoop!")
+            await interaction.followup.send("You need to use at least 1 action to swoop!")
             return
 
         try:
@@ -104,7 +105,7 @@ class Swooping(commands.Cog):
             remaining_actions = get_remaining_actions(data, user_id)
             
             if remaining_actions < amount:
-                await interaction.response.send_message(
+                await interaction.followup.send(
                     f"You don't have enough actions! You have {remaining_actions} actions."
                 )
                 return
@@ -118,7 +119,7 @@ class Swooping(commands.Cog):
             
             # Check if human is already defeated
             if human["resilience"] <= 0:
-                await interaction.response.send_message("There are no humans to swoop at right now! The current human has already been defeated.")
+                await interaction.followup.send("There are no humans to swoop at right now! The current human has already been defeated.")
                 return
                 
             damage = amount + bonus_damage
@@ -134,30 +135,34 @@ class Swooping(commands.Cog):
                 if bonus_damage > 0:
                     message.append(f"✨ Your birds' special abilities add **+{bonus_damage}** damage! ✨")
                 message.append(f"They still have **{updated_human['resilience']}/{updated_human['max_resilience']}** resilience left.")
+                
+                actions_left = get_remaining_actions(data, user_id)
+                message.append(f"\n⚡ You have **{actions_left}** {'action' if actions_left == 1 else 'actions'} remaining")
+                await interaction.followup.send("\n".join(message))
             else:
                 blessing_name, blessing_amount = await self._apply_blessing()
-                victory_gif = self.defeat_gifs.get(human['name'], "")
+                victory_gif_path = self.defeat_gifs.get(human['name'])
                 message = [
                     f"🎉 **VICTORY!** 🎉",
                     f"The {human['name']} has been driven away! 🏃‍♂️💨"
                 ]
-                if victory_gif:
-                    message.append(victory_gif)
                 if bonus_damage > 0:
                     message.append(f"✨ Your birds' special abilities added **+{bonus_damage}** damage to the final blow! ✨")
                 message.append(f"🙏 The bird gods are pleased and grant everyone: **{blessing_name}** (**{blessing_amount}**)")
 
-            # Add remaining actions to message
-            actions_left = get_remaining_actions(data, user_id)
-            message.append(f"\n⚡ You have **{actions_left}** {'action' if actions_left == 1 else 'actions'} remaining")
+                actions_left = get_remaining_actions(data, user_id)
+                message.append(f"\n⚡ You have **{actions_left}** {'action' if actions_left == 1 else 'actions'} remaining")
 
-            await interaction.response.send_message("\n".join(message))
+                if victory_gif_path and os.path.exists(victory_gif_path):
+                    await interaction.followup.send("\n".join(message), file=File(victory_gif_path))
+                else:
+                    await interaction.followup.send("\n".join(message))
             
         except Exception as e:
             import traceback
             error_traceback = traceback.format_exc()
             print(f"Error in swoop command: {str(e)}\n{error_traceback}")
-            await interaction.response.send_message(f"Sorry, something went wrong while processing your swoop: `{str(e)}`. Check console for full traceback.")
+            await interaction.followup.send(f"Sorry, something went wrong while processing your swoop: `{str(e)}`. Check console for full traceback.")
 
     @app_commands.command(
         name="current_human",
