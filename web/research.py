@@ -4,8 +4,7 @@ from data.manifest_constants import get_points_needed
 import json
 import os
 
-# Import milestone thresholds from commands.research
-MILESTONE_THRESHOLDS = [30, 75, 150, 300, 600, 1200, 2400, 4800, 6700, 10000]
+from commands.research import MILESTONE_THRESHOLDS
 
 def load_research_entities():
     """Load research entities from JSON file"""
@@ -58,8 +57,8 @@ def get_research_page():
             progress_percent = (points_in_current_tier / tier_size) * 100
         
         # Get the milestones
-        milestones = entity["milestones"][:10]
-        while len(milestones) < 10:
+        milestones = entity["milestones"]
+        while len(milestones) < len(MILESTONE_THRESHOLDS):
             milestones.append("To be discovered")
         
         # Calculate how many milestones are unlocked

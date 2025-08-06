@@ -13,7 +13,7 @@ from config.config import SPECIES_IMAGES_DIR, DATA_PATH
 from utils.logging import log_debug
 
 
-MILESTONE_THRESHOLDS = [30,75,150,300,600,1200,2400,4800,6700,10000]
+MILESTONE_THRESHOLDS = [30,75,150,300,600,1200,2400,4800,6700,10000,15000,21000,28000,38000,50000]
 
 class ResearchCommands(commands.Cog):
     def __init__(self, bot):

@@ -24,10 +24,10 @@
                             <div class="bg-amber-500 h-2.5 rounded-full" style="width: {{ author.progress_percent }}%"></div>
                         </div>
                         <div class="text-xs text-white mt-1 text-right">
-                            {% if author.milestones_unlocked == 10 %}
+                            {% if author.milestones_unlocked == author.milestones|length %}
                             All milestones unlocked!
                             {% else %}
-                            {{ author.milestones_unlocked }} of 10 milestones unlocked
+                            {{ author.milestones_unlocked }} of {{ author.milestones|length }} milestones unlocked
                             {% endif %}
                         </div>
                     </div>
