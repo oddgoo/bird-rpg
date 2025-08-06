@@ -6,7 +6,8 @@ from data.models import (
     get_common_nest, 
     get_total_bird_species, 
     load_bird_species,
-    get_discovered_species_count, get_discovered_species
+    get_discovered_species_count, get_discovered_species,
+    get_discovered_plant_species_count
 )
 from utils.time_utils import get_time_until_reset
 from commands.swooping import Swooping
@@ -103,6 +104,7 @@ def get_home_page():
     # Get discovered species tally
     total_bird_species = get_total_bird_species(data)
     discovered_species_count = get_discovered_species_count(data)
+    discovered_plant_species_count = get_discovered_plant_species_count(data)
     
     discovered_species = []
     for species in get_discovered_species(data):
@@ -139,6 +141,7 @@ def get_home_page():
         time_until_reset=time_until_reset,
         total_bird_species=total_bird_species,
         discovered_species_count=discovered_species_count,
+        discovered_plant_species_count=discovered_plant_species_count,
         discovered_species=discovered_species,
         exploration=exploration,
         current_human=current_human,

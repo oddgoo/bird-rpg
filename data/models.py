@@ -372,6 +372,10 @@ def get_discovered_species_count(data):
     """Return the count of all unique bird species discovered."""
     return len(get_discovered_species(data))
 
+def get_discovered_plant_species_count(data):
+    """Return the count of all unique plant species discovered."""
+    return len(get_discovered_plants(data))
+
 def get_total_bird_species(data):
     """Return the total number of bird species available."""
     # Load all bird species (standard + manifested)
