@@ -63,12 +63,18 @@ class HumanSpawner:
             last_spawn_date != today and current_human.get("resilience", 0) <= 0
         ):
             human_data = self._get_human_data()
+            resilience_tiers = human_data.get("resilience_tiers")
             # In test mode, always use the first human for predictability
             human_type = human_data["human_types"][0] if self.test_mode else random.choice(human_data["human_types"])
+            
+            tier_level = human_type.get("tier_level", 1)
+            resilience = resilience_tiers[tier_level - 1]
+
             current_human = {
                 "name": human_type["name"],
-                "resilience": human_type["resilience"],
-                "max_resilience": human_type["resilience"],
+                "tier_level": tier_level,
+                "resilience": resilience,
+                "max_resilience": resilience,
                 "description": human_type["description"]
             }
             self._save_state(current_human, today)

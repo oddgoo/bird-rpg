@@ -1,63 +1,69 @@
 {
+    "resilience_tiers": [70, 200, 500, 1000],
     "human_types": [
         {
             "name": "small child",
-            "resilience": 35,
+            "tier_level": 1,
             "description": "A small child wandering into the bird realm"
         },
         {
             "name": "bully kid",
-            "resilience": 70,
+            "tier_level": 2,
             "description": "A mischievous kid known for bothering birds"
         },
         {
             "name": "average human on a bike",
-            "resilience": 120,
+            "tier_level": 3,
             "description": "A cyclist passing through the bird realm"
+        },
+        {
+            "name": "a band of grifters",
+            "tier_level": 4,
+            "description": "A suspicious-looking group of grifters have entered the realm"
         }
     ],
     "blessings": [
         {
             "type": "individual_seeds",
             "name": "Seeds for Everyone",
-            "tiers": [10, 20, 30],
+            "tiers": [20, 40, 60, 90],
             "description": "The bird gods grant seeds to each player's nest"
         },
         {
             "type": "common_seeds",
             "name": "Common Nest Seeds",
-            "tiers": [40, 80, 120],
+            "tiers": [80, 160, 240, 500],
             "description": "The bird gods grant seeds to the common nest"
         },
         {
             "type": "inspiration",
             "name": "Divine Inspiration",
-            "tiers": [2, 4, 7],
+            "tiers": [3, 5, 8, 12],
             "description": "The bird gods grant inspiration to all players"
         },
         {
             "type": "garden_growth",
             "name": "Garden Blessing",
-            "tiers": [2, 4, 7],
+            "tiers": [3, 5, 8, 12],
             "description": "The bird gods enhance everyone's garden"
         },
         {
             "type": "bonus_actions",
             "name": "Swift Wings (Bonus Actions)",
-            "tiers": [10, 20, 30],
+            "tiers": [25, 50, 100, 150],
             "description": "The bird gods grant bonus actions to all players"
         },
         {
             "type": "individual_nest_growth",
             "name": "Nest Enhancement",
-            "tiers": [10, 20, 30],
+            "tiers": [25, 50, 100, 200],
             "description": "The bird gods enhance each player's nest"
         },
         {
             "type": "common_nest_growth",
             "name": "Common Nest Enhancement",
-            "tiers": [40, 80, 120],
+            "tiers": [100, 200, 400, 600],
             "description": "The bird gods enhance the common nest"
         }
     ]
-} 
+}

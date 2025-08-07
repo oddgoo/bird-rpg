@@ -23,7 +23,8 @@ class Swooping(commands.Cog):
         self.defeat_gifs = {
             "small child": "static/gifs/small_child.gif",
             "average human on a bike": "static/gifs/average_human.gif",
-            "bully kid": "static/gifs/bully_kid.gif"
+            "bully kid": "static/gifs/bully_kid.gif",
+            "a band of grifters": "static/gifs/a-band-of-grifters.gif"
         }
 
     def _record_defeated_human(self, human, blessing_name, blessing_amount):
@@ -51,19 +52,13 @@ class Swooping(commands.Cog):
             human_data = json.load(f)
             
         blessing = random.choice(human_data["blessings"])
-        # Get tier based on defeated human's max resilience
+        # Get tier based on defeated human's tier_level
         spawner = HumanSpawner()
         state = spawner._get_current_state()
         current_human = state['current_human']
-        max_resilience = current_human["max_resilience"]
-        
-        # Determine tier based on max_resilience ranges instead of exact matches
-        if max_resilience <= 45:
-            tier_index = 0
-        elif max_resilience <= 100:
-            tier_index = 1
-        else:
-            tier_index = 2
+        tier_level = current_human.get("tier_level", 1)
+        tier_index = tier_level - 1
+
         amount = blessing["tiers"][tier_index]
 
         data = load_data()
