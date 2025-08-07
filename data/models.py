@@ -513,15 +513,20 @@ def handle_blessed_egg_hatching(nest, hatched_bird_name):
     multipliers = nest["egg"].get("multipliers", {})
     
     # Find the bird with the most prayers
-    most_prayed_bird = None
+    if not multipliers:
+        return None
+
     max_prayers = 0
+    most_prayed_birds = []
     for bird, prayers in multipliers.items():
         if prayers > max_prayers:
             max_prayers = prayers
-            most_prayed_bird = bird
+            most_prayed_birds = [bird]
+        elif prayers == max_prayers:
+            most_prayed_birds.append(bird)
 
-    # Only preserve multipliers if the hatched bird isn't the most prayed for
-    if hatched_bird_name != most_prayed_bird:
+    # Only preserve multipliers if the hatched bird isn't one of the most prayed for
+    if hatched_bird_name not in most_prayed_birds:
         return multipliers
     
     return None
