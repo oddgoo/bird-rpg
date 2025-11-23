@@ -6,6 +6,7 @@ from utils.time_utils import get_current_date
 from constants import BASE_DAILY_ACTIONS  # Updated import path
 from data.storage import load_manifested_birds, load_manifested_plants
 from config.config import DEBUG
+from data.backup import ensure_daily_backup
 
 def get_personal_nest(data, user_id):
     """Get or create a personal nest for a user"""
@@ -108,6 +109,9 @@ def record_actions(data, user_id, count, action_type=None):
     Record actions used by a user
     action_type can be: 'build', 'sing', 'seed', 'brood'
     """
+    # Trigger daily backup on the first action of the day.
+    ensure_daily_backup()
+
     user_id = str(user_id)
     today = get_current_date()
     
