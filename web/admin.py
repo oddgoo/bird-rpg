@@ -1,5 +1,5 @@
 from flask import render_template, request, redirect, url_for, send_file, session, flash
-from config.config import ADMIN_PASSWORD, NESTS_FILE, LORE_FILE, REALM_LORE_FILE, SPECIES_IMAGES_DIR
+from config.config import ADMIN_PASSWORD, NESTS_FILE, LORE_FILE, REALM_LORE_FILE, SPECIES_IMAGES_DIR, MAX_GARDEN_SIZE
 import requests
 from threading import Thread
 import os
@@ -9,6 +9,8 @@ import urllib.parse
 from datetime import timedelta
 from utils.time_utils import get_australian_time
 from utils.logging import log_debug
+from data.storage import load_data, save_data
+from data.models import get_personal_nest
 
 def admin_routes(app):
     @app.route('/admin/', methods=['GET', 'POST'])
@@ -149,11 +151,82 @@ def admin_routes(app):
             
             # Flash message
             flash("Species image download started in the background. This may take a few minutes. Check the server logs for progress.", 'success')
-            
+
             return redirect(url_for('admin'))
         except Exception as e:
             log_debug(f"Error starting species images download: {e}")
             flash(f"Error starting species images download: {str(e)}", 'error')
+            return redirect(url_for('admin'))
+
+    @app.route('/admin/grant_boon', methods=['POST'])
+    def grant_boon():
+        # Check if authenticated in session
+        if not session.get('admin_authenticated'):
+            return redirect(url_for('admin'))
+
+        try:
+            user_id = request.form.get('user_id', '').strip()
+            boon_type = request.form.get('boon_type')
+            amount = int(request.form.get('amount', 0))
+            apply_to_all = request.form.get('apply_to_all') == 'on'
+
+            if amount <= 0:
+                flash("Amount must be greater than 0", 'error')
+                return redirect(url_for('admin'))
+
+            if not apply_to_all and not user_id:
+                flash("Please provide a user ID or select 'Apply to all players'", 'error')
+                return redirect(url_for('admin'))
+
+            data = load_data()
+            affected_users = []
+
+            if apply_to_all:
+                # Apply to all players
+                user_ids = list(data.get("personal_nests", {}).keys())
+            else:
+                user_ids = [user_id]
+
+            for uid in user_ids:
+                nest = get_personal_nest(data, uid)
+
+                if boon_type == "bonus_actions":
+                    nest["bonus_actions"] = nest.get("bonus_actions", 0) + amount
+                elif boon_type == "seeds":
+                    space_left = nest["twigs"] - nest.get("seeds", 0)
+                    nest["seeds"] = nest.get("seeds", 0) + min(amount, space_left)
+                elif boon_type == "twigs":
+                    nest["twigs"] = nest.get("twigs", 0) + amount
+                elif boon_type == "inspiration":
+                    nest["inspiration"] = nest.get("inspiration", 0) + amount
+                elif boon_type == "garden_size":
+                    current_size = nest.get("garden_size", 0)
+                    nest["garden_size"] = min(current_size + amount, MAX_GARDEN_SIZE)
+
+                affected_users.append(uid)
+
+            save_data(data)
+
+            boon_names = {
+                "bonus_actions": "Bonus Actions",
+                "seeds": "Seeds",
+                "twigs": "Twigs (Nest Capacity)",
+                "inspiration": "Inspiration",
+                "garden_size": "Garden Size"
+            }
+
+            if apply_to_all:
+                flash(f"Granted {amount} {boon_names.get(boon_type, boon_type)} to all {len(affected_users)} players!", 'success')
+            else:
+                flash(f"Granted {amount} {boon_names.get(boon_type, boon_type)} to user {user_id}!", 'success')
+
+            return redirect(url_for('admin'))
+        except ValueError:
+            flash("Invalid amount - please enter a number", 'error')
+            return redirect(url_for('admin'))
+        except Exception as e:
+            log_debug(f"Error granting boon: {e}")
+            flash(f"Error granting boon: {str(e)}", 'error')
             return redirect(url_for('admin'))
 
 def download_species_images_thread():
