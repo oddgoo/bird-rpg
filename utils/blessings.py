@@ -1,5 +1,6 @@
-from copy import deepcopy
 from config.config import MAX_GARDEN_SIZE
+import data.storage as db
+
 
 def get_blessing_amount(max_resilience):
     """Calculate blessing amount based on human difficulty"""
@@ -10,28 +11,31 @@ def get_blessing_amount(max_resilience):
         return tiers[1]
     return tiers[2]
 
-def apply_blessing(nests, blessing_type, amount):
-    """Apply a blessing to all nests"""
-    nests = deepcopy(nests)  # Don't modify the original
-    
+
+async def apply_blessing(blessing_type, amount):
+    """Apply a blessing to all players via DB operations"""
+    players = await db.load_all_players()
+
     if blessing_type == "individual_seeds":
-        for user_id, nest in nests.items():
-            # Check nest capacity
-            space_left = nest["twigs"] - nest.get("seeds", 0)
-            nest["seeds"] = nest.get("seeds", 0) + min(amount, space_left)
+        for player in players:
+            user_id = player["user_id"]
+            space_left = player.get("twigs", 0) - player.get("seeds", 0)
+            add_amount = min(amount, max(0, space_left))
+            if add_amount > 0:
+                await db.increment_player_field(user_id, "seeds", add_amount)
     elif blessing_type == "inspiration":
-        for user_id, nest in nests.items():
-            nest["inspiration"] = nest.get("inspiration", 0) + amount
+        for player in players:
+            await db.increment_player_field(player["user_id"], "inspiration", amount)
     elif blessing_type == "garden_growth":
-        for user_id, nest in nests.items():
-            current_size = nest.get("garden_size", 0)
-            # Ensure we don't exceed MAX_GARDEN_SIZE
-            nest["garden_size"] = min(current_size + amount, MAX_GARDEN_SIZE)
+        for player in players:
+            user_id = player["user_id"]
+            current_size = player.get("garden_size", 0)
+            increase = min(amount, MAX_GARDEN_SIZE - current_size)
+            if increase > 0:
+                await db.increment_player_field(user_id, "garden_size", increase)
     elif blessing_type == "bonus_actions":
-        for user_id, nest in nests.items():
-            nest["bonus_actions"] = nest.get("bonus_actions", 0) + amount
+        for player in players:
+            await db.increment_player_field(player["user_id"], "bonus_actions", amount)
     elif blessing_type == "individual_nest_growth":
-        for user_id, nest in nests.items():
-            nest["twigs"] = nest.get("twigs", 0) + amount
-    
-    return nests
+        for player in players:
+            await db.increment_player_field(player["user_id"], "twigs", amount)

@@ -1,22 +1,13 @@
 import pytest
 import os
-import json
-from pathlib import Path
+
 
 @pytest.fixture(autouse=True)
 def setup_test_environment():
-    # Set up test environment variables
+    """Set up test environment variables. No test_data directory needed with Supabase."""
     os.environ['DEBUG'] = 'True'
     os.environ['DISCORD_TOKEN'] = 'test-token'
-    
-    # Create test data directory
-    test_data_dir = Path('test_data')
-    test_data_dir.mkdir(exist_ok=True)
-    
+    # Prevent real Supabase connections during tests
+    os.environ['SUPABASE_URL'] = 'http://localhost:99999'
+    os.environ['SUPABASE_KEY'] = 'test-key'
     yield
-    
-    # Cleanup
-    if test_data_dir.exists():
-        for file in test_data_dir.glob('*'):
-            file.unlink()
-        test_data_dir.rmdir()

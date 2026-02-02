@@ -1,7 +1,7 @@
 from discord.ext import commands
 from discord import app_commands
 import discord
-from data.storage import load_data, save_data
+import data.storage as db
 from data.models import get_remaining_actions, record_actions
 from utils.logging import log_debug
 from utils.time_utils import get_time_until_reset
@@ -13,7 +13,7 @@ VALID_REGIONS = ['oceania']
 class ExplorationCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        
+
     async def get_random_oceania_location(self):
         """Fetch a random location from Oceania using Wikipedia's API (only the first request)."""
         categories = [
@@ -34,7 +34,7 @@ class ExplorationCommands(commands.Cog):
             "Category:Fiji_geography_stubs",
             "Category:Vanuatu_geography_stubs",
         ]
-        
+
         async with aiohttp.ClientSession() as session:
             category = random.choice(categories)
             log_debug(f"Category: {category}")
@@ -88,33 +88,24 @@ class ExplorationCommands(commands.Cog):
                 await interaction.response.send_message(f"That region isn't available for exploration yet! Currently available: {', '.join(VALID_REGIONS)}")
                 return
 
-            data = load_data()
-
             if amount < 1:
                 await interaction.response.send_message("Please specify a positive number of exploration points to add! 🗺️")
                 return
 
-            remaining_actions = get_remaining_actions(data, interaction.user.id)
+            remaining_actions = await get_remaining_actions(interaction.user.id)
             if remaining_actions <= 0:
                 await interaction.response.send_message(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
                 return
 
-            # Initialize exploration data if it doesn't exist
-            if "exploration" not in data:
-                data["exploration"] = {}
-            if region not in data["exploration"]:
-                data["exploration"][region] = 0
-            
             # Limit amount to remaining actions
             amount = min(amount, remaining_actions)
-            
-            # Add exploration points
-            data["exploration"][region] += amount
-            record_actions(data, interaction.user.id, amount, "explore")
 
-            save_data(data)
-            remaining = get_remaining_actions(data, interaction.user.id)
-            
+            # Add exploration points and record actions
+            new_total = await db.increment_exploration(region, amount)
+            await record_actions(interaction.user.id, amount, "explore")
+
+            remaining = await get_remaining_actions(interaction.user.id)
+
             # Get a random location and create an embed
             location = await self.get_random_oceania_location()
             if location:
@@ -122,7 +113,7 @@ class ExplorationCommands(commands.Cog):
                 log_debug(f"Title: {location['title']}")
                 log_debug(f"Description length: {len(location.get('description', ''))}")
                 log_debug(f"URL: {location['url']}")
-                
+
                 embed = discord.Embed(
                     title=f"📍{location['title']}",
                     description=location.get('description', '')[:495] + ("..." if len(location.get('description', '')) > 500 else ""),
@@ -134,17 +125,16 @@ class ExplorationCommands(commands.Cog):
                 embed.add_field(
                     name="Exploration Summary",
                     value=f"Added {amount} exploration {'point' if amount == 1 else 'points'} to {region}!\n"
-                          f"Total exploration in {region}: {data['exploration'][region]} points\n"
+                          f"Total exploration in {region}: {new_total} points\n"
                           f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today."
                 )
                 await interaction.response.send_message(embed=embed)
             else:
                 await interaction.response.send_message(f"Added {amount} exploration {'point' if amount == 1 else 'points'} to {region}! 🗺️\n"
-                              f"Total exploration in {region}: {data['exploration'][region]} points\n"
+                              f"Total exploration in {region}: {new_total} points\n"
                               f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today.")
         except Exception as e:
             log_debug(f"Error in explore command: {str(e)}")
 
 async def setup(bot):
     await bot.add_cog(ExplorationCommands(bot))
-

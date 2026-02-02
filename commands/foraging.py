@@ -7,8 +7,8 @@ import random
 import math
 import os
 
-from data.storage import load_data, save_data
-from data.models import get_personal_nest, get_remaining_actions, record_actions
+import data.storage as db
+from data.models import get_remaining_actions, record_actions, add_bonus_actions
 from utils.logging import log_debug
 
 def load_treasures():
@@ -38,9 +38,8 @@ class ForagingCommands(commands.Cog):
             await interaction.response.send_message("You must invest at least 1 action to find a treasure! 🗺️", ephemeral=True)
             return
 
-        # Load data and check remaining actions
-        data = load_data()
-        remaining_actions = get_remaining_actions(data, user_id)
+        # Check remaining actions
+        remaining_actions = await get_remaining_actions(user_id)
 
         if remaining_actions < actions:
             await interaction.response.send_message(
@@ -60,10 +59,9 @@ class ForagingCommands(commands.Cog):
                 return
 
             location = select.values[0]
-            
+
             # Record actions used
-            record_actions(data, user_id, 1, "forage")
-            save_data(data)
+            await record_actions(user_id, 1, "forage")
 
             # Calculate foraging time
             b = math.log(3600) / 470
@@ -88,17 +86,14 @@ class ForagingCommands(commands.Cog):
         try:
             await asyncio.sleep(foraging_time)
 
-            data = load_data()
             treasures_data = load_treasures()
             location_treasures = treasures_data[location]
             treasures = [item for item in location_treasures]
             weights = [item["rarityWeight"] for item in location_treasures]
-            
+
             found_treasure = random.choices(treasures, weights=weights, k=1)[0]
 
-            nest = get_personal_nest(data, interaction.user.id)
-            nest["treasures"].append(found_treasure["id"])
-            save_data(data)
+            await db.add_player_treasure(str(interaction.user.id), found_treasure["id"])
 
             embed = discord.Embed(
                 title="🎉 Treasure Found! 🎉",
@@ -134,12 +129,9 @@ class ForagingCommands(commands.Cog):
 
         task_info = self.active_foraging_tasks[user_id]
         task_info["task"].cancel()
-        
+
         # Refund actions
-        data = load_data()
-        nest = get_personal_nest(data, user_id)
-        nest["bonus_actions"] += task_info["actions"]
-        save_data(data)
+        await add_bonus_actions(user_id, task_info["actions"])
 
         del self.active_foraging_tasks[user_id]
         await interaction.response.send_message(f"Foraging cancelled. {task_info['actions']} actions have been refunded.", ephemeral=True)

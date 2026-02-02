@@ -9,118 +9,104 @@ import os
 import json
 
 from config.config import SPECIES_IMAGES_DIR
-from data.storage import load_data, save_data, load_manifested_plants
-from data.models import (
-    get_personal_nest, get_remaining_actions, record_actions
-)
+import data.storage as db
+from data.models import load_plant_species, get_extra_garden_space
 from utils.logging import log_debug
 from utils.time_utils import get_time_until_reset, get_current_date
 
 class GardeningCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        
+
     @app_commands.command(name='plant_new', description='Adopt a new plant in your garden')
     @app_commands.describe(plant_name='Common or scientific name of the plant to plant')
     async def plant_new(self, interaction: discord.Interaction, plant_name: str):
         """Adopt a new plant in your garden"""
         log_debug(f"plant_new called by {interaction.user.id} for plant: {plant_name}")
-        
+
         # Defer the response since this might take a while
         await interaction.response.defer()
-        
-        data = load_data()
-        nest = get_personal_nest(data, interaction.user.id)
-        
-        # Initialize plants array if it doesn't exist
-        if "plants" not in nest:
-            nest["plants"] = []
-            
-        # Process the planting
-        result, error = await self.process_planting(interaction, plant_name, nest)
-        
-        if error:
-            # Send error message only visible to the user
-            await interaction.followup.send(error, ephemeral=True)
-            return
-            
-        # Save data and send success response
-        save_data(data)
-        await self.send_planting_response(interaction, result)
-    
-    async def process_planting(self, interaction, plant_name, nest):
-        """Process planting a new plant with Discord interaction"""
-        # Use the non-async version for the actual logic
-        result, error = self.process_planting_logic(plant_name, nest)
-        return result, error
-        
-    def process_planting_logic(self, plant_name, nest):
-        """Process planting a new plant - core logic without Discord dependencies"""
+
+        user_id = interaction.user.id
+        player = await db.load_player(user_id)
+
         # Load plant species data (including manifested plants)
-        plant_species = self.load_plant_species()
-        
+        plant_species = await load_plant_species()
+
         # Find the plant by name (common or scientific)
         plant = None
         for p in plant_species:
             if p["commonName"].lower() == plant_name.lower() or p["scientificName"].lower() == plant_name.lower():
                 plant = p
                 break
-                
+
         if not plant:
-            return None, f"Plant '{plant_name}' not found. Please check the name and try again."
-            
+            await interaction.followup.send(
+                f"Plant '{plant_name}' not found. Please check the name and try again.",
+                ephemeral=True
+            )
+            return
+
         # Check if user has enough resources
-        if nest["seeds"] < plant["seedCost"]:
-            return None, f"You need {plant['seedCost']} seeds to plant this {plant['commonName']}. You only have {nest['seeds']} seeds. 🌰"
-            
-        if nest.get("inspiration", 0) < plant["inspirationCost"]:
-            return None, f"You need {plant['inspirationCost']} inspiration to plant this {plant['commonName']}. You only have {nest.get('inspiration', 0)} inspiration. 💡"
-            
+        if player["seeds"] < plant["seedCost"]:
+            await interaction.followup.send(
+                f"You need {plant['seedCost']} seeds to plant this {plant['commonName']}. You only have {player['seeds']} seeds. 🌰",
+                ephemeral=True
+            )
+            return
+
+        if player.get("inspiration", 0) < plant["inspirationCost"]:
+            await interaction.followup.send(
+                f"You need {plant['inspirationCost']} inspiration to plant this {plant['commonName']}. You only have {player.get('inspiration', 0)} inspiration. 💡",
+                ephemeral=True
+            )
+            return
+
         # Calculate total garden space used by existing plants
+        existing_plants = await db.get_player_plants(user_id)
         total_space_used = 0
-        for existing_plant in nest.get("plants", []):
+        for existing_plant in existing_plants:
             # Find the plant species data for each planted plant
             plant_found = False
-            # Check in main plant species
             for species in plant_species:
-                if species["commonName"] == existing_plant["commonName"]:
+                if species["commonName"] == existing_plant["common_name"]:
                     total_space_used += species["sizeCost"]
                     plant_found = True
                     break
-            
+
             if not plant_found:
                 # Default to 1 if plant data not found
                 total_space_used += 1
-        
-        space_remaining = nest.get("garden_size", 0) - total_space_used
-        
+
+        garden_size = player.get("garden_size", 0)
+        space_remaining = garden_size - total_space_used
+
         # Check if there's enough space for the new plant
         if space_remaining < plant["sizeCost"]:
-            return None, f"You need {plant['sizeCost']} garden space for this {plant['commonName']}. You only have {space_remaining} space remaining out of {nest.get('garden_size', 0)} total garden size. 🌱"
-            
+            await interaction.followup.send(
+                f"You need {plant['sizeCost']} garden space for this {plant['commonName']}. You only have {space_remaining} space remaining out of {garden_size} total garden size. 🌱",
+                ephemeral=True
+            )
+            return
+
         # Consume resources
-        nest["seeds"] -= plant["seedCost"]
-        nest["inspiration"] -= plant["inspirationCost"]
-        # Note: garden_size is not reduced as it's a limit, not a consumable resource
-        
-        # Add plant to nest - only store the common name and planted date
-        new_plant = {
-            "commonName": plant["commonName"],
-            "scientificName": plant["scientificName"],
-            "planted_date": get_current_date()
-        }
-        
-        nest["plants"].append(new_plant)
-        
+        await db.increment_player_field(user_id, "seeds", -plant["seedCost"])
+        await db.increment_player_field(user_id, "inspiration", -plant["inspirationCost"])
+
+        # Add plant to garden
+        await db.add_plant(user_id, plant["commonName"], plant["scientificName"], get_current_date())
+
         # Calculate new space remaining after planting
         space_remaining = space_remaining - plant["sizeCost"]
-        
-        return (plant, nest, space_remaining), None  # Return the full plant data and space remaining for the response
-        
-    async def send_planting_response(self, interaction, result):
+
+        # Re-read player for updated resource values
+        player = await db.load_player(user_id)
+
+        # Send success response
+        await self.send_planting_response(interaction, plant, player, space_remaining)
+
+    async def send_planting_response(self, interaction, plant, player, space_remaining):
         """Send a response for successful planting"""
-        plant, nest, space_remaining = result
-        
         # Fetch image path and create embed
         image_path = self.get_plant_image_path(plant['scientificName'])
         embed = discord.Embed(
@@ -128,172 +114,152 @@ class GardeningCommands(commands.Cog):
             description=f"You've planted a **{plant['commonName']}** (*{plant['scientificName']}*) in your garden!",
             color=discord.Color.green()
         )
-        
+
         embed.add_field(
             name="Effect",
             value=plant['effect'],
             inline=False
         )
-        
+
         embed.add_field(
             name="Resources Remaining",
-            value=f"Seeds: {nest['seeds']}\nInspiration: {nest['inspiration']}\nGarden Space: {space_remaining}/{nest['garden_size']} remaining",
+            value=f"Seeds: {player['seeds']}\nInspiration: {player['inspiration']}\nGarden Space: {space_remaining}/{player['garden_size']} remaining",
             inline=False
         )
-        
+
         embed.add_field(
             name="View Garden",
             value=f"[Click Here](https://bird-rpg.onrender.com/user/{interaction.user.id})",
             inline=False
         )
-        
+
         # Handle image attachment if it exists
         if os.path.exists(image_path):
             # Create a safe filename for the attachment
             filename = f"{urllib.parse.quote(plant['scientificName'])}.jpg"
-                
+
             # Create the file attachment
             file = discord.File(image_path, filename=filename)
             embed.set_image(url=f"attachment://{filename}")
-            
+
             await interaction.followup.send(file=file, embed=embed)
         else:
             # If image doesn't exist, send embed without image
             await interaction.followup.send(embed=embed)
-        
+
     def get_plant_image_path(self, scientific_name):
         """Get the plant image file path from the species_images directory"""
         # All images are stored in the species_images directory
         return os.path.join(SPECIES_IMAGES_DIR, f"{urllib.parse.quote(scientific_name)}.jpg")
-        
-    def load_plant_species(self):
-        """Load plant species from the JSON file and include manifested plants"""
-        # Use the updated function from data/models.py
-        from data.models import load_plant_species as models_load_plant_species
-        return models_load_plant_species()
-        
+
     @app_commands.command(name='plant_compost', description='Give back a plant for 80% of its cost')
     @app_commands.describe(plant_name='Common or scientific name of the plant you want to compost')
     async def plant_compost(self, interaction: discord.Interaction, plant_name: str):
         """Give back a plant for 80% of its cost"""
         log_debug(f"plant_compost called by {interaction.user.id} for plant: {plant_name}")
-        
+
         # Defer the response since this might take a while
         await interaction.response.defer()
-        
-        data = load_data()
-        nest = get_personal_nest(data, interaction.user.id)
-        
-        # Check if plants array exists
-        if "plants" not in nest or not nest["plants"]:
+
+        user_id = interaction.user.id
+        existing_plants = await db.get_player_plants(user_id)
+
+        # Check if plants exist
+        if not existing_plants:
             await interaction.followup.send("You don't have any plants in your garden to compost.", ephemeral=True)
             return
-            
-        # Process the composting
-        result, error = await self.process_composting(interaction, plant_name, nest)
-        
-        if error:
-            # Send error message only visible to the user
-            await interaction.followup.send(error, ephemeral=True)
-            return
-            
-        # Save data and send success response
-        save_data(data)
-        await self.send_composting_response(interaction, result)
-    
-    async def process_composting(self, interaction, plant_name, nest):
-        """Process composting a plant with Discord interaction"""
-        # Use the non-async version for the actual logic
-        result, error = self.process_composting_logic(plant_name, nest)
-        return result, error
-        
-    def process_composting_logic(self, plant_name, nest):
-        """Process composting a plant - core logic without Discord dependencies"""
-        # Load plant species data (including manifested plants)
-        plant_species = self.load_plant_species()
-        
+
         # Find the plant in user's garden
         plant_to_compost = None
-        plant_index = -1
-        
-        for i, p in enumerate(nest["plants"]):
-            if p["commonName"].lower() == plant_name.lower() or p["scientificName"].lower() == plant_name.lower():
+        for p in existing_plants:
+            if p["common_name"].lower() == plant_name.lower() or p["scientific_name"].lower() == plant_name.lower():
                 plant_to_compost = p
-                plant_index = i
                 break
-                
+
         if plant_to_compost is None:
-            return None, f"You don't have a plant named '{plant_name}' in your garden. Please check the name and try again."
-            
+            await interaction.followup.send(
+                f"You don't have a plant named '{plant_name}' in your garden. Please check the name and try again.",
+                ephemeral=True
+            )
+            return
+
+        # Load plant species data (including manifested plants)
+        plant_species = await load_plant_species()
+
         # Find the plant species data
         plant_data = None
         for p in plant_species:
-            if p["commonName"].lower() == plant_to_compost["commonName"].lower() or p["scientificName"].lower() == plant_to_compost["scientificName"].lower():
+            if p["commonName"].lower() == plant_to_compost["common_name"].lower() or p["scientificName"].lower() == plant_to_compost["scientific_name"].lower():
                 plant_data = p
                 break
-                
+
         if not plant_data:
-            return None, f"Error: Could not find data for plant '{plant_name}'."
-            
+            await interaction.followup.send(
+                f"Error: Could not find data for plant '{plant_name}'.",
+                ephemeral=True
+            )
+            return
+
         # Calculate refund (80% of original cost)
         seed_refund = int(plant_data["seedCost"] * 0.8)
         inspiration_refund = int(plant_data["inspirationCost"] * 0.8)
-        
-        # Add refund to user's resources
-        nest["seeds"] += seed_refund
-        nest["inspiration"] = nest.get("inspiration", 0) + inspiration_refund
-        
+
         # Remove plant from garden
-        removed_plant = nest["plants"].pop(plant_index)
-        
+        await db.remove_plant_by_name(user_id, plant_to_compost["common_name"])
+
+        # Add refund to user's resources
+        await db.increment_player_field(user_id, "seeds", seed_refund)
+        await db.increment_player_field(user_id, "inspiration", inspiration_refund)
+
+        # Re-read player for updated resource values
+        player = await db.load_player(user_id)
+
         # Calculate garden space remaining after composting
+        remaining_plants = await db.get_player_plants(user_id)
         total_space_used = 0
-        for existing_plant in nest.get("plants", []):
-            # Find the plant species data for each planted plant
+        for existing_plant in remaining_plants:
             plant_found = False
-            # Check in main plant species
             for species in plant_species:
-                if species["commonName"] == existing_plant["commonName"]:
+                if species["commonName"] == existing_plant["common_name"]:
                     total_space_used += species["sizeCost"]
                     plant_found = True
                     break
-            
+
             if not plant_found:
-                # Default to 1 if plant data not found
                 total_space_used += 1
-        
-        space_remaining = nest.get("garden_size", 0) - total_space_used
-        
-        return (removed_plant, plant_data, seed_refund, inspiration_refund, nest, space_remaining), None
-        
-    async def send_composting_response(self, interaction, result):
+
+        garden_size = player.get("garden_size", 0)
+        space_remaining = garden_size - total_space_used
+
+        # Send success response
+        await self.send_composting_response(interaction, plant_to_compost, plant_data, seed_refund, inspiration_refund, player, space_remaining)
+
+    async def send_composting_response(self, interaction, removed_plant, plant_data, seed_refund, inspiration_refund, player, space_remaining):
         """Send a response for successful composting"""
-        removed_plant, plant_data, seed_refund, inspiration_refund, nest, space_remaining = result
-        
         embed = discord.Embed(
             title="🧺 Plant Composted",
-            description=f"You've composted your **{removed_plant['commonName']}** (*{removed_plant['scientificName']}*) and received a partial refund.",
+            description=f"You've composted your **{removed_plant['common_name']}** (*{removed_plant['scientific_name']}*) and received a partial refund.",
             color=discord.Color.gold()
         )
-        
+
         embed.add_field(
             name="Refund Received",
             value=f"Seeds: +{seed_refund} (80% of {plant_data['seedCost']})\nInspiration: +{inspiration_refund} (80% of {plant_data['inspirationCost']})",
             inline=False
         )
-        
+
         embed.add_field(
             name="Resources Remaining",
-            value=f"Seeds: {nest['seeds']}\nInspiration: {nest['inspiration']}\nGarden Space: {space_remaining}/{nest['garden_size']} remaining",
+            value=f"Seeds: {player['seeds']}\nInspiration: {player['inspiration']}\nGarden Space: {space_remaining}/{player['garden_size']} remaining",
             inline=False
         )
-        
+
         embed.add_field(
             name="View Garden",
             value=f"[Click Here](https://bird-rpg.onrender.com/user/{interaction.user.id})",
             inline=False
         )
-        
+
         await interaction.followup.send(embed=embed)
 
 async def setup(bot):

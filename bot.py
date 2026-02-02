@@ -5,7 +5,6 @@ from discord import app_commands
 from config.config import DEBUG
 from web.server import start_server
 from utils.logging import log_debug
-from data.storage import load_data, save_data
 from commands.admin_utils import update_discord_usernames
 import asyncio
 
@@ -31,7 +30,7 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
 async def on_ready():
     print(f'Bot is ready. Logged in as {bot.user.name}')
     print(f'Debug mode: {"ON" if DEBUG else "OFF"}')
-    
+
     # Sync slash commands
     try:
         print("Syncing slash commands...")
@@ -39,32 +38,26 @@ async def on_ready():
         print("Slash commands synced successfully!")
     except Exception as e:
         print(f"Failed to sync slash commands: {e}")
-    
+
     # Print loaded commands after bot is ready
     print("\nLoaded commands:")
     for command in bot.tree.get_commands():
         print(f"/{command.name}")
-    
-    # Run data migration on startup
+
+    # Verify Supabase connectivity
     try:
-        data = load_data()
-        
-        # Migrate old song data format to new format
-        if "daily_songs" in data:
-            for date, songs in data["daily_songs"].items():
-                if isinstance(songs, list):
-                    print(f"Migrating songs data for {date}...")
-                    new_format = {}
-                    for user_id in songs:
-                        new_format[user_id] = ["migration"]
-                    data["daily_songs"][date] = new_format
-                    
-            save_data(data)
-            print("Song data migration completed!")
+        from data.db import get_async_client
+        sb = await get_async_client()
+        res = sb.table("common_nest").select("id").limit(1).execute()
+        print(f"Supabase connection verified. Common nest exists: {bool(res.data)}")
+        if not res.data:
+            # Initialize common nest singleton
+            sb.table("common_nest").insert({"id": 1, "twigs": 0, "seeds": 0}).execute()
+            print("Initialized common nest in Supabase.")
     except Exception as e:
-        print(f"Error during data migration: {e}")
-    
-    # Update Discord usernames in nests.json
+        print(f"Supabase connection error: {e}")
+
+    # Update Discord usernames
     try:
         print("Updating Discord usernames...")
         updated, errors, not_found = await update_discord_usernames(bot)
@@ -94,7 +87,7 @@ async def load_cogs(bot):
         'commands.weather',
         'commands.research',
         'commands.manifest',
-        'commands.admin_utils' # Added admin utilities cog
+        'commands.admin_utils'
     ]
 
 
@@ -108,10 +101,10 @@ async def load_cogs(bot):
 async def main():
     # Load cogs
     await load_cogs(bot)
-    
+
     # Start web server
     server_thread = start_server()
-    
+
     # Start the bot
     try:
         await bot.start(os.getenv('DISCORD_TOKEN'))

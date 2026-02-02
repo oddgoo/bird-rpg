@@ -9,3 +9,4 @@ Jinja2
 pytz
 aiohttp
 requests
+supabase

@@ -4,8 +4,8 @@ import discord
 import json
 import os
 
-from data.storage import load_data, save_data
-from data.models import get_personal_nest, get_total_chicks, get_extra_bird_space, record_actions, add_bonus_actions
+import data.storage as db
+from data.models import get_extra_bird_space, add_bonus_actions
 from utils.logging import log_debug
 from config.config import MAX_BIRDS_PER_NEST
 from commands.foraging import load_treasures
@@ -23,64 +23,55 @@ class SocialCommands(commands.Cog):
         try:
             # Don't allow giving birds to yourself
             if target_user.id == interaction.user.id:
-                await interaction.response.send_message("❌ You can't give a bird to yourself!")
+                await interaction.response.send_message("\u274C You can't give a bird to yourself!")
                 return
 
             # Don't allow giving birds to bots
             if target_user.bot:
-                await interaction.response.send_message("❌ You can't give birds to bots!")
+                await interaction.response.send_message("\u274C You can't give birds to bots!")
                 return
 
             log_debug(f"entrust called by {interaction.user.id} giving '{bird_name}' to {target_user.id}")
-            data = load_data()
 
-            # Get both nests
-            giver_nest = get_personal_nest(data, interaction.user.id)
-            receiver_nest = get_personal_nest(data, target_user.id)
+            user_id = str(interaction.user.id)
+            target_id = str(target_user.id)
 
-            # Find the bird in giver's nest
-            bird_to_give = None
-            for i, bird in enumerate(giver_nest.get("chicks", [])):
-                if bird["commonName"].lower() == bird_name.lower():
-                    bird_to_give = giver_nest["chicks"].pop(i)
-                    break
+            # Check if receiver's nest is at the limit before removing bird
+            extra_bird_space = await get_extra_bird_space()
+            max_birds = MAX_BIRDS_PER_NEST + extra_bird_space
+            receiver_birds = await db.get_player_birds(target_id)
 
-            if not bird_to_give:
-                await interaction.response.send_message(f"❌ You don't have a {bird_name} in your nest!")
+            if len(receiver_birds) >= max_birds:
+                await interaction.response.send_message(f"\u274C {target_user.display_name}'s nest is already full! They have reached the limit of {max_birds} birds.")
                 return
 
-            # Get extra bird space from research progress
-            extra_bird_space = get_extra_bird_space()
-            max_birds = MAX_BIRDS_PER_NEST + extra_bird_space
-            
-            # Check if receiver's nest is at the limit
-            if get_total_chicks(receiver_nest) >= max_birds:
-                # Put the bird back in the giver's nest
-                giver_nest["chicks"].append(bird_to_give)
-                await interaction.response.send_message(f"❌ {target_user.display_name}'s nest is already full! They have reached the limit of {max_birds} birds.")
+            # Remove bird from giver's nest
+            removed_bird = await db.remove_bird_by_name(user_id, bird_name)
+            if not removed_bird:
+                await interaction.response.send_message(f"\u274C You don't have a {bird_name} in your nest!")
                 return
 
             # Add bird to receiver's nest
-            if "chicks" not in receiver_nest:
-                receiver_nest["chicks"] = []
-            receiver_nest["chicks"].append(bird_to_give)
+            await db.add_bird(target_id, removed_bird["common_name"], removed_bird["scientific_name"])
 
-            save_data(data)
+            # Get updated bird counts for the embed
+            giver_birds = await db.get_player_birds(user_id)
+            receiver_birds = await db.get_player_birds(target_id)
 
             # Create embed for success message
             embed = discord.Embed(
-                title="🤝 Bird Entrusted",
-                description=f"**{bird_to_give['commonName']}** (*{bird_to_give['scientificName']}*) has been given to {target_user.mention}!",
+                title="\U0001F91D Bird Entrusted",
+                description=f"**{removed_bird['common_name']}** (*{removed_bird['scientific_name']}*) has been given to {target_user.mention}!",
                 color=discord.Color.green()
             )
             embed.add_field(
                 name="From",
-                value=f"{interaction.user.display_name}'s Nest ({len(giver_nest['chicks'])} birds remaining)",
+                value=f"{interaction.user.display_name}'s Nest ({len(giver_birds)} birds remaining)",
                 inline=True
             )
             embed.add_field(
                 name="To",
-                value=f"{target_user.display_name}'s Nest (now has {len(receiver_nest['chicks'])} birds)",
+                value=f"{target_user.display_name}'s Nest (now has {len(receiver_birds)} birds)",
                 inline=True
             )
 
@@ -88,7 +79,7 @@ class SocialCommands(commands.Cog):
 
         except Exception as e:
             log_debug(f"Error in entrust command: {e}")
-            await interaction.response.send_message("❌ Usage: /entrust <bird_name> <@user>")
+            await interaction.response.send_message("\u274C Usage: /entrust <bird_name> <@user>")
 
     @app_commands.command(name='regurgitate', description='Give some of your bonus actions to another user')
     @app_commands.describe(
@@ -99,45 +90,48 @@ class SocialCommands(commands.Cog):
         try:
             # Don't allow giving actions to yourself
             if target_user.id == interaction.user.id:
-                await interaction.response.send_message("❌ You can't regurgitate actions to yourself!")
+                await interaction.response.send_message("\u274C You can't regurgitate actions to yourself!")
                 return
 
             if amount <= 0:
-                await interaction.response.send_message("❌ You must regurgitate a positive amount of actions!")
+                await interaction.response.send_message("\u274C You must regurgitate a positive amount of actions!")
                 return
 
             log_debug(f"regurgitate called by {interaction.user.id} giving {amount} bonus_actions to {target_user.id}")
-            data = load_data()
 
-            # Get both nests
-            giver_nest = get_personal_nest(data, interaction.user.id)
-            receiver_nest = get_personal_nest(data, target_user.id)
+            user_id = str(interaction.user.id)
+            target_id = str(target_user.id)
+
+            # Load giver's player data to check bonus actions
+            giver_player = await db.load_player(user_id)
 
             # Check if giver has enough bonus actions
-            if giver_nest.get("bonus_actions", 0) < amount:
-                await interaction.response.send_message(f"❌ You don't have enough bonus actions! You only have {giver_nest.get('bonus_actions', 0)}.")
+            if giver_player.get("bonus_actions", 0) < amount:
+                await interaction.response.send_message(f"\u274C You don't have enough bonus actions! You only have {giver_player.get('bonus_actions', 0)}.")
                 return
 
-            # Transfer bonus actions
-            giver_nest["bonus_actions"] = giver_nest.get("bonus_actions", 0) - amount
-            add_bonus_actions(data, target_user.id, amount) # Uses the existing function from models.py
+            # Transfer bonus actions: decrement giver, increment receiver
+            await db.increment_player_field(user_id, "bonus_actions", -amount)
+            await add_bonus_actions(target_id, amount)
 
-            save_data(data)
+            # Reload both players for the embed display
+            giver_player = await db.load_player(user_id)
+            receiver_player = await db.load_player(target_id)
 
             # Create embed for success message
             embed = discord.Embed(
-                title="❤️ Actions Regurgitated",
+                title="\u2764\uFE0F Actions Regurgitated",
                 description=f"You have successfully given **{amount} bonus action(s)** to {target_user.mention}!",
                 color=discord.Color.magenta()
             )
             embed.add_field(
                 name="From",
-                value=f"{interaction.user.display_name} (now has {giver_nest.get('bonus_actions', 0)} bonus actions)",
+                value=f"{interaction.user.display_name} (now has {giver_player.get('bonus_actions', 0)} bonus actions)",
                 inline=True
             )
             embed.add_field(
                 name="To",
-                value=f"{target_user.display_name} (now has {receiver_nest.get('bonus_actions', 0)} bonus actions)",
+                value=f"{target_user.display_name} (now has {receiver_player.get('bonus_actions', 0)} bonus actions)",
                 inline=True
             )
 
@@ -145,7 +139,7 @@ class SocialCommands(commands.Cog):
 
         except Exception as e:
             log_debug(f"Error in regurgitate command: {e}")
-            await interaction.response.send_message(f"❌ An error occurred. Usage: /regurgitate <@user> <amount>")
+            await interaction.response.send_message(f"\u274C An error occurred. Usage: /regurgitate <@user> <amount>")
 
     @app_commands.command(name='gift_treasure', description='Give a treasure to another user')
     @app_commands.describe(treasure_name='The name of the treasure to gift', target_user='The user to give the treasure to')
@@ -153,45 +147,44 @@ class SocialCommands(commands.Cog):
         if target_user.id == interaction.user.id:
             await interaction.response.send_message("You can't gift a treasure to yourself!", ephemeral=True)
             return
-        # if target_user.bot:
-        #     await interaction.response.send_message("You can't gift treasures to bots!", ephemeral=True)
-        #     return
 
-        data = load_data()
-        giver_nest = get_personal_nest(data, interaction.user.id)
-        
-        if not giver_nest.get("treasures"):
+        user_id = str(interaction.user.id)
+        target_id = str(target_user.id)
+
+        # Get giver's treasures from DB
+        giver_treasures = await db.get_player_treasures(user_id)
+
+        if not giver_treasures:
             await interaction.response.send_message("You don't have any treasures to gift!", ephemeral=True)
             return
 
         treasures_data = load_treasures()
         all_treasures = {t["id"]: t for loc in treasures_data.values() for t in loc}
 
-        # Find the treasure by name
+        # Find the treasure by name in the giver's inventory
         found_treasure_id = None
-        treasure_index = -1
-        for i, t_id in enumerate(giver_nest["treasures"]):
+        for treasure_row in giver_treasures:
+            t_id = treasure_row["treasure_id"]
             if all_treasures.get(t_id, {}).get("name", "").lower() == treasure_name.lower():
                 found_treasure_id = t_id
-                treasure_index = i
                 break
-        
+
         if not found_treasure_id:
             await interaction.response.send_message(f"Treasure '{treasure_name}' not found in your inventory.", ephemeral=True)
             return
 
         # Remove treasure from giver's inventory
-        treasure_id = giver_nest["treasures"].pop(treasure_index)
-        
-        receiver_nest = get_personal_nest(data, target_user.id)
-        if "treasures" not in receiver_nest:
-            receiver_nest["treasures"] = []
-        receiver_nest["treasures"].append(treasure_id)
-        save_data(data)
+        removed = await db.remove_player_treasure(user_id, found_treasure_id)
+        if not removed:
+            await interaction.response.send_message(f"Failed to remove treasure from your inventory.", ephemeral=True)
+            return
 
-        treasure_info = all_treasures.get(treasure_id)
+        # Add treasure to receiver's inventory
+        await db.add_player_treasure(target_id, found_treasure_id)
+
+        treasure_info = all_treasures.get(found_treasure_id)
         embed = discord.Embed(
-            title="🎁 Treasure Gifted!",
+            title="\U0001F381 Treasure Gifted!",
             description=f"{interaction.user.mention} has gifted a **{treasure_info['name']}** to {target_user.mention}!",
             color=discord.Color.blue()
         )

@@ -25,9 +25,21 @@ pytest ./tests/test_manifest.py
 
 # Run a specific test
 pytest ./tests/test_manifest.py::test_function_name
+
+# Migrate JSON data to Supabase (one-time)
+python scripts/migrate_to_supabase.py
 ```
 
 Set `DEBUG=true` in `.env` to enable debug commands and template auto-reload.
+
+### Environment Variables
+
+Required in `.env`:
+- `DISCORD_TOKEN` - Discord bot token
+- `SUPABASE_URL` - Supabase project URL (e.g. `https://your-project.supabase.co`)
+- `SUPABASE_KEY` - Supabase anon/public key
+- `ADMIN_PASSWORD` - Password for web admin panel
+- `DEBUG` - Set to `true` for debug mode (optional)
 
 ## Architecture
 
@@ -37,29 +49,48 @@ Set `DEBUG=true` in `.env` to enable debug commands and template auto-reload.
 
 **Web**: Flask routes in `web/server.py`, templates in `templates/` (Jinja2), static assets in `static/`. `templates/base.html` provides the layout with a mystical/papyrus aesthetic.
 
-**Data storage**: JSON files stored at `config.config.DATA_PATH` (defaults to `./bird-rpg`, uses `/var/data/bird-rpg` if available). Core files:
-- `nests.json` - player data (nests, birds, gardens, resources)
-- `lore.json` - player memoirs
-- `manifested_birds.json` / `manifested_plants.json` - community-created species
-- `research_progress.json` - research system state
+**Data storage**: Supabase (PostgreSQL) via the `supabase-py` library. All game state is stored in ~20 normalized tables (players, player_birds, eggs, daily_actions, etc.).
 
-Always use helpers in `data/storage.py` (`load_data`, `save_data`, etc.) instead of writing JSON directly.
+- `data/db.py` - Supabase client singleton (`get_sync_client()` for Flask, `get_async_client()` for Discord commands)
+- `data/storage.py` - All database operations as async functions (with `_sync` suffixed variants for Flask routes)
+- `data/models.py` - Game logic functions (async) that call storage.py
 
-**Backups**: `data/backup.py` runs daily on first action, copies key JSONs to `DATA_PATH/backups`, rotates to keep 10 newest.
+Reference data files (read-only, bundled with code):
+- `data/bird_species.json` - Base bird species catalog
+- `data/plant_species.json` - Base plant species catalog
+- `data/treasures.json` - Treasure/sticker items
+- `data/human_entities.json` - Human spawner data
+- `data/research_entities.json` - Research system config
+- `data/realm_lore.json` - Realm narrative messages
 
-**Configuration**: `config/config.py` holds paths, limits (MAX_BIRDS_PER_NEST, MAX_GARDEN_SIZE), and environment variables. Game constants in `constants.py` and `data/constants.py`.
+**Configuration**: `config/config.py` holds limits (MAX_BIRDS_PER_NEST, MAX_GARDEN_SIZE), Supabase connection config, and environment variables. Game constants in `constants.py` and `data/constants.py`.
+
+## Database Schema
+
+Schema SQL is at `scripts/schema.sql`. Key tables:
+- `players` - Player data (twigs, seeds, inspiration, etc.)
+- `player_birds` / `player_plants` - Birds and plants owned by players
+- `common_nest` - Shared community nest (singleton)
+- `eggs` / `egg_multipliers` / `egg_brooders` - Egg incubation system
+- `daily_actions` / `daily_songs` / `daily_brooding` - Daily activity tracking
+- `manifested_birds` / `manifested_plants` - Community-created species
+- `research_progress` / `exploration` - Progression systems
+
+RPC functions (`increment_common_nest`, `increment_player_field`) provide atomic operations.
 
 ## Key Patterns
 
+- **Async/sync split**: Discord commands use async DB functions; Flask routes use `_sync` suffixed variants
+- **Atomic operations**: Use `db.increment_player_field()` / `db.increment_common_nest()` (RPC calls) instead of read-modify-write for numeric fields
+- **No load-everything pattern**: Each command makes targeted DB calls (SELECT/INSERT/UPDATE) instead of loading all data
 - Slash commands auto-sync on bot startup
 - Use `utils.logging.log_debug` for debug output
 - Time functions in `utils/time_utils.py` use Australian timezone
-- Data migrations run on startup in `bot.py` - add safe migrations for schema changes
 - `templates/help.html` is the authoritative user-facing command guide - update when gameplay changes
 
 ## Testing
 
-Tests in `tests/` use pytest. The `conftest.py` sets up test environment with DEBUG mode and creates isolated test_data directory. Prefer targeted tests near changed logic.
+Tests in `tests/` use pytest with pytest-asyncio for async tests. Tests mock the Supabase client via `unittest.mock.AsyncMock` on `data.storage` functions. Prefer targeted tests near changed logic.
 
 ## Workflow Rules
 

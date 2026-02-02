@@ -21,6 +21,10 @@ ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'godbird')  # Default password if n
 os.makedirs(DATA_PATH, exist_ok=True)
 os.makedirs(SPECIES_IMAGES_DIR, exist_ok=True)
 
+# Supabase configuration
+SUPABASE_URL = os.getenv('SUPABASE_URL', '')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY', '')
+
 # Game limits
 MAX_BIRDS_PER_NEST = 45  # Maximum number of birds a user can have
 MAX_GARDEN_SIZE = 45     # Maximum garden size a user can have

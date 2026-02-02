@@ -1,184 +1,824 @@
+"""
+Storage layer: all database operations via Supabase.
+
+Async functions (used by Discord commands) and sync variants (suffixed _sync, used by Flask routes).
+Reference data loaders (bird_species.json, plant_species.json, etc.) remain as local JSON reads.
+"""
+
 import os
 import json
-from config.config import NESTS_FILE, LORE_FILE, REALM_LORE_FILE, DATA_PATH
 from utils.logging import log_debug
+from config.config import DATA_PATH
 
-def load_data():
-    try:
-        if os.path.exists(NESTS_FILE):
-            with open(NESTS_FILE, 'r') as f:
-                data = json.load(f)
-                log_debug("Data loaded successfully")
-                return data
-        log_debug("No existing data, creating new")
-        default_data = {
-            "personal_nests": {},
-            "common_nest": {"twigs": 0, "seeds": 0},
-            "daily_actions": {},
-            "daily_songs": {}
-        }
-        save_data(default_data)
-        return default_data
-    except Exception as e:
-        log_debug(f"Error loading data: {e}")
-        raise
-
-def save_data(data):
-    try:
-        with open(NESTS_FILE, 'w') as f:
-            json.dump(data, f, indent=2)
-        log_debug("Data saved successfully")
-    except Exception as e:
-        log_debug(f"Error saving data: {e}")
-        raise
-
-def load_lore():
-    try:
-        if os.path.exists(LORE_FILE):
-            with open(LORE_FILE, 'r') as f:
-                data = json.load(f)
-                log_debug("Lore data loaded successfully")
-                return data
-        log_debug("No existing lore data, creating new")
-        default_data = {
-            "memoirs": []
-        }
-        save_lore(default_data)
-        return default_data
-    except Exception as e:
-        log_debug(f"Error loading lore data: {e}")
-        raise
-
-def save_lore(data):
-    try:
-        with open(LORE_FILE, 'w') as f:
-            json.dump(data, f, indent=4)
-        log_debug("Lore data saved successfully")
-    except Exception as e:
-        log_debug(f"Error saving lore data: {e}")
-        raise
-
-def load_realm_lore():
-    try:
-        if os.path.exists(REALM_LORE_FILE):
-            with open(REALM_LORE_FILE, 'r') as f:
-                data = json.load(f)
-                log_debug("Realm lore data loaded successfully")
-                return data
-        log_debug("No existing realm lore data, creating new")
-        default_data = {
-            "messages": []
-        }
-        save_realm_lore(default_data)
-        return default_data
-    except Exception as e:
-        log_debug(f"Error loading realm lore data: {e}")
-        raise
-
-def save_realm_lore(data):
-    try:
-        with open(REALM_LORE_FILE, 'w') as f:
-            json.dump(data, f, indent=4)
-        log_debug("Realm lore data saved successfully")
-    except Exception as e:
-        log_debug(f"Error saving realm lore data: {e}")
-        raise
-
-def load_manifested_birds():
-    """Load manifested birds data from JSON file"""
-    manifested_birds_file = os.path.join(DATA_PATH, 'manifested_birds.json')
-    try:
-        if os.path.exists(manifested_birds_file):
-            with open(manifested_birds_file, 'r') as f:
-                data = json.load(f)
-                log_debug("Manifested birds data loaded successfully")
-                return data
-        log_debug("No existing manifested birds data, creating new")
-        default_data = []
-        save_manifested_birds(default_data)
-        return default_data
-    except Exception as e:
-        log_debug(f"Error loading manifested birds data: {e}")
-        raise
-
-def save_manifested_birds(data):
-    """Save manifested birds data to JSON file"""
-    manifested_birds_file = os.path.join(DATA_PATH, 'manifested_birds.json')
-    try:
-        with open(manifested_birds_file, 'w') as f:
-            json.dump(data, f, indent=4)
-        log_debug("Manifested birds data saved successfully")
-    except Exception as e:
-        log_debug(f"Error saving manifested birds data: {e}")
-        raise
-
-def load_manifested_plants():
-    """Load manifested plants data from JSON file"""
-    manifested_plants_file = os.path.join(DATA_PATH, 'manifested_plants.json')
-    try:
-        if os.path.exists(manifested_plants_file):
-            with open(manifested_plants_file, 'r') as f:
-                data = json.load(f)
-                log_debug("Manifested plants data loaded successfully")
-                return data
-        log_debug("No existing manifested plants data, creating new")
-        default_data = []
-        save_manifested_plants(default_data)
-        return default_data
-    except Exception as e:
-        log_debug(f"Error loading manifested plants data: {e}")
-        raise
-
-def save_manifested_plants(data):
-    """Save manifested plants data to JSON file"""
-    manifested_plants_file = os.path.join(DATA_PATH, 'manifested_plants.json')
-    try:
-        with open(manifested_plants_file, 'w') as f:
-            json.dump(data, f, indent=4)
-        log_debug("Manifested plants data saved successfully")
-    except Exception as e:
-        log_debug(f"Error saving manifested plants data: {e}")
-        raise
-
-def load_research_progress():
-    """Load research progress data from JSON file"""
-    research_progress_file = os.path.join(DATA_PATH, 'research_progress.json')
-    try:
-        if os.path.exists(research_progress_file):
-            with open(research_progress_file, 'r') as f:
-                data = json.load(f)
-                log_debug("Research progress data loaded successfully")
-                return data
-        log_debug("No existing research progress data, creating new")
-        default_data = {}
-        save_research_progress(default_data)
-        return default_data
-    except Exception as e:
-        log_debug(f"Error loading research progress data: {e}")
-        raise
-
-def save_research_progress(data):
-    """Save research progress data to JSON file"""
-    research_progress_file = os.path.join(DATA_PATH, 'research_progress.json')
-    try:
-        with open(research_progress_file, 'w') as f:
-            json.dump(data, f, indent=4)
-        log_debug("Research progress data saved successfully")
-    except Exception as e:
-        log_debug(f"Error saving research progress data: {e}")
-        raise
+# ---------------------------------------------------------------------------
+# Reference data loaders (read-only JSON bundled with code)
+# ---------------------------------------------------------------------------
 
 def load_research_entities():
-    """Load research entities data from JSON file"""
-    research_entities_file = os.path.join(os.path.dirname(__file__), 'research_entities.json') # Use relative path within data dir
+    """Load research entities data from JSON file (read-only reference data)."""
+    file_path = os.path.join(os.path.dirname(__file__), 'research_entities.json')
     try:
-        if os.path.exists(research_entities_file):
-            with open(research_entities_file, 'r', encoding='utf-8') as f: # Added encoding
+        if os.path.exists(file_path):
+            with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 log_debug("Research entities data loaded successfully")
                 return data
         log_debug("No existing research entities data, returning empty list")
-        return [] # Research entities is a list
+        return []
     except Exception as e:
         log_debug(f"Error loading research entities data: {e}")
-        raise # Re-raise the exception after logging
+        raise
+
+
+# ---------------------------------------------------------------------------
+# Async helpers
+# ---------------------------------------------------------------------------
+
+async def _client():
+    from data.db import get_async_client
+    return await get_async_client()
+
+
+def _sync_client():
+    from data.db import get_sync_client
+    return get_sync_client()
+
+
+# ---------------------------------------------------------------------------
+# Players
+# ---------------------------------------------------------------------------
+
+_DEFAULT_NEST = {
+    "nest_name": "Some Bird's Nest",
+    "twigs": 0,
+    "seeds": 0,
+    "inspiration": 0,
+    "garden_size": 0,
+    "bonus_actions": 0,
+    "locked": False,
+    "featured_bird_common_name": None,
+    "featured_bird_scientific_name": None,
+}
+
+
+async def load_player(user_id):
+    """Load a player row, creating one if it doesn't exist. Returns a dict."""
+    user_id = str(user_id)
+    sb = await _client()
+    res = sb.table("players").select("*").eq("user_id", user_id).execute()
+    if res.data:
+        return res.data[0]
+    # Auto-create
+    row = {"user_id": user_id, **_DEFAULT_NEST}
+    sb.table("players").insert(row).execute()
+    log_debug(f"Created new player: {user_id}")
+    return row
+
+
+def load_player_sync(user_id):
+    user_id = str(user_id)
+    sb = _sync_client()
+    res = sb.table("players").select("*").eq("user_id", user_id).execute()
+    if res.data:
+        return res.data[0]
+    row = {"user_id": user_id, **_DEFAULT_NEST}
+    sb.table("players").insert(row).execute()
+    return row
+
+
+async def update_player(user_id, **fields):
+    """Update specific fields on a player row."""
+    user_id = str(user_id)
+    sb = await _client()
+    sb.table("players").update(fields).eq("user_id", user_id).execute()
+
+
+def update_player_sync(user_id, **fields):
+    user_id = str(user_id)
+    sb = _sync_client()
+    sb.table("players").update(fields).eq("user_id", user_id).execute()
+
+
+async def increment_player_field(user_id, field, amount):
+    """Atomically increment a numeric player field via RPC."""
+    sb = await _client()
+    sb.rpc("increment_player_field", {
+        "p_user_id": str(user_id),
+        "field_name": field,
+        "amount": amount,
+    }).execute()
+
+
+def increment_player_field_sync(user_id, field, amount):
+    sb = _sync_client()
+    sb.rpc("increment_player_field", {
+        "p_user_id": str(user_id),
+        "field_name": field,
+        "amount": amount,
+    }).execute()
+
+
+async def load_all_players():
+    """Load all player rows."""
+    sb = await _client()
+    res = sb.table("players").select("*").execute()
+    return res.data or []
+
+
+def load_all_players_sync():
+    sb = _sync_client()
+    res = sb.table("players").select("*").execute()
+    return res.data or []
+
+
+# ---------------------------------------------------------------------------
+# Common Nest
+# ---------------------------------------------------------------------------
+
+async def load_common_nest():
+    sb = await _client()
+    res = sb.table("common_nest").select("*").eq("id", 1).execute()
+    if res.data:
+        return res.data[0]
+    sb.table("common_nest").insert({"id": 1, "twigs": 0, "seeds": 0}).execute()
+    return {"id": 1, "twigs": 0, "seeds": 0}
+
+
+def load_common_nest_sync():
+    sb = _sync_client()
+    res = sb.table("common_nest").select("*").eq("id", 1).execute()
+    if res.data:
+        return res.data[0]
+    sb.table("common_nest").insert({"id": 1, "twigs": 0, "seeds": 0}).execute()
+    return {"id": 1, "twigs": 0, "seeds": 0}
+
+
+async def increment_common_nest(field, amount):
+    sb = await _client()
+    sb.rpc("increment_common_nest", {"field_name": field, "amount": amount}).execute()
+
+
+def increment_common_nest_sync(field, amount):
+    sb = _sync_client()
+    sb.rpc("increment_common_nest", {"field_name": field, "amount": amount}).execute()
+
+
+# ---------------------------------------------------------------------------
+# Player Birds
+# ---------------------------------------------------------------------------
+
+async def get_player_birds(user_id):
+    """Return list of bird dicts for a player."""
+    sb = await _client()
+    res = sb.table("player_birds").select("*").eq("user_id", str(user_id)).execute()
+    return res.data or []
+
+
+def get_player_birds_sync(user_id):
+    sb = _sync_client()
+    res = sb.table("player_birds").select("*").eq("user_id", str(user_id)).execute()
+    return res.data or []
+
+
+async def add_bird(user_id, common_name, scientific_name):
+    """Add a bird to a player's nest. Returns the inserted row."""
+    sb = await _client()
+    res = sb.table("player_birds").insert({
+        "user_id": str(user_id),
+        "common_name": common_name,
+        "scientific_name": scientific_name,
+    }).execute()
+    return res.data[0] if res.data else None
+
+
+async def remove_bird(bird_id):
+    """Remove a bird by its DB id."""
+    sb = await _client()
+    sb.table("player_birds").delete().eq("id", bird_id).execute()
+
+
+async def remove_bird_by_name(user_id, common_name):
+    """Remove the first bird matching common_name from a player's nest. Returns the removed bird or None."""
+    sb = await _client()
+    res = sb.table("player_birds").select("*").eq("user_id", str(user_id)).ilike("common_name", common_name).limit(1).execute()
+    if not res.data:
+        return None
+    bird = res.data[0]
+    sb.table("player_birds").delete().eq("id", bird["id"]).execute()
+    return bird
+
+
+async def get_all_birds():
+    """Get all birds across all players."""
+    sb = await _client()
+    res = sb.table("player_birds").select("*").execute()
+    return res.data or []
+
+
+def get_all_birds_sync():
+    sb = _sync_client()
+    res = sb.table("player_birds").select("*").execute()
+    return res.data or []
+
+
+# ---------------------------------------------------------------------------
+# Bird Treasures (decorations on birds)
+# ---------------------------------------------------------------------------
+
+async def get_bird_treasures(bird_id):
+    sb = await _client()
+    res = sb.table("bird_treasures").select("*").eq("bird_id", bird_id).execute()
+    return res.data or []
+
+
+async def add_bird_treasure(bird_id, treasure_id, x=0, y=0):
+    sb = await _client()
+    sb.table("bird_treasures").insert({
+        "bird_id": bird_id,
+        "treasure_id": treasure_id,
+        "x": x,
+        "y": y,
+    }).execute()
+
+
+async def remove_bird_treasures(bird_id):
+    """Remove all treasures from a bird. Returns the treasure_ids removed."""
+    sb = await _client()
+    res = sb.table("bird_treasures").select("treasure_id").eq("bird_id", bird_id).execute()
+    ids = [r["treasure_id"] for r in (res.data or [])]
+    if ids:
+        sb.table("bird_treasures").delete().eq("bird_id", bird_id).execute()
+    return ids
+
+
+# ---------------------------------------------------------------------------
+# Player Plants
+# ---------------------------------------------------------------------------
+
+async def get_player_plants(user_id):
+    sb = await _client()
+    res = sb.table("player_plants").select("*").eq("user_id", str(user_id)).execute()
+    return res.data or []
+
+
+def get_player_plants_sync(user_id):
+    sb = _sync_client()
+    res = sb.table("player_plants").select("*").eq("user_id", str(user_id)).execute()
+    return res.data or []
+
+
+async def add_plant(user_id, common_name, scientific_name, planted_date=None):
+    sb = await _client()
+    sb.table("player_plants").insert({
+        "user_id": str(user_id),
+        "common_name": common_name,
+        "scientific_name": scientific_name,
+        "planted_date": planted_date,
+    }).execute()
+
+
+async def remove_plant_by_name(user_id, common_name):
+    """Remove the first plant matching common_name. Returns the removed plant or None."""
+    sb = await _client()
+    res = sb.table("player_plants").select("*").eq("user_id", str(user_id)).ilike("common_name", common_name).limit(1).execute()
+    if not res.data:
+        return None
+    plant = res.data[0]
+    sb.table("player_plants").delete().eq("id", plant["id"]).execute()
+    return plant
+
+
+async def get_all_plants():
+    """Get all plants across all players."""
+    sb = await _client()
+    res = sb.table("player_plants").select("*").execute()
+    return res.data or []
+
+
+def get_all_plants_sync():
+    sb = _sync_client()
+    res = sb.table("player_plants").select("*").execute()
+    return res.data or []
+
+
+# ---------------------------------------------------------------------------
+# Plant Treasures
+# ---------------------------------------------------------------------------
+
+async def get_plant_treasures(plant_id):
+    sb = await _client()
+    res = sb.table("plant_treasures").select("*").eq("plant_id", plant_id).execute()
+    return res.data or []
+
+
+async def add_plant_treasure(plant_id, treasure_id, x=0, y=0):
+    sb = await _client()
+    sb.table("plant_treasures").insert({
+        "plant_id": plant_id,
+        "treasure_id": treasure_id,
+        "x": x,
+        "y": y,
+    }).execute()
+
+
+async def remove_plant_treasures(plant_id):
+    """Remove all treasures from a plant. Returns the treasure_ids removed."""
+    sb = await _client()
+    res = sb.table("plant_treasures").select("treasure_id").eq("plant_id", plant_id).execute()
+    ids = [r["treasure_id"] for r in (res.data or [])]
+    if ids:
+        sb.table("plant_treasures").delete().eq("plant_id", plant_id).execute()
+    return ids
+
+
+# ---------------------------------------------------------------------------
+# Player Treasures (inventory)
+# ---------------------------------------------------------------------------
+
+async def get_player_treasures(user_id):
+    sb = await _client()
+    res = sb.table("player_treasures").select("*").eq("user_id", str(user_id)).execute()
+    return res.data or []
+
+
+async def add_player_treasure(user_id, treasure_id):
+    sb = await _client()
+    sb.table("player_treasures").insert({
+        "user_id": str(user_id),
+        "treasure_id": treasure_id,
+    }).execute()
+
+
+async def remove_player_treasure(user_id, treasure_id):
+    """Remove one instance of a treasure from inventory. Returns True if removed."""
+    sb = await _client()
+    res = sb.table("player_treasures").select("id").eq("user_id", str(user_id)).eq("treasure_id", treasure_id).limit(1).execute()
+    if not res.data:
+        return False
+    sb.table("player_treasures").delete().eq("id", res.data[0]["id"]).execute()
+    return True
+
+
+# ---------------------------------------------------------------------------
+# Nest Treasures (decorations on nest)
+# ---------------------------------------------------------------------------
+
+async def get_nest_treasures(user_id):
+    sb = await _client()
+    res = sb.table("nest_treasures").select("*").eq("user_id", str(user_id)).execute()
+    return res.data or []
+
+
+def get_nest_treasures_sync(user_id):
+    sb = _sync_client()
+    res = sb.table("nest_treasures").select("*").eq("user_id", str(user_id)).execute()
+    return res.data or []
+
+
+async def add_nest_treasure(user_id, treasure_id, x=0, y=0):
+    sb = await _client()
+    sb.table("nest_treasures").insert({
+        "user_id": str(user_id),
+        "treasure_id": treasure_id,
+        "x": x,
+        "y": y,
+    }).execute()
+
+
+async def remove_nest_treasures(user_id):
+    """Remove all nest treasures. Returns the treasure_ids removed."""
+    sb = await _client()
+    res = sb.table("nest_treasures").select("treasure_id").eq("user_id", str(user_id)).execute()
+    ids = [r["treasure_id"] for r in (res.data or [])]
+    if ids:
+        sb.table("nest_treasures").delete().eq("user_id", str(user_id)).execute()
+    return ids
+
+
+# ---------------------------------------------------------------------------
+# Eggs
+# ---------------------------------------------------------------------------
+
+async def get_egg(user_id):
+    sb = await _client()
+    res = sb.table("eggs").select("*").eq("user_id", str(user_id)).execute()
+    if not res.data:
+        return None
+    egg = res.data[0]
+    # Also load multipliers and brooders
+    mults = sb.table("egg_multipliers").select("*").eq("egg_user_id", str(user_id)).execute()
+    brooders = sb.table("egg_brooders").select("brooder_user_id").eq("egg_user_id", str(user_id)).execute()
+    egg["multipliers"] = {m["scientific_name"]: m["multiplier"] for m in (mults.data or [])}
+    egg["brooded_by"] = [b["brooder_user_id"] for b in (brooders.data or [])]
+    return egg
+
+
+async def create_egg(user_id, brooding_progress=0, protected_prayers=False):
+    sb = await _client()
+    sb.table("eggs").upsert({
+        "user_id": str(user_id),
+        "brooding_progress": brooding_progress,
+        "protected_prayers": protected_prayers,
+    }).execute()
+
+
+async def update_egg(user_id, **fields):
+    sb = await _client()
+    sb.table("eggs").update(fields).eq("user_id", str(user_id)).execute()
+
+
+async def delete_egg(user_id):
+    """Delete an egg and its related multipliers/brooders (cascade)."""
+    sb = await _client()
+    sb.table("eggs").delete().eq("user_id", str(user_id)).execute()
+
+
+async def upsert_egg_multiplier(user_id, scientific_name, multiplier):
+    sb = await _client()
+    sb.table("egg_multipliers").upsert({
+        "egg_user_id": str(user_id),
+        "scientific_name": scientific_name,
+        "multiplier": multiplier,
+    }, on_conflict="egg_user_id,scientific_name").execute()
+
+
+async def add_egg_brooder(user_id, brooder_user_id):
+    sb = await _client()
+    sb.table("egg_brooders").upsert({
+        "egg_user_id": str(user_id),
+        "brooder_user_id": str(brooder_user_id),
+    }, on_conflict="egg_user_id,brooder_user_id").execute()
+
+
+# ---------------------------------------------------------------------------
+# Daily Actions
+# ---------------------------------------------------------------------------
+
+async def get_daily_actions(user_id, action_date):
+    sb = await _client()
+    res = sb.table("daily_actions").select("*").eq("user_id", str(user_id)).eq("action_date", action_date).execute()
+    if res.data:
+        return res.data[0]
+    return None
+
+
+async def upsert_daily_actions(user_id, action_date, used, action_history):
+    sb = await _client()
+    sb.table("daily_actions").upsert({
+        "user_id": str(user_id),
+        "action_date": action_date,
+        "used": used,
+        "action_history": action_history,
+    }, on_conflict="user_id,action_date").execute()
+
+
+async def delete_old_daily_actions(cutoff_date):
+    """Delete daily actions older than cutoff_date."""
+    sb = await _client()
+    sb.table("daily_actions").delete().lt("action_date", cutoff_date).execute()
+
+
+def delete_old_daily_actions_sync(cutoff_date):
+    sb = _sync_client()
+    sb.table("daily_actions").delete().lt("action_date", cutoff_date).execute()
+
+
+# ---------------------------------------------------------------------------
+# Daily Songs
+# ---------------------------------------------------------------------------
+
+async def record_song(singer_user_id, target_user_id, song_date):
+    sb = await _client()
+    sb.table("daily_songs").upsert({
+        "song_date": song_date,
+        "singer_user_id": str(singer_user_id),
+        "target_user_id": str(target_user_id),
+    }, on_conflict="song_date,singer_user_id,target_user_id").execute()
+
+
+async def has_been_sung_to_by(singer_user_id, target_user_id, song_date):
+    sb = await _client()
+    res = sb.table("daily_songs").select("id").eq("song_date", song_date).eq("singer_user_id", str(singer_user_id)).eq("target_user_id", str(target_user_id)).execute()
+    return len(res.data or []) > 0
+
+
+async def has_been_sung_to(target_user_id, song_date):
+    sb = await _client()
+    res = sb.table("daily_songs").select("id").eq("song_date", song_date).eq("target_user_id", str(target_user_id)).limit(1).execute()
+    return len(res.data or []) > 0
+
+
+async def get_singers_today(target_user_id, song_date):
+    sb = await _client()
+    res = sb.table("daily_songs").select("singer_user_id").eq("song_date", song_date).eq("target_user_id", str(target_user_id)).execute()
+    return [r["singer_user_id"] for r in (res.data or [])]
+
+
+async def get_all_songs_for_date(song_date):
+    sb = await _client()
+    res = sb.table("daily_songs").select("*").eq("song_date", song_date).execute()
+    return res.data or []
+
+
+def get_all_songs_sync():
+    """Get all songs (for home page)."""
+    sb = _sync_client()
+    res = sb.table("daily_songs").select("*").execute()
+    return res.data or []
+
+
+async def delete_old_songs(cutoff_date):
+    sb = await _client()
+    sb.table("daily_songs").delete().lt("song_date", cutoff_date).execute()
+
+
+def delete_old_songs_sync(cutoff_date):
+    sb = _sync_client()
+    sb.table("daily_songs").delete().lt("song_date", cutoff_date).execute()
+
+
+# ---------------------------------------------------------------------------
+# Daily Brooding
+# ---------------------------------------------------------------------------
+
+async def record_brooding(brooder_user_id, target_user_id, brooding_date):
+    sb = await _client()
+    sb.table("daily_brooding").upsert({
+        "brooding_date": brooding_date,
+        "brooder_user_id": str(brooder_user_id),
+        "target_user_id": str(target_user_id),
+    }, on_conflict="brooding_date,brooder_user_id,target_user_id").execute()
+
+
+async def has_brooded_today(brooder_user_id, target_user_id, brooding_date):
+    sb = await _client()
+    res = sb.table("daily_brooding").select("id").eq("brooding_date", brooding_date).eq("brooder_user_id", str(brooder_user_id)).eq("target_user_id", str(target_user_id)).execute()
+    return len(res.data or []) > 0
+
+
+async def delete_old_brooding(cutoff_date):
+    sb = await _client()
+    sb.table("daily_brooding").delete().lt("brooding_date", cutoff_date).execute()
+
+
+def delete_old_brooding_sync(cutoff_date):
+    sb = _sync_client()
+    sb.table("daily_brooding").delete().lt("brooding_date", cutoff_date).execute()
+
+
+# ---------------------------------------------------------------------------
+# Last Song Targets
+# ---------------------------------------------------------------------------
+
+async def get_last_song_targets(user_id):
+    sb = await _client()
+    res = sb.table("last_song_targets").select("target_user_id").eq("user_id", str(user_id)).order("sort_order").execute()
+    return [r["target_user_id"] for r in (res.data or [])]
+
+
+async def set_last_song_targets(user_id, target_user_ids):
+    """Replace the last song targets for a user."""
+    user_id = str(user_id)
+    sb = await _client()
+    # Delete existing
+    sb.table("last_song_targets").delete().eq("user_id", user_id).execute()
+    # Insert new
+    if target_user_ids:
+        rows = [{"user_id": user_id, "target_user_id": str(tid), "sort_order": i}
+                for i, tid in enumerate(target_user_ids)]
+        sb.table("last_song_targets").insert(rows).execute()
+
+
+# ---------------------------------------------------------------------------
+# Released Birds
+# ---------------------------------------------------------------------------
+
+async def get_released_birds():
+    sb = await _client()
+    res = sb.table("released_birds").select("*").execute()
+    return res.data or []
+
+
+def get_released_birds_sync():
+    sb = _sync_client()
+    res = sb.table("released_birds").select("*").execute()
+    return res.data or []
+
+
+async def upsert_released_bird(common_name, scientific_name):
+    """Increment count for a released bird, or insert with count=1."""
+    sb = await _client()
+    # Check if exists
+    res = sb.table("released_birds").select("id, count").eq("scientific_name", scientific_name).execute()
+    if res.data:
+        new_count = res.data[0]["count"] + 1
+        sb.table("released_birds").update({"count": new_count}).eq("id", res.data[0]["id"]).execute()
+    else:
+        sb.table("released_birds").insert({
+            "common_name": common_name,
+            "scientific_name": scientific_name,
+            "count": 1,
+        }).execute()
+
+
+# ---------------------------------------------------------------------------
+# Defeated Humans
+# ---------------------------------------------------------------------------
+
+async def add_defeated_human(name, max_resilience, defeat_date, blessing_name, blessing_amount):
+    sb = await _client()
+    sb.table("defeated_humans").insert({
+        "name": name,
+        "max_resilience": max_resilience,
+        "defeat_date": defeat_date,
+        "blessing_name": blessing_name,
+        "blessing_amount": blessing_amount,
+    }).execute()
+
+
+async def get_defeated_humans(limit=5):
+    sb = await _client()
+    res = sb.table("defeated_humans").select("*").order("defeat_date", desc=True).limit(limit).execute()
+    return res.data or []
+
+
+def get_defeated_humans_sync(limit=5):
+    sb = _sync_client()
+    res = sb.table("defeated_humans").select("*").order("defeat_date", desc=True).limit(limit).execute()
+    return res.data or []
+
+
+# ---------------------------------------------------------------------------
+# Memoirs (lore)
+# ---------------------------------------------------------------------------
+
+async def add_memoir(user_id, nest_name, text, memoir_date):
+    sb = await _client()
+    sb.table("memoirs").insert({
+        "user_id": str(user_id),
+        "nest_name": nest_name,
+        "text": text,
+        "memoir_date": memoir_date,
+    }).execute()
+
+
+async def load_memoirs():
+    sb = await _client()
+    res = sb.table("memoirs").select("*").order("memoir_date", desc=True).execute()
+    return res.data or []
+
+
+def load_memoirs_sync():
+    sb = _sync_client()
+    res = sb.table("memoirs").select("*").order("memoir_date", desc=True).execute()
+    return res.data or []
+
+
+# ---------------------------------------------------------------------------
+# Realm Messages (realm lore)
+# ---------------------------------------------------------------------------
+
+async def load_realm_messages():
+    sb = await _client()
+    res = sb.table("realm_messages").select("*").order("message_date", desc=True).execute()
+    return res.data or []
+
+
+def load_realm_messages_sync():
+    sb = _sync_client()
+    res = sb.table("realm_messages").select("*").order("message_date", desc=True).execute()
+    return res.data or []
+
+
+# ---------------------------------------------------------------------------
+# Manifested Birds
+# ---------------------------------------------------------------------------
+
+async def load_manifested_birds():
+    sb = await _client()
+    res = sb.table("manifested_birds").select("*").execute()
+    return res.data or []
+
+
+def load_manifested_birds_sync():
+    sb = _sync_client()
+    res = sb.table("manifested_birds").select("*").execute()
+    return res.data or []
+
+
+async def upsert_manifested_bird(bird_data):
+    """Upsert a manifested bird by scientific_name."""
+    sb = await _client()
+    sb.table("manifested_birds").upsert(bird_data, on_conflict="scientific_name").execute()
+
+
+async def get_manifested_bird(scientific_name):
+    sb = await _client()
+    res = sb.table("manifested_birds").select("*").eq("scientific_name", scientific_name).execute()
+    return res.data[0] if res.data else None
+
+
+# ---------------------------------------------------------------------------
+# Manifested Plants
+# ---------------------------------------------------------------------------
+
+async def load_manifested_plants():
+    sb = await _client()
+    res = sb.table("manifested_plants").select("*").execute()
+    return res.data or []
+
+
+def load_manifested_plants_sync():
+    sb = _sync_client()
+    res = sb.table("manifested_plants").select("*").execute()
+    return res.data or []
+
+
+async def upsert_manifested_plant(plant_data):
+    """Upsert a manifested plant by scientific_name."""
+    sb = await _client()
+    sb.table("manifested_plants").upsert(plant_data, on_conflict="scientific_name").execute()
+
+
+async def get_manifested_plant(scientific_name):
+    sb = await _client()
+    res = sb.table("manifested_plants").select("*").eq("scientific_name", scientific_name).execute()
+    return res.data[0] if res.data else None
+
+
+# ---------------------------------------------------------------------------
+# Research Progress
+# ---------------------------------------------------------------------------
+
+async def load_research_progress():
+    sb = await _client()
+    res = sb.table("research_progress").select("*").execute()
+    return {r["author_name"]: r["points"] for r in (res.data or {})}
+
+
+def load_research_progress_sync():
+    sb = _sync_client()
+    res = sb.table("research_progress").select("*").execute()
+    return {r["author_name"]: r["points"] for r in (res.data or {})}
+
+
+async def increment_research(author_name, points):
+    """Upsert research progress, incrementing points."""
+    sb = await _client()
+    res = sb.table("research_progress").select("points").eq("author_name", author_name).execute()
+    if res.data:
+        new_points = res.data[0]["points"] + points
+        sb.table("research_progress").update({"points": new_points}).eq("author_name", author_name).execute()
+    else:
+        sb.table("research_progress").insert({"author_name": author_name, "points": points}).execute()
+
+
+# ---------------------------------------------------------------------------
+# Exploration (simple key-value, stored in a table)
+# ---------------------------------------------------------------------------
+
+async def get_exploration_data():
+    sb = await _client()
+    res = sb.table("exploration").select("*").execute()
+    return {r["region"]: r["points"] for r in (res.data or [])}
+
+
+def get_exploration_data_sync():
+    sb = _sync_client()
+    res = sb.table("exploration").select("*").execute()
+    return {r["region"]: r["points"] for r in (res.data or [])}
+
+
+async def increment_exploration(region, amount):
+    sb = await _client()
+    res = sb.table("exploration").select("points").eq("region", region).execute()
+    if res.data:
+        new_points = res.data[0]["points"] + amount
+        sb.table("exploration").update({"points": new_points}).eq("region", region).execute()
+        return new_points
+    else:
+        sb.table("exploration").insert({"region": region, "points": amount}).execute()
+        return amount
+
+
+# ---------------------------------------------------------------------------
+# Weather Channels
+# ---------------------------------------------------------------------------
+
+async def get_weather_channels():
+    sb = await _client()
+    res = sb.table("weather_channels").select("*").execute()
+    return {r["guild_id"]: r["channel_id"] for r in (res.data or [])}
+
+
+async def set_weather_channel(guild_id, channel_id):
+    sb = await _client()
+    sb.table("weather_channels").upsert({
+        "guild_id": str(guild_id),
+        "channel_id": str(channel_id),
+    }, on_conflict="guild_id").execute()
+
+
+async def remove_weather_channel(guild_id):
+    sb = await _client()
+    sb.table("weather_channels").delete().eq("guild_id", str(guild_id)).execute()
