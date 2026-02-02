@@ -60,3 +60,8 @@ Always use helpers in `data/storage.py` (`load_data`, `save_data`, etc.) instead
 ## Testing
 
 Tests in `tests/` use pytest. The `conftest.py` sets up test environment with DEBUG mode and creates isolated test_data directory. Prefer targeted tests near changed logic.
+
+## Workflow Rules
+
+- **Update this file after every task**: After completing any task, review `CLAUDE.md` and update it with any new relevant information (new commands, patterns, architecture changes, etc.) so it stays accurate.
+- **Use MCP Context7 for documentation lookups**: When you need documentation for any library or framework, always use the Context7 MCP tools (`resolve-library-id` then `query-docs`) to get up-to-date docs instead of relying on training data.
