@@ -8,7 +8,7 @@ import urllib.parse
 import random
 
 import data.storage as db
-from data.models import get_remaining_actions, record_actions
+from data.models import get_remaining_actions, record_actions, clear_bird_species_cache
 from data.manifest_constants import get_points_needed
 from utils.logging import log_debug
 from config.config import SPECIES_IMAGES_DIR
@@ -148,6 +148,10 @@ class ManifestCommands(commands.Cog):
 
         # Save the updated data via upsert
         await db.upsert_manifested_bird(bird)
+
+        # Clear bird species cache if newly manifested so it's included in lookups
+        if is_newly_manifested:
+            clear_bird_species_cache()
 
         # Record only the actions actually used
         await record_actions(user_id, actions_used, "manifest")

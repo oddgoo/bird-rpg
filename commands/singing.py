@@ -1,4 +1,5 @@
 from datetime import datetime
+import asyncio
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -19,60 +20,58 @@ class SingingCommands(commands.Cog):
     async def _process_singing(self, interaction: discord.Interaction, target_users: list[discord.User]):
         """Helper method to process the core singing logic for a list of target users."""
         singer_id = interaction.user.id
-        successful_targets = []
-        skipped_targets = []
-
-        # Check initial actions before loop
-        singer_remaining_actions = await get_remaining_actions(singer_id)
-        if singer_remaining_actions <= 0:
-            # If no actions at the start, skip everyone
-            for target_user in target_users:
-                 skipped_targets.append((target_user, "no actions left"))
-            return successful_targets, skipped_targets
-
         today = get_current_date()
 
-        # Fetch singer's birds once (they don't change between iterations)
+        # 1. Pre-fetch all needed data (few DB calls total)
+        remaining_actions = await get_remaining_actions(singer_id)
+        if remaining_actions <= 0:
+            return [], [(u, "no actions left") for u in target_users]
+
         birds = await db.get_player_birds(singer_id)
+        singing_bonus = await get_singing_bonus(birds)
+        inspiration_bonus = await get_singing_inspiration_chance(singer_id, birds)
 
-        # Process each target user
+        # 2. Batch check who was already sung to (1 DB call)
+        target_ids = [u.id for u in target_users]
+        already_sung = await db.get_sung_to_targets_today(singer_id, target_ids, today)
+
+        # 3. Filter targets (no DB calls)
+        successful_targets = []
+        skipped_targets = []
+        successful_target_ids = []
         for target_user in target_users:
-            # Re-check actions at the start of each loop iteration
-            singer_remaining_actions = await get_remaining_actions(singer_id)
-            if singer_remaining_actions <= 0:
+            if remaining_actions <= 0:
                 skipped_targets.append((target_user, "no actions left"))
-                continue # Skip this user and check the next
-
-            target_id = target_user.id
-
-            # Skip bots
+                continue
             if target_user.bot:
                 skipped_targets.append((target_user, "is a bot"))
                 continue
-
-            # Skip self unless in debug mode
-            if singer_id == target_id and not DEBUG:
+            if singer_id == target_user.id and not DEBUG:
                 skipped_targets.append((target_user, "is yourself"))
                 continue
-
-            # Skip if already sung to today
-            if await db.has_been_sung_to_by(singer_id, target_id, today):
+            if str(target_user.id) in already_sung:
                 skipped_targets.append((target_user, "already sung to today"))
                 continue
 
-            # Get bonuses
-            bonus_actions = await get_singing_bonus(birds)
-            inspiration_bonus = await get_singing_inspiration_chance(singer_id, birds)
+            # Inspiration only applies to the first successful sing
+            insp = inspiration_bonus if not successful_targets else 0
+            successful_targets.append((target_user, singing_bonus, insp))
+            successful_target_ids.append(target_user.id)
+            remaining_actions -= 1
 
-            await db.record_song(singer_id, target_id, today)
-            await add_bonus_actions(target_id, 3 + bonus_actions)
-            await record_actions(singer_id, 1, "sing")
-
-            # Add inspiration from finches
-            if inspiration_bonus > 0:
-                await db.increment_player_field(singer_id, "inspiration", inspiration_bonus)
-
-            successful_targets.append((target_user, bonus_actions, inspiration_bonus))
+        # 4. Batch write all results
+        if successful_targets:
+            # Batch record all songs (1 DB call)
+            await db.record_songs_batch(singer_id, successful_target_ids, today)
+            # Batch bonus actions concurrently (parallel RPC calls)
+            await asyncio.gather(*[add_bonus_actions(tid, 3 + singing_bonus)
+                                    for tid in successful_target_ids])
+            # Record singer's actions once (instead of per-target)
+            await record_actions(singer_id, len(successful_targets), "sing")
+            # Inspiration for first sing only
+            total_inspiration = successful_targets[0][2]
+            if total_inspiration > 0:
+                await db.increment_player_field(singer_id, "inspiration", total_inspiration)
 
         return successful_targets, skipped_targets
 

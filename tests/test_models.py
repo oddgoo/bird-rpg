@@ -24,6 +24,7 @@ from data.models import (
     handle_blessed_egg_hatching,
     select_random_bird_species,
     load_bird_species,
+    clear_bird_species_cache,
     get_nest_building_bonus,
     get_singing_bonus,
     get_seed_gathering_bonus,
@@ -59,6 +60,7 @@ def _make_daily_actions(used=0, action_history=None):
 @pytest.fixture
 def mock_db():
     """Patch data.storage (imported as db in models) with AsyncMocks."""
+    clear_bird_species_cache()
     with patch("data.models.db") as db:
         db.load_player = AsyncMock(return_value=_make_player())
         db.get_player_birds = AsyncMock(return_value=[])
@@ -70,6 +72,7 @@ def mock_db():
         db.load_manifested_birds = AsyncMock(return_value=[])
         db.load_manifested_plants = AsyncMock(return_value=[])
         yield db
+    clear_bird_species_cache()
 
 
 # ===================================================================

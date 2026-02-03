@@ -571,6 +571,26 @@ async def record_song(singer_user_id, target_user_id, song_date):
     }, on_conflict="song_date,singer_user_id,target_user_id").execute()
 
 
+async def record_songs_batch(singer_user_id, target_user_ids, song_date):
+    """Record multiple songs at once."""
+    sb = await _client()
+    rows = [{"song_date": song_date, "singer_user_id": str(singer_user_id),
+             "target_user_id": str(tid)} for tid in target_user_ids]
+    await sb.table("daily_songs").upsert(rows,
+        on_conflict="song_date,singer_user_id,target_user_id").execute()
+
+
+async def get_sung_to_targets_today(singer_user_id, target_user_ids, song_date):
+    """Return set of target_user_ids the singer has already sung to today."""
+    sb = await _client()
+    res = await sb.table("daily_songs").select("target_user_id") \
+        .eq("song_date", song_date) \
+        .eq("singer_user_id", str(singer_user_id)) \
+        .in_("target_user_id", [str(t) for t in target_user_ids]) \
+        .execute()
+    return {r["target_user_id"] for r in (res.data or [])}
+
+
 async def has_been_sung_to_by(singer_user_id, target_user_id, song_date):
     sb = await _client()
     res = await sb.table("daily_songs").select("id").eq("song_date", song_date).eq("singer_user_id", str(singer_user_id)).eq("target_user_id", str(target_user_id)).execute()

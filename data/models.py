@@ -169,7 +169,21 @@ def _load_bird_species_json():
     return data["bird_species"]
 
 
+_bird_species_cache = None
+_bird_species_cache_sync = None
+
+
+def clear_bird_species_cache():
+    """Clear both async and sync bird species caches. Call after manifesting a new bird."""
+    global _bird_species_cache, _bird_species_cache_sync
+    _bird_species_cache = None
+    _bird_species_cache_sync = None
+
+
 async def load_bird_species(include_manifested=True):
+    global _bird_species_cache
+    if include_manifested and _bird_species_cache is not None:
+        return _bird_species_cache
     base = _load_bird_species_json()
     if not include_manifested:
         return base
@@ -180,10 +194,15 @@ async def load_bird_species(include_manifested=True):
         b.setdefault("commonName", b.get("common_name", ""))
         b.setdefault("scientificName", b.get("scientific_name", ""))
         b.setdefault("rarityWeight", b.get("rarity_weight", 0))
-    return base + fully
+    result = base + fully
+    _bird_species_cache = result
+    return result
 
 
 def load_bird_species_sync(include_manifested=True):
+    global _bird_species_cache_sync
+    if include_manifested and _bird_species_cache_sync is not None:
+        return _bird_species_cache_sync
     base = _load_bird_species_json()
     if not include_manifested:
         return base
@@ -193,7 +212,9 @@ def load_bird_species_sync(include_manifested=True):
         b.setdefault("commonName", b.get("common_name", ""))
         b.setdefault("scientificName", b.get("scientific_name", ""))
         b.setdefault("rarityWeight", b.get("rarity_weight", 0))
-    return base + fully
+    result = base + fully
+    _bird_species_cache_sync = result
+    return result
 
 
 async def get_bird_effect(scientific_name):
