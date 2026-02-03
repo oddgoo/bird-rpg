@@ -191,7 +191,7 @@ class ResearchCommands(commands.Cog):
             options.append(
                 discord.SelectOption(
                     label=name,
-                    description=f"Select if you think this is a quote by {name}",
+                    # description=f"Select if you think this is a quote by {name}",
                     value=name
                 )
             )
@@ -388,7 +388,7 @@ class ResearchCommands(commands.Cog):
 
         # Get the next milestone threshold and effect
         next_threshold = MILESTONE_THRESHOLDS[current_milestone_index]
-        next_milestone = author_data["milestones"][current_milestone_index]
+        next_milestone = author_data["milestone"]
         points_needed = next_threshold - current_progress
 
         return f"**{next_milestone}** ({current_progress}/{next_threshold} points, {points_needed} more needed)"

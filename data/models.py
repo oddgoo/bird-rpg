@@ -463,6 +463,11 @@ def _get_milestone_thresholds():
     return MILESTONE_THRESHOLDS
 
 
+def _get_milestone_type(entity):
+    """Get milestone type string from an entity."""
+    return entity.get("milestone", "")
+
+
 async def get_extra_garden_space():
     research_progress = await db.load_research_progress()
     research_entities = db.load_all_research_entities()
@@ -472,7 +477,7 @@ async def get_extra_garden_space():
     for entity in research_entities:
         author_name = entity["author"]
         current_progress = research_progress.get(author_name, 0)
-        if "+1 Max Garden Size" not in entity["milestones"][0]:
+        if "+1 Max Garden Size" not in _get_milestone_type(entity):
             continue
         for threshold in thresholds:
             if current_progress >= threshold:
@@ -491,7 +496,7 @@ def get_extra_garden_space_sync():
     for entity in research_entities:
         author_name = entity["author"]
         current_progress = research_progress.get(author_name, 0)
-        if "+1 Max Garden Size" not in entity["milestones"][0]:
+        if "+1 Max Garden Size" not in _get_milestone_type(entity):
             continue
         for threshold in thresholds:
             if current_progress >= threshold:
@@ -509,7 +514,7 @@ async def get_prayer_effectiveness_bonus():
     bonus_string = "Prayers are 1% more effective. Compounding!"
 
     for entity in research_entities:
-        if entity["milestones"] and bonus_string in entity["milestones"][0]:
+        if bonus_string in _get_milestone_type(entity):
             author_name = entity["author"]
             current_progress = research_progress.get(author_name, 0)
             milestones_reached = 0
@@ -531,7 +536,7 @@ async def get_extra_bird_space():
     for entity in research_entities:
         author_name = entity["author"]
         current_progress = research_progress.get(author_name, 0)
-        if "+1 Bird Limit" not in entity["milestones"][0]:
+        if "+1 Bird Limit" not in _get_milestone_type(entity):
             continue
         for threshold in thresholds:
             if current_progress >= threshold:
@@ -550,7 +555,7 @@ def get_extra_bird_space_sync():
     for entity in research_entities:
         author_name = entity["author"]
         current_progress = research_progress.get(author_name, 0)
-        if "+1 Bird Limit" not in entity["milestones"][0]:
+        if "+1 Bird Limit" not in _get_milestone_type(entity):
             continue
         for threshold in thresholds:
             if current_progress >= threshold:

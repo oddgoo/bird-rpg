@@ -3,6 +3,7 @@ from data.storage import load_research_progress_sync, load_manifested_birds_sync
 from data.manifest_constants import get_points_needed
 import json
 import os
+import random
 
 from commands.research import MILESTONE_THRESHOLDS
 
@@ -33,9 +34,7 @@ def _build_author_list(research_entities, research_progress):
             tier_size = next_threshold - prev_threshold
             progress_percent = (points_in_current_tier / tier_size) * 100
 
-        milestones = list(entity["milestones"])
-        while len(milestones) < len(MILESTONE_THRESHOLDS):
-            milestones.append("To be discovered")
+        milestones = [entity["milestone"]] * len(MILESTONE_THRESHOLDS)
 
         milestones_unlocked = 0
         for i, threshold in enumerate(MILESTONE_THRESHOLDS):
@@ -52,7 +51,7 @@ def _build_author_list(research_entities, research_progress):
             "milestones": milestones,
             "milestones_unlocked": milestones_unlocked
         })
-    authors.sort(key=lambda x: x["name"])
+    random.shuffle(authors)
     return authors
 
 
