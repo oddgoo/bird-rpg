@@ -1023,15 +1023,18 @@ async def upload_birdwatch_image(user_id: str, filename: str, file_data: bytes):
     return storage_path, public_url, compressed
 
 
-async def save_birdwatch_sighting(user_id: str, image_url: str, storage_path: str, original_filename: str):
+async def save_birdwatch_sighting(user_id: str, image_url: str, storage_path: str, original_filename: str, description: str = None):
     """Insert a birdwatch sighting record."""
     sb = await _client()
-    await sb.table("birdwatch_sightings").insert({
+    row = {
         "user_id": str(user_id),
         "image_url": image_url,
         "storage_path": storage_path,
         "original_filename": original_filename,
-    }).execute()
+    }
+    if description:
+        row["description"] = description
+    await sb.table("birdwatch_sightings").insert(row).execute()
 
 
 async def get_birdwatch_sightings(user_id: str, limit: int = 10):

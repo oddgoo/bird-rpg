@@ -18,12 +18,14 @@ class BirdwatchCommands(commands.Cog):
         description='Submit a bird sighting photo to share with the flock'
     )
     @app_commands.describe(
-        image='A photo of your bird sighting (png, jpg, gif, or webp, max 25MB)'
+        image='A photo of your bird sighting (png, jpg, gif, or webp, max 25MB)',
+        description='Optional description of your sighting'
     )
     async def birdwatch(
         self,
         interaction: discord.Interaction,
-        image: discord.Attachment
+        image: discord.Attachment,
+        description: str = None
     ):
         await interaction.response.defer()
 
@@ -66,14 +68,17 @@ class BirdwatchCommands(commands.Cog):
 
             # Save metadata to database
             await db.save_birdwatch_sighting(
-                user_id, public_url, storage_path, image.filename
+                user_id, public_url, storage_path, image.filename, description
             )
 
             # Build embed with the image as a file attachment
             file = discord.File(io.BytesIO(compressed), filename="birdwatch.jpg")
+            embed_desc = f"**{interaction.user.display_name}** spotted something!"
+            if description:
+                embed_desc += f"\n*{description}*"
             embed = discord.Embed(
                 title="Bird Sighting Recorded.",
-                description=f"**{interaction.user.display_name}** spotted something!",
+                description=embed_desc,
                 color=discord.Color.teal()
             )
             embed.set_image(url="attachment://birdwatch.jpg")

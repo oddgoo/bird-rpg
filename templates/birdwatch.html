@@ -23,6 +23,9 @@
                     <div class="font-bold text-orange-700">
                         {{ sighting.players.discord_username or sighting.players.nest_name or 'Unknown Bird' }}
                     </div>
+                    {% if sighting.description %}
+                    <div class="text-gray-600 text-sm italic mt-1 px-1">{{ sighting.description }}</div>
+                    {% endif %}
                     <div class="text-gray-500 text-sm mt-1">
                         {{ sighting.created_at[:10] }}
                     </div>

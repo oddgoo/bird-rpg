@@ -249,6 +249,7 @@ CREATE TABLE birdwatch_sightings (
     image_url TEXT NOT NULL,
     storage_path TEXT NOT NULL,
     original_filename TEXT,
+    description TEXT,
     created_at TIMESTAMPTZ DEFAULT now()
 );
 CREATE INDEX idx_birdwatch_user ON birdwatch_sightings(user_id);
