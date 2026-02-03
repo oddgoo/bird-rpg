@@ -58,6 +58,10 @@ def get_home_page():
         birds = all_birds_by_user.get(user_id, [])
         plants = all_plants_by_user.get(user_id, [])
 
+        # Skip players with no birds
+        if not birds:
+            continue
+
         # Get featured bird
         featured_bird = None
         if player.get("featured_bird_scientific_name"):

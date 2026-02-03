@@ -28,3 +28,10 @@ SUPABASE_KEY = os.getenv('SUPABASE_KEY', '')
 # Game limits
 MAX_BIRDS_PER_NEST = 45  # Maximum number of birds a user can have
 MAX_GARDEN_SIZE = 45     # Maximum garden size a user can have
+
+# Birdwatch image settings
+MAX_BIRDWATCH_IMAGE_SIZE = 25 * 1024 * 1024  # 25MB (Discord default limit)
+BIRDWATCH_MAX_DIMENSION = 1920  # Max px on longest side after resize
+BIRDWATCH_JPEG_QUALITY = 85
+ALLOWED_IMAGE_TYPES = {'image/png', 'image/jpeg', 'image/gif', 'image/webp'}
+ALLOWED_IMAGE_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.gif', '.webp'}

@@ -6,10 +6,13 @@ Reference data loaders (bird_species.json, plant_species.json, etc.) remain as l
 """
 
 import os
+import io
 import json
+import uuid
+import asyncio
 import glob as glob_module
 from utils.logging import log_debug
-from config.config import DATA_PATH
+from config.config import DATA_PATH, BIRDWATCH_MAX_DIMENSION, BIRDWATCH_JPEG_QUALITY
 
 # ---------------------------------------------------------------------------
 # Reference data loaders (read-only JSON bundled with code)
@@ -966,3 +969,78 @@ async def set_active_event(event_name):
         "key": "active_event",
         "value": event_name,
     }, on_conflict="key").execute()
+
+
+# ---------------------------------------------------------------------------
+# Birdwatch Sightings
+# ---------------------------------------------------------------------------
+
+BIRDWATCH_BUCKET = "birdwatch-images"
+
+
+def _compress_image(file_data: bytes) -> bytes:
+    """Resize and compress an image to JPEG. Runs in a thread (CPU-bound)."""
+    from PIL import Image
+    img = Image.open(io.BytesIO(file_data))
+    img = img.convert("RGB")  # Ensure JPEG-compatible (no alpha)
+
+    # Resize if longest side exceeds max dimension
+    max_dim = max(img.size)
+    if max_dim > BIRDWATCH_MAX_DIMENSION:
+        ratio = BIRDWATCH_MAX_DIMENSION / max_dim
+        new_size = (int(img.width * ratio), int(img.height * ratio))
+        img = img.resize(new_size, Image.LANCZOS)
+
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=BIRDWATCH_JPEG_QUALITY, optimize=True)
+    buf.seek(0)
+    return buf.getvalue()
+
+
+async def compress_image(file_data: bytes) -> bytes:
+    """Async wrapper for image compression (runs in thread pool)."""
+    return await asyncio.to_thread(_compress_image, file_data)
+
+
+def _upload_to_storage(storage_path: str, file_data: bytes):
+    """Upload bytes to Supabase Storage using the sync client. Runs in a thread."""
+    sb = _sync_client()
+    sb.storage.from_(BIRDWATCH_BUCKET).upload(
+        path=storage_path,
+        file=file_data,
+        file_options={"content-type": "image/jpeg", "upsert": "false"}
+    )
+    return sb.storage.from_(BIRDWATCH_BUCKET).get_public_url(storage_path)
+
+
+async def upload_birdwatch_image(user_id: str, filename: str, file_data: bytes):
+    """Compress and upload an image to Supabase Storage. Returns (storage_path, public_url, compressed_bytes)."""
+    storage_path = f"{user_id}/{uuid.uuid4().hex}_{filename}"
+    # Compress first
+    compressed = await compress_image(file_data)
+    # Upload via sync client in thread (async client may not expose .storage)
+    public_url = await asyncio.to_thread(_upload_to_storage, storage_path, compressed)
+    return storage_path, public_url, compressed
+
+
+async def save_birdwatch_sighting(user_id: str, image_url: str, storage_path: str, original_filename: str):
+    """Insert a birdwatch sighting record."""
+    sb = await _client()
+    await sb.table("birdwatch_sightings").insert({
+        "user_id": str(user_id),
+        "image_url": image_url,
+        "storage_path": storage_path,
+        "original_filename": original_filename,
+    }).execute()
+
+
+async def get_birdwatch_sightings(user_id: str, limit: int = 10):
+    """Get recent birdwatch sightings for a user."""
+    sb = await _client()
+    res = await sb.table("birdwatch_sightings") \
+        .select("*") \
+        .eq("user_id", str(user_id)) \
+        .order("created_at", desc=True) \
+        .limit(limit) \
+        .execute()
+    return res.data or []

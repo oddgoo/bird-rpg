@@ -242,6 +242,17 @@ CREATE TABLE game_settings (
 );
 INSERT INTO game_settings (key, value) VALUES ('active_event', 'default');
 
+-- Birdwatch sightings (user-uploaded bird photos)
+CREATE TABLE birdwatch_sightings (
+    id SERIAL PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES players(user_id),
+    image_url TEXT NOT NULL,
+    storage_path TEXT NOT NULL,
+    original_filename TEXT,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX idx_birdwatch_user ON birdwatch_sightings(user_id);
+
 -- Atomic increment for player resources
 CREATE OR REPLACE FUNCTION increment_player_field(p_user_id TEXT, field_name TEXT, amount NUMERIC)
 RETURNS void AS $$

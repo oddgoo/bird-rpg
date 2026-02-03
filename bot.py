@@ -95,7 +95,8 @@ async def load_cogs(bot):
         'commands.weather',
         'commands.research',
         'commands.manifest',
-        'commands.admin_utils'
+        'commands.admin_utils',
+        'commands.birdwatch'
     ]
 
 

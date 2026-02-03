@@ -64,7 +64,9 @@ Reference data files (read-only, bundled with code):
 - `data/research_entities_digraa2026.json` - Research entities for digraa2026 event
 - `data/realm_lore.json` - Realm narrative messages
 
-**Configuration**: `config/config.py` holds limits (MAX_BIRDS_PER_NEST, MAX_GARDEN_SIZE), Supabase connection config, and environment variables. Game constants in `constants.py` and `data/constants.py`.
+**Birdwatch**: `/birdwatch` command accepts image attachments via `discord.Attachment`. Images are resized (max 1920px) and compressed to JPEG with Pillow before uploading to a **Supabase Storage** public bucket (`birdwatch-images`). Requires the bucket to be created manually in the Supabase dashboard.
+
+**Configuration**: `config/config.py` holds limits (MAX_BIRDS_PER_NEST, MAX_GARDEN_SIZE), birdwatch image settings, Supabase connection config, and environment variables. Game constants in `constants.py` and `data/constants.py`.
 
 ## Database Schema
 
@@ -76,6 +78,7 @@ Schema SQL is at `scripts/schema.sql`. Key tables:
 - `daily_actions` / `daily_songs` / `daily_brooding` - Daily activity tracking
 - `manifested_birds` / `manifested_plants` - Community-created species
 - `research_progress` / `exploration` - Progression systems
+- `birdwatch_sightings` - User-uploaded bird photos (stored in Supabase Storage `birdwatch-images` bucket)
 - `game_settings` - Key-value config (e.g. `active_event` for the event system)
 
 RPC functions (`increment_common_nest`, `increment_player_field`) provide atomic operations.
