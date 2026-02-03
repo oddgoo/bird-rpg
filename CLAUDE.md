@@ -60,7 +60,8 @@ Reference data files (read-only, bundled with code):
 - `data/plant_species.json` - Base plant species catalog
 - `data/treasures.json` - Treasure/sticker items
 - `data/human_entities.json` - Human spawner data
-- `data/research_entities.json` - Research system config
+- `data/research_entities.json` - Research system config (default event)
+- `data/research_entities_digraa2026.json` - Research entities for digraa2026 event
 - `data/realm_lore.json` - Realm narrative messages
 
 **Configuration**: `config/config.py` holds limits (MAX_BIRDS_PER_NEST, MAX_GARDEN_SIZE), Supabase connection config, and environment variables. Game constants in `constants.py` and `data/constants.py`.
@@ -75,6 +76,7 @@ Schema SQL is at `scripts/schema.sql`. Key tables:
 - `daily_actions` / `daily_songs` / `daily_brooding` - Daily activity tracking
 - `manifested_birds` / `manifested_plants` - Community-created species
 - `research_progress` / `exploration` - Progression systems
+- `game_settings` - Key-value config (e.g. `active_event` for the event system)
 
 RPC functions (`increment_common_nest`, `increment_player_field`) provide atomic operations.
 
@@ -83,7 +85,8 @@ RPC functions (`increment_common_nest`, `increment_player_field`) provide atomic
 - **Async/sync split**: Discord commands use async DB functions; Flask routes use `_sync` suffixed variants
 - **Atomic operations**: Use `db.increment_player_field()` / `db.increment_common_nest()` (RPC calls) instead of read-modify-write for numeric fields
 - **No load-everything pattern**: Each command makes targeted DB calls (SELECT/INSERT/UPDATE) instead of loading all data
-- **Cached reference data**: Read-only JSON files (`treasures.json`, `research_entities.json`) are cached at module level. Use `data.models.load_treasures()` and `data.storage.load_research_entities()` instead of reading files directly. `commands/foraging.py:load_treasures()` delegates to the cached version.
+- **Cached reference data**: Read-only JSON files (`treasures.json`, `research_entities.json`) are cached at module level. Use `data.models.load_treasures()` and `data.storage.load_research_entities(event)` instead of reading files directly. `commands/foraging.py:load_treasures()` delegates to the cached version.
+- **Event system**: The `game_settings` table stores `active_event` (default: `"default"`). Toggle events directly in Supabase. `load_research_entities(event)` loads event-specific JSON files (`research_entities_{event}.json`). `load_all_research_entities()` combines entities from all events for milestone bonus calculations. The `/study` dropdown shows 6 shuffled authors from the active event.
 - **Bulk-fetch helpers**: Use `db.get_bird_treasures_for_birds_sync(bird_ids)` for batch bird treasure lookups instead of per-bird queries
 - Slash commands auto-sync on bot startup
 - Use `utils.logging.log_debug` for debug output

@@ -144,8 +144,9 @@ class ResearchCommands(commands.Cog):
         # Record the actions used
         await record_actions(user_id, actions, "study")
 
-        # Load research entities (sync, read-only reference data)
-        research_entities = load_research_entities()
+        # Load research entities for the active event
+        active_event = await db.get_active_event()
+        research_entities = load_research_entities(active_event)
 
         # Load research progress
         research_progress = await db.load_research_progress()
@@ -178,16 +179,20 @@ class ResearchCommands(commands.Cog):
         # Randomly select a quote from that author
         random_quote = random.choice(random_author_data["quotes"])
 
-        # Create a dropdown with all authors
+        # Create a dropdown with 6 shuffled authors (always including the correct one)
+        other_authors = [e for e in research_entities if e["author"] != author_name]
+        sample_count = min(5, len(other_authors))
+        sampled = random.sample(other_authors, sample_count)
+        dropdown_authors = [author_name] + [e["author"] for e in sampled]
+        random.shuffle(dropdown_authors)
+
         options = []
-        # Sort research entities by author name for the dropdown
-        sorted_entities = sorted(research_entities, key=lambda x: x["author"])
-        for entity in sorted_entities:
+        for name in dropdown_authors:
             options.append(
                 discord.SelectOption(
-                    label=entity["author"],
-                    description=f"Select if you think this is a quote by {entity['author']}",
-                    value=entity["author"]
+                    label=name,
+                    description=f"Select if you think this is a quote by {name}",
+                    value=name
                 )
             )
 

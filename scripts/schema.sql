@@ -235,6 +235,13 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Game settings (key-value config, e.g. active_event)
+CREATE TABLE game_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
+INSERT INTO game_settings (key, value) VALUES ('active_event', 'default');
+
 -- Atomic increment for player resources
 CREATE OR REPLACE FUNCTION increment_player_field(p_user_id TEXT, field_name TEXT, amount NUMERIC)
 RETURNS void AS $$

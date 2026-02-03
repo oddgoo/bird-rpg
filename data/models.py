@@ -465,7 +465,7 @@ def _get_milestone_thresholds():
 
 async def get_extra_garden_space():
     research_progress = await db.load_research_progress()
-    research_entities = db.load_research_entities()
+    research_entities = db.load_all_research_entities()
     thresholds = _get_milestone_thresholds()
 
     extra_space = 0
@@ -484,7 +484,7 @@ async def get_extra_garden_space():
 
 def get_extra_garden_space_sync():
     research_progress = db.load_research_progress_sync()
-    research_entities = db.load_research_entities()
+    research_entities = db.load_all_research_entities()
     thresholds = _get_milestone_thresholds()
 
     extra_space = 0
@@ -503,7 +503,7 @@ def get_extra_garden_space_sync():
 
 async def get_prayer_effectiveness_bonus():
     research_progress = await db.load_research_progress()
-    research_entities = db.load_research_entities()
+    research_entities = db.load_all_research_entities()
     thresholds = _get_milestone_thresholds()
     prayer_exponent = 1.0
     bonus_string = "Prayers are 1% more effective. Compounding!"
@@ -524,7 +524,7 @@ async def get_prayer_effectiveness_bonus():
 
 async def get_extra_bird_space():
     research_progress = await db.load_research_progress()
-    research_entities = db.load_research_entities()
+    research_entities = db.load_all_research_entities()
     thresholds = _get_milestone_thresholds()
 
     extra_space = 0
@@ -543,7 +543,7 @@ async def get_extra_bird_space():
 
 def get_extra_bird_space_sync():
     research_progress = db.load_research_progress_sync()
-    research_entities = db.load_research_entities()
+    research_entities = db.load_all_research_entities()
     thresholds = _get_milestone_thresholds()
 
     extra_space = 0

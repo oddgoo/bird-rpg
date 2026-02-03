@@ -1,19 +1,13 @@
 from flask import render_template
-from data.storage import load_research_progress_sync, load_manifested_birds_sync, load_manifested_plants_sync, load_research_entities
+from data.storage import load_research_progress_sync, load_manifested_birds_sync, load_manifested_plants_sync, load_research_entities, load_all_research_entities, get_active_event_sync
 from data.manifest_constants import get_points_needed
 import json
 import os
 
 from commands.research import MILESTONE_THRESHOLDS
 
-def get_research_page():
-    """Render the research page"""
-    research_entities = load_research_entities()
-    research_progress = load_research_progress_sync()
-    manifested_birds = load_manifested_birds_sync()
-    manifested_plants = load_manifested_plants_sync()
-
-    # Prepare author data for the template
+def _build_author_list(research_entities, research_progress):
+    """Build template-ready author data from entities and progress."""
     authors = []
     for entity in research_entities:
         current_points = research_progress.get(entity["author"], 0)
@@ -39,7 +33,7 @@ def get_research_page():
             tier_size = next_threshold - prev_threshold
             progress_percent = (points_in_current_tier / tier_size) * 100
 
-        milestones = entity["milestones"]
+        milestones = list(entity["milestones"])
         while len(milestones) < len(MILESTONE_THRESHOLDS):
             milestones.append("To be discovered")
 
@@ -58,6 +52,26 @@ def get_research_page():
             "milestones": milestones,
             "milestones_unlocked": milestones_unlocked
         })
+    authors.sort(key=lambda x: x["name"])
+    return authors
+
+
+def get_research_page():
+    """Render the research page"""
+    active_event = get_active_event_sync()
+    research_entities = load_research_entities(active_event)
+    research_progress = load_research_progress_sync()
+    manifested_birds = load_manifested_birds_sync()
+    manifested_plants = load_manifested_plants_sync()
+
+    # Active event authors
+    authors = _build_author_list(research_entities, research_progress)
+
+    # Other event authors (from all events minus the active one)
+    active_author_names = {e["author"] for e in research_entities}
+    all_entities = load_all_research_entities()
+    other_entities = [e for e in all_entities if e["author"] not in active_author_names]
+    other_authors = _build_author_list(other_entities, research_progress)
 
     # Process manifested birds
     birds_in_progress = []
@@ -97,9 +111,9 @@ def get_research_page():
             "progress_percent": progress_percent
         })
 
-    authors.sort(key=lambda x: x["name"])
-
     return render_template('research.html',
                           authors=authors,
+                          other_authors=other_authors,
+                          active_event=active_event,
                           birds_in_progress=birds_in_progress,
                           plants_in_progress=plants_in_progress)

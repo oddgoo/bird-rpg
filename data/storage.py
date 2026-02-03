@@ -7,6 +7,7 @@ Reference data loaders (bird_species.json, plant_species.json, etc.) remain as l
 
 import os
 import json
+import glob as glob_module
 from utils.logging import log_debug
 from config.config import DATA_PATH
 
@@ -14,26 +15,70 @@ from config.config import DATA_PATH
 # Reference data loaders (read-only JSON bundled with code)
 # ---------------------------------------------------------------------------
 
-_research_entities_cache = None
+_research_entities_cache = {}
 
-def load_research_entities():
-    """Load research entities data from JSON file (read-only reference data, cached)."""
+def load_research_entities(event="default"):
+    """Load research entities data from JSON file (read-only reference data, cached).
+
+    For the default event, loads research_entities.json.
+    For other events, loads research_entities_{event}.json, falling back to default.
+    """
     global _research_entities_cache
-    if _research_entities_cache is not None:
-        return _research_entities_cache
-    file_path = os.path.join(os.path.dirname(__file__), 'research_entities.json')
+    if event in _research_entities_cache:
+        return _research_entities_cache[event]
+
+    if event == "default":
+        file_path = os.path.join(os.path.dirname(__file__), 'research_entities.json')
+    else:
+        file_path = os.path.join(os.path.dirname(__file__), f'research_entities_{event}.json')
+
     try:
         if os.path.exists(file_path):
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                log_debug("Research entities data loaded successfully")
-                _research_entities_cache = data
+                log_debug(f"Research entities data loaded successfully for event: {event}")
+                _research_entities_cache[event] = data
                 return data
+        # Fallback to default if event file missing
+        if event != "default":
+            log_debug(f"No research entities for event '{event}', falling back to default")
+            return load_research_entities("default")
         log_debug("No existing research entities data, returning empty list")
         return []
     except Exception as e:
         log_debug(f"Error loading research entities data: {e}")
         raise
+
+
+def load_all_research_entities():
+    """Load research entities from ALL event files (default + all event variants).
+
+    Returns a combined list of all entities across all events.
+    Used by milestone bonus calculations so bonuses persist across events.
+    """
+    data_dir = os.path.dirname(__file__)
+    all_entities = []
+    seen_files = set()
+
+    # Load default
+    default_path = os.path.join(data_dir, 'research_entities.json')
+    if os.path.exists(default_path):
+        seen_files.add(os.path.normpath(default_path))
+        all_entities.extend(load_research_entities("default"))
+
+    # Load all event variants
+    pattern = os.path.join(data_dir, 'research_entities_*.json')
+    for file_path in glob_module.glob(pattern):
+        norm_path = os.path.normpath(file_path)
+        if norm_path in seen_files:
+            continue
+        seen_files.add(norm_path)
+        # Extract event name from filename: research_entities_{event}.json
+        basename = os.path.basename(file_path)
+        event_name = basename.replace('research_entities_', '').replace('.json', '')
+        all_entities.extend(load_research_entities(event_name))
+
+    return all_entities
 
 
 # ---------------------------------------------------------------------------
@@ -890,3 +935,34 @@ def get_all_nest_treasures_sync():
     for row in (res.data or []):
         grouped.setdefault(str(row["user_id"]), []).append(row)
     return grouped
+
+
+# ---------------------------------------------------------------------------
+# Game Settings (event system)
+# ---------------------------------------------------------------------------
+
+async def get_active_event():
+    """Get the currently active event name from game_settings. Returns 'default' if not set."""
+    sb = await _client()
+    res = await sb.table("game_settings").select("value").eq("key", "active_event").execute()
+    if res.data:
+        return res.data[0]["value"]
+    return "default"
+
+
+def get_active_event_sync():
+    """Sync variant: get the currently active event name."""
+    sb = _sync_client()
+    res = sb.table("game_settings").select("value").eq("key", "active_event").execute()
+    if res.data:
+        return res.data[0]["value"]
+    return "default"
+
+
+async def set_active_event(event_name):
+    """Set the active event in game_settings (upsert)."""
+    sb = await _client()
+    await sb.table("game_settings").upsert({
+        "key": "active_event",
+        "value": event_name,
+    }, on_conflict="key").execute()
