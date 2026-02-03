@@ -71,11 +71,15 @@ class BirdwatchCommands(commands.Cog):
                 user_id, public_url, storage_path, image.filename, description
             )
 
+            # Reward inspiration
+            await db.increment_player_field(user_id, "inspiration", 3)
+
             # Build embed with the image as a file attachment
             file = discord.File(io.BytesIO(compressed), filename="birdwatch.jpg")
             embed_desc = f"**{interaction.user.display_name}** spotted something!"
             if description:
                 embed_desc += f"\n*{description}*"
+            embed_desc += "\n+3 Inspiration"
             embed = discord.Embed(
                 title="Bird Sighting Recorded.",
                 description=embed_desc,
