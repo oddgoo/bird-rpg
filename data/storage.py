@@ -1044,3 +1044,22 @@ async def get_birdwatch_sightings(user_id: str, limit: int = 10):
         .limit(limit) \
         .execute()
     return res.data or []
+
+
+def get_all_birdwatch_sightings_sync(page: int = 1, per_page: int = 12):
+    """Get paginated birdwatch sightings with player usernames. Returns (sightings, total_count)."""
+    sb = _sync_client()
+
+    # Get total count
+    count_res = sb.table("birdwatch_sightings").select("id", count="exact").execute()
+    total_count = count_res.count or 0
+
+    # Get paginated sightings with player username via join
+    offset = (page - 1) * per_page
+    res = sb.table("birdwatch_sightings") \
+        .select("*, players(discord_username, nest_name)") \
+        .order("created_at", desc=True) \
+        .range(offset, offset + per_page - 1) \
+        .execute()
+
+    return res.data or [], total_count

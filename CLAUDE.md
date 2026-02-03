@@ -47,7 +47,7 @@ Required in `.env`:
 
 **Commands**: Discord slash commands live in `commands/` as cogs. Each cog class inherits from `commands.Cog` and registers via `async def setup(bot)`. Add new commands by creating a cog file and adding it to the `COGS` list in `bot.py`.
 
-**Web**: Flask routes in `web/server.py`, templates in `templates/` (Jinja2), static assets in `static/`. `templates/base.html` provides the layout with a mystical/papyrus aesthetic.
+**Web**: Flask routes in `web/server.py`, templates in `templates/` (Jinja2), static assets in `static/`. `templates/base.html` provides the layout with a mystical/papyrus aesthetic. Route handlers are split into `web/home.py`, `web/research.py`, `web/birdwatch.py`, and `web/admin.py`. Navigation menu is in `templates/components/navbar.html`.
 
 **Data storage**: Supabase (PostgreSQL) via the `supabase-py` library. All game state is stored in ~20 normalized tables (players, player_birds, eggs, daily_actions, etc.).
 

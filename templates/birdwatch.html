@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Birdwatch Gallery | bird-rpg Village{% endblock %}
+
+{% block content %}
+<h2 class="text-center text-4xl text-navy-800 mb-8 font-mystical font-bold">📷 Birdwatch</h2>
+
+<div class="rounded-xl p-6 mb-8 shadow-lg border-4 border-yellow-900" style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+    <div class="border border-amber-300/50 rounded-lg p-4">
+        <!-- <p class="text-center text-yellow-900 mb-4">{{ total_count }} sighting{{ 's' if total_count != 1 else '' }} recorded by the flock</p> -->
+
+        {% if sightings %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {% for sighting in sightings %}
+            <div class="bg-white rounded-xl shadow-md overflow-hidden transition-transform transform hover:-translate-y-1">
+                <a href="{{ sighting.image_url }}" target="_blank">
+                    <img src="{{ sighting.image_url }}"
+                         alt="Bird sighting by {{ sighting.players.discord_username or 'Unknown' }}"
+                         class="w-full h-48 object-cover hover:opacity-90 transition-opacity"
+                         loading="lazy">
+                </a>
+                <div class="p-3 text-center">
+                    <div class="font-bold text-orange-700">
+                        {{ sighting.players.discord_username or sighting.players.nest_name or 'Unknown Bird' }}
+                    </div>
+                    <div class="text-gray-500 text-sm mt-1">
+                        {{ sighting.created_at[:10] }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="flex justify-center items-center gap-4 mt-6">
+            {% if page > 1 %}
+            <a href="/birdwatch?page={{ page - 1 }}" class="px-4 py-2 bg-yellow-900 text-white rounded-lg hover:bg-yellow-800 transition-colors font-bold">
+                &laquo; Prev
+            </a>
+            {% endif %}
+
+            <span class="text-yellow-900 font-bold">
+                Page {{ page }} of {{ total_pages }}
+            </span>
+
+            {% if page < total_pages %}
+            <a href="/birdwatch?page={{ page + 1 }}" class="px-4 py-2 bg-yellow-900 text-white rounded-lg hover:bg-yellow-800 transition-colors font-bold">
+                Next &raquo;
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <p class="text-center text-yellow-900 italic mt-4">No sightings yet. Use <code>/birdwatch</code> in Discord to submit your first!</p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="text-center mt-4">
+    <a href="/" class="text-orange-700 hover:underline font-bold">&larr; Back</a>
+</div>
+{% endblock %}
