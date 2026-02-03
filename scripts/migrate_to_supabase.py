@@ -386,13 +386,13 @@ def migrate_manifested_plants():
         sb.table("manifested_plants").upsert({
             "common_name": plant.get("commonName", ""),
             "scientific_name": plant.get("scientificName", ""),
-            "rarity_weight": plant.get("rarityWeight", 0),
+            "rarity_weight": float(plant.get("rarityWeight", 0)),
             "rarity": plant.get("rarity", "common"),
             "effect": plant.get("effect", ""),
-            "seed_cost": plant.get("seedCost", 30),
-            "size_cost": plant.get("sizeCost", 1),
-            "inspiration_cost": plant.get("inspirationCost", 0.2),
-            "manifested_points": plant.get("manifested_points", 0),
+            "seed_cost": int(float(plant.get("seedCost", 30))),
+            "size_cost": int(float(plant.get("sizeCost", 1))),
+            "inspiration_cost": float(plant.get("inspirationCost", 0.2)),
+            "manifested_points": int(float(plant.get("manifested_points", 0))),
             "fully_manifested": plant.get("fully_manifested", False),
         }, on_conflict="scientific_name").execute()
 
@@ -426,25 +426,25 @@ def main():
         sys.exit(1)
 
     # Migrate in dependency order
-    migrate_common_nest(data)
-    nests = migrate_players(data)
-    migrate_birds(nests)
-    migrate_plants(nests)
-    migrate_treasures(nests)
-    migrate_eggs(nests)
-    migrate_daily_actions(data)
-    migrate_daily_songs(data)
-    migrate_daily_brooding(data)
-    migrate_last_song_targets(nests)
-    migrate_released_birds(data)
-    migrate_defeated_humans(data)
-    migrate_exploration(data)
-    migrate_weather_channels(data)
+    # migrate_common_nest(data)
+    # nests = migrate_players(data)
+    # migrate_birds(nests)
+    # migrate_plants(nests)
+    # migrate_treasures(nests)
+    # migrate_eggs(nests)
+    # migrate_daily_actions(data)
+    # migrate_daily_songs(data)
+    # migrate_daily_brooding(data)
+    # migrate_last_song_targets(nests)
+    # migrate_released_birds(data)
+    # migrate_defeated_humans(data)
+    # migrate_exploration(data)
+    # migrate_weather_channels(data)
 
-    # Migrate separate JSON files
-    migrate_memoirs()
-    migrate_realm_messages()
-    migrate_manifested_birds()
+    # # Migrate separate JSON files
+    # migrate_memoirs()
+    # migrate_realm_messages()
+    # migrate_manifested_birds()
     migrate_manifested_plants()
     migrate_research_progress()
 

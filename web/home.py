@@ -43,11 +43,9 @@ def get_home_page():
         # Count how many times this user has sung to others
         songs_given = sum(1 for s in all_songs if s["singer_user_id"] == str(user_id))
 
-        # Get egg data
-        from data.db import get_sync_client
-        sb = get_sync_client()
-        egg_rows = sb.table("eggs").select("brooding_progress").eq("user_id", str(user_id)).execute().data
-        egg_progress = egg_rows[0]["brooding_progress"] if egg_rows else None
+        # Get egg data via storage layer
+        egg_res = db._sync_client().table("eggs").select("brooding_progress").eq("user_id", str(user_id)).execute()
+        egg_progress = egg_res.data[0]["brooding_progress"] if egg_res.data else None
 
         # Get featured bird
         featured_bird = None

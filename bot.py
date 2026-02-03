@@ -48,24 +48,27 @@ async def on_ready():
     try:
         from data.db import get_async_client
         sb = await get_async_client()
-        res = sb.table("common_nest").select("id").limit(1).execute()
+        res = await sb.table("common_nest").select("id").limit(1).execute()
         print(f"Supabase connection verified. Common nest exists: {bool(res.data)}")
         if not res.data:
             # Initialize common nest singleton
-            sb.table("common_nest").insert({"id": 1, "twigs": 0, "seeds": 0}).execute()
+            await sb.table("common_nest").insert({"id": 1, "twigs": 0, "seeds": 0}).execute()
             print("Initialized common nest in Supabase.")
     except Exception as e:
         print(f"Supabase connection error: {e}")
 
-    # Update Discord usernames
-    try:
-        print("Updating Discord usernames...")
-        updated, errors, not_found = await update_discord_usernames(bot)
-        print(f"Username update complete: {updated} updated, {errors} errors")
-        if not_found:
-            print(f"IDs not found: {', '.join(not_found)}")
-    except Exception as e:
-        print(f"Error during username update: {e}")
+    # Update Discord usernames (skip in debug/local mode)
+    if DEBUG:
+        print("Skipping Discord username update (DEBUG mode)")
+    else:
+        try:
+            print("Updating Discord usernames...")
+            updated, errors, not_found = await update_discord_usernames(bot)
+            print(f"Username update complete: {updated} updated, {errors} errors")
+            if not_found:
+                print(f"IDs not found: {', '.join(not_found)}")
+        except Exception as e:
+            print(f"Error during username update: {e}")
 
 # Move cog loading into a function
 async def load_cogs(bot):

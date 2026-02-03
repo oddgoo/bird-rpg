@@ -69,7 +69,7 @@ async def test_apply_blessing_garden_growth():
     mock_players = [
         {"user_id": "user1", "garden_size": 0},
         {"user_id": "user2", "garden_size": 10},
-        {"user_id": "user3", "garden_size": 49},  # 1 space left (MAX is 50)
+        {"user_id": "user3", "garden_size": 44},  # 1 space left (MAX is 45)
     ]
 
     with patch("utils.blessings.db.load_all_players", new_callable=AsyncMock) as mock_load:
