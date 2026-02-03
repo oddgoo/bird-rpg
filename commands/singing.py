@@ -32,6 +32,9 @@ class SingingCommands(commands.Cog):
 
         today = get_current_date()
 
+        # Fetch singer's birds once (they don't change between iterations)
+        birds = await db.get_player_birds(singer_id)
+
         # Process each target user
         for target_user in target_users:
             # Re-check actions at the start of each loop iteration
@@ -58,7 +61,6 @@ class SingingCommands(commands.Cog):
                 continue
 
             # Get bonuses
-            birds = await db.get_player_birds(singer_id)
             bonus_actions = await get_singing_bonus(birds)
             inspiration_bonus = await get_singing_inspiration_chance(singer_id, birds)
 

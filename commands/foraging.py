@@ -12,10 +12,9 @@ from data.models import get_remaining_actions, record_actions, add_bonus_actions
 from utils.logging import log_debug
 
 def load_treasures():
-    """Load treasures from the JSON file"""
-    file_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'treasures.json')
-    with open(file_path, 'r') as file:
-        return json.load(file)
+    """Load treasures from the JSON file (delegates to cached version in models)."""
+    from data.models import load_treasures as _cached_load
+    return _cached_load()
 
 class ForagingCommands(commands.Cog):
     def __init__(self, bot):

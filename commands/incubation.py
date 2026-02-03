@@ -406,7 +406,6 @@ class IncubationCommands(commands.Cog):
 
             # Get multipliers if they exist
             multipliers = egg.get("multipliers", {})
-            print(multipliers)
 
             # Get the main bird species
             bird_species = await select_random_bird_species(multipliers)

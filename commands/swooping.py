@@ -46,35 +46,33 @@ class Swooping(commands.Cog):
             await db.increment_common_nest("seeds", amount)
         elif blessing["type"] == "common_nest_growth":
             await db.increment_common_nest("twigs", amount)
-        elif blessing["type"] == "individual_seeds":
+        else:
+            # All other blessing types need the full player list — load once
             players = await db.load_all_players()
-            for player in players:
-                user_id = player["user_id"]
-                space_left = player.get("twigs", 0) - player.get("seeds", 0)
-                add_amount = min(amount, max(0, space_left))
-                if add_amount > 0:
-                    await db.increment_player_field(user_id, "seeds", add_amount)
-        elif blessing["type"] == "inspiration":
-            players = await db.load_all_players()
-            for player in players:
-                await db.increment_player_field(player["user_id"], "inspiration", amount)
-        elif blessing["type"] == "garden_growth":
-            players = await db.load_all_players()
-            from config.config import MAX_GARDEN_SIZE
-            for player in players:
-                current_size = player.get("garden_size", 0)
-                new_size = min(current_size + amount, MAX_GARDEN_SIZE)
-                increment = new_size - current_size
-                if increment > 0:
-                    await db.increment_player_field(player["user_id"], "garden_size", increment)
-        elif blessing["type"] == "bonus_actions":
-            players = await db.load_all_players()
-            for player in players:
-                await db.increment_player_field(player["user_id"], "bonus_actions", amount)
-        elif blessing["type"] == "individual_nest_growth":
-            players = await db.load_all_players()
-            for player in players:
-                await db.increment_player_field(player["user_id"], "twigs", amount)
+            if blessing["type"] == "individual_seeds":
+                for player in players:
+                    user_id = player["user_id"]
+                    space_left = player.get("twigs", 0) - player.get("seeds", 0)
+                    add_amount = min(amount, max(0, space_left))
+                    if add_amount > 0:
+                        await db.increment_player_field(user_id, "seeds", add_amount)
+            elif blessing["type"] == "inspiration":
+                for player in players:
+                    await db.increment_player_field(player["user_id"], "inspiration", amount)
+            elif blessing["type"] == "garden_growth":
+                from config.config import MAX_GARDEN_SIZE
+                for player in players:
+                    current_size = player.get("garden_size", 0)
+                    new_size = min(current_size + amount, MAX_GARDEN_SIZE)
+                    increment = new_size - current_size
+                    if increment > 0:
+                        await db.increment_player_field(player["user_id"], "garden_size", increment)
+            elif blessing["type"] == "bonus_actions":
+                for player in players:
+                    await db.increment_player_field(player["user_id"], "bonus_actions", amount)
+            elif blessing["type"] == "individual_nest_growth":
+                for player in players:
+                    await db.increment_player_field(player["user_id"], "twigs", amount)
 
         # Record the defeated human
         await db.add_defeated_human(

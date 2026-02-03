@@ -4,11 +4,10 @@ from config.config import PORT, DEBUG, ADMIN_PASSWORD, SPECIES_IMAGES_DIR
 from web.home import get_home_page
 from web.admin import admin_routes
 from web.research import get_research_page
-from data.models import load_bird_species_sync, load_plant_species_sync, get_discovered_species_sync, get_discovered_plants_sync
+from data.models import load_bird_species_sync, load_plant_species_sync, get_discovered_species_sync, get_discovered_plants_sync, load_treasures
 from data.db import get_sync_client
 from utils.time_utils import get_time_until_reset, get_current_date, get_australian_time
 from datetime import timedelta
-import json
 import os
 import secrets
 import time
@@ -75,22 +74,24 @@ def user_page(user_id):
 
     bird_species_data = {species["scientificName"]: species for species in load_bird_species_sync()}
 
-    # Load treasures data
-    with open('data/treasures.json', 'r') as f:
-        treasures_data = json.load(f)
+    # Load treasures data (cached)
+    treasures_data = load_treasures()
 
     all_treasures = {}
     for category in treasures_data.values():
         for treasure in category:
             all_treasures[treasure['id']] = treasure
 
+    # Bulk-fetch bird treasures for all birds at once (instead of per-bird query)
+    bird_ids = [bird["id"] for bird in birds]
+    all_bird_treasures = db.get_bird_treasures_for_birds_sync(bird_ids)
+
     # Enrich chicks data with species info
     enriched_chicks = []
     for bird in birds:
         species_info = bird_species_data.get(bird["scientific_name"], {})
 
-        # Get treasure details for this bird
-        bird_treasures_rows = get_sync_client().table("bird_treasures").select("*").eq("bird_id", bird["id"]).execute().data or []
+        bird_treasures_rows = all_bird_treasures.get(bird["id"], [])
         chick_treasures = []
         for decoration in bird_treasures_rows:
             tid = decoration.get('treasure_id')
@@ -115,23 +116,39 @@ def user_page(user_id):
     songs_given = sum(1 for s in all_songs if s["singer_user_id"] == str(user_id))
 
     # Get today's songs given to
-    songs_given_to = []
     today_songs = [s for s in all_songs if s["song_date"] == today and s["singer_user_id"] == str(user_id)]
+
+    # Get today's brooded nests
+    sb = get_sync_client()
+    brooding_today = sb.table("daily_brooding").select("target_user_id").eq("brooding_date", today).eq("brooder_user_id", str(user_id)).execute().data or []
+
+    # Batch-load all referenced target players in one go
+    target_user_ids = set()
     for song in today_songs:
-        target = db.load_player_sync(song["target_user_id"])
+        target_user_ids.add(song["target_user_id"])
+    for row in brooding_today:
+        target_user_ids.add(row["target_user_id"])
+
+    target_players = {}
+    if target_user_ids:
+        all_players = db.load_all_players_sync()
+        target_players = {p["user_id"]: p for p in all_players if p["user_id"] in target_user_ids}
+
+    songs_given_to = []
+    for song in today_songs:
+        tid = song["target_user_id"]
+        target = target_players.get(tid, {})
         songs_given_to.append({
-            "user_id": song["target_user_id"],
+            "user_id": tid,
             "name": target.get("nest_name", "Some Bird's Nest"),
         })
 
-    # Get today's brooded nests
     brooded_nests = []
-    sb = get_sync_client()
-    brooding_today = sb.table("daily_brooding").select("target_user_id").eq("brooding_date", today).eq("brooder_user_id", str(user_id)).execute().data or []
     for row in brooding_today:
-        target = db.load_player_sync(row["target_user_id"])
+        tid = row["target_user_id"]
+        target = target_players.get(tid, {})
         brooded_nests.append({
-            "user_id": row["target_user_id"],
+            "user_id": tid,
             "name": target.get("nest_name", "Some Bird's Nest"),
         })
 

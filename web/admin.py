@@ -104,17 +104,19 @@ def admin_routes(app):
 
             if apply_to_all:
                 all_players = db.load_all_players_sync()
-                user_ids = [p["user_id"] for p in all_players]
+                players_by_id = {p["user_id"]: p for p in all_players}
+                user_ids = list(players_by_id.keys())
             else:
+                player = db.load_player_sync(user_id)
+                players_by_id = {user_id: player}
                 user_ids = [user_id]
 
             for uid in user_ids:
-                player = db.load_player_sync(uid)
-
                 if boon_type == "bonus_actions":
                     db.increment_player_field_sync(uid, "bonus_actions", amount)
                 elif boon_type == "seeds":
-                    space_left = player["twigs"] - player.get("seeds", 0)
+                    p = players_by_id[uid]
+                    space_left = p["twigs"] - p.get("seeds", 0)
                     actual = min(amount, space_left)
                     if actual > 0:
                         db.increment_player_field_sync(uid, "seeds", actual)
@@ -123,7 +125,8 @@ def admin_routes(app):
                 elif boon_type == "inspiration":
                     db.increment_player_field_sync(uid, "inspiration", amount)
                 elif boon_type == "garden_size":
-                    current_size = player.get("garden_size", 0)
+                    p = players_by_id[uid]
+                    current_size = p.get("garden_size", 0)
                     new_size = min(current_size + amount, MAX_GARDEN_SIZE)
                     increase = new_size - current_size
                     if increase > 0:

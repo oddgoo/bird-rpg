@@ -15,6 +15,22 @@ import data.storage as db
 
 
 # ---------------------------------------------------------------------------
+# Cached reference data loaders
+# ---------------------------------------------------------------------------
+
+_treasures_cache = None
+
+def load_treasures():
+    """Load treasures from JSON file with module-level cache (read-only data)."""
+    global _treasures_cache
+    if _treasures_cache is None:
+        file_path = os.path.join(os.path.dirname(__file__), 'treasures.json')
+        with open(file_path, 'r') as f:
+            _treasures_cache = json.load(f)
+    return _treasures_cache
+
+
+# ---------------------------------------------------------------------------
 # Player helpers
 # ---------------------------------------------------------------------------
 

@@ -14,14 +14,20 @@ from config.config import DATA_PATH
 # Reference data loaders (read-only JSON bundled with code)
 # ---------------------------------------------------------------------------
 
+_research_entities_cache = None
+
 def load_research_entities():
-    """Load research entities data from JSON file (read-only reference data)."""
+    """Load research entities data from JSON file (read-only reference data, cached)."""
+    global _research_entities_cache
+    if _research_entities_cache is not None:
+        return _research_entities_cache
     file_path = os.path.join(os.path.dirname(__file__), 'research_entities.json')
     try:
         if os.path.exists(file_path):
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 log_debug("Research entities data loaded successfully")
+                _research_entities_cache = data
                 return data
         log_debug("No existing research entities data, returning empty list")
         return []
@@ -229,6 +235,18 @@ async def get_bird_treasures(bird_id):
     sb = await _client()
     res = await sb.table("bird_treasures").select("*").eq("bird_id", bird_id).execute()
     return res.data or []
+
+
+def get_bird_treasures_for_birds_sync(bird_ids):
+    """Bulk-fetch bird treasures for multiple birds. Returns dict of bird_id -> list of rows."""
+    if not bird_ids:
+        return {}
+    sb = _sync_client()
+    res = sb.table("bird_treasures").select("*").in_("bird_id", bird_ids).execute()
+    grouped = {}
+    for row in (res.data or []):
+        grouped.setdefault(row["bird_id"], []).append(row)
+    return grouped
 
 
 async def add_bird_treasure(bird_id, treasure_id, x=0, y=0):

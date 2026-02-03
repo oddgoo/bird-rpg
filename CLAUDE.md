@@ -83,6 +83,8 @@ RPC functions (`increment_common_nest`, `increment_player_field`) provide atomic
 - **Async/sync split**: Discord commands use async DB functions; Flask routes use `_sync` suffixed variants
 - **Atomic operations**: Use `db.increment_player_field()` / `db.increment_common_nest()` (RPC calls) instead of read-modify-write for numeric fields
 - **No load-everything pattern**: Each command makes targeted DB calls (SELECT/INSERT/UPDATE) instead of loading all data
+- **Cached reference data**: Read-only JSON files (`treasures.json`, `research_entities.json`) are cached at module level. Use `data.models.load_treasures()` and `data.storage.load_research_entities()` instead of reading files directly. `commands/foraging.py:load_treasures()` delegates to the cached version.
+- **Bulk-fetch helpers**: Use `db.get_bird_treasures_for_birds_sync(bird_ids)` for batch bird treasure lookups instead of per-bird queries
 - Slash commands auto-sync on bot startup
 - Use `utils.logging.log_debug` for debug output
 - Time functions in `utils/time_utils.py` use Australian timezone

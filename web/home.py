@@ -1,19 +1,18 @@
 from flask import render_template
-import json
 from datetime import datetime
 import data.storage as db
 from data.models import (
     load_bird_species_sync,
     get_discovered_species_sync,
-    get_discovered_plant_species_count_sync
+    get_discovered_plant_species_count_sync,
+    load_treasures,
 )
 from utils.time_utils import get_time_until_reset
 from utils.human_spawner import HumanSpawner
 
 def get_home_page():
-    # Load treasures data
-    with open('data/treasures.json', 'r') as f:
-        treasures_data = json.load(f)
+    # Load treasures data (cached)
+    treasures_data = load_treasures()
 
     all_treasures = {}
     for category in treasures_data.values():
