@@ -93,7 +93,7 @@ class SingingCommands(commands.Cog):
                 continue # Skip invalid mentions
 
         if not target_users:
-            await interaction.response.send_message("Please mention valid users to sing to! Usage: /sing @user1 @user2 ...")
+            await interaction.followup.send("Please mention valid users to sing to! Usage: /sing @user1 @user2 ...")
             return
 
         log_debug(f"sing command called by {interaction.user.id} for users {[user.id for user in target_users]}")
@@ -107,7 +107,7 @@ class SingingCommands(commands.Cog):
         # Construct response message
         if not successful_targets and not skipped_targets:
              # This case should ideally not happen if target_users was not empty, but good to handle
-             await interaction.response.send_message("Something went wrong while trying to sing.")
+             await interaction.followup.send("Something went wrong while trying to sing.")
              return
         elif not successful_targets:
             message = ["❌ Couldn't sing to any of the specified users:"]

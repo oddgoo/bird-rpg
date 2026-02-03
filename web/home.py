@@ -3,9 +3,8 @@ import json
 from datetime import datetime
 import data.storage as db
 from data.models import (
-    get_total_bird_species_sync,
     load_bird_species_sync,
-    get_discovered_species_count_sync, get_discovered_species_sync,
+    get_discovered_species_sync,
     get_discovered_plant_species_count_sync
 )
 from utils.time_utils import get_time_until_reset
@@ -27,25 +26,38 @@ def get_home_page():
     # Get time until reset
     time_until_reset = get_time_until_reset()
 
-    # Load bird species data for reference
-    bird_species_data = {bird["scientificName"]: bird for bird in load_bird_species_sync()}
+    # Load bird species data for reference (one call, reused everywhere)
+    bird_species_list = load_bird_species_sync()
+    bird_species_data = {bird["scientificName"]: bird for bird in bird_species_list}
 
-    # Load all players and their data
+    # ---- BULK FETCH (one query each) ----
     all_players = db.load_all_players_sync()
     all_songs = db.get_all_songs_sync()
+    all_eggs = db.get_all_eggs_sync()
+    all_birds_by_user = db.get_all_player_birds_sync()
+    all_plants_by_user = db.get_all_player_plants_sync()
+    all_nest_treasures = db.get_all_nest_treasures_sync()
+
+    # Pre-compute songs_given per user
+    songs_count = {}
+    for s in all_songs:
+        uid = s["singer_user_id"]
+        songs_count[uid] = songs_count.get(uid, 0) + 1
 
     # Get all personal nests with singing data
     personal_nests = []
 
     for player in all_players:
-        user_id = player["user_id"]
+        user_id = str(player["user_id"])
 
-        # Count how many times this user has sung to others
-        songs_given = sum(1 for s in all_songs if s["singer_user_id"] == str(user_id))
+        songs_given = songs_count.get(user_id, 0)
 
-        # Get egg data via storage layer
-        egg_res = db._sync_client().table("eggs").select("brooding_progress").eq("user_id", str(user_id)).execute()
-        egg_progress = egg_res.data[0]["brooding_progress"] if egg_res.data else None
+        # Get egg data from bulk fetch
+        egg_progress = all_eggs.get(user_id)
+
+        # Get birds and plants from bulk fetch
+        birds = all_birds_by_user.get(user_id, [])
+        plants = all_plants_by_user.get(user_id, [])
 
         # Get featured bird
         featured_bird = None
@@ -57,8 +69,7 @@ def get_home_page():
                 "rarity": bird_data.get("rarity", "common"),
             }
         else:
-            # Use first bird if no featured bird set
-            birds = db.get_player_birds_sync(user_id)
+            # Use first bird if no featured bird set (from pre-fetched data)
             if birds:
                 first = birds[0]
                 bird_data = bird_species_data.get(first["scientific_name"], {})
@@ -68,8 +79,8 @@ def get_home_page():
                     "rarity": bird_data.get("rarity", "common"),
                 }
 
-        # Get nest treasures
-        nest_treasures_rows = db.get_nest_treasures_sync(user_id)
+        # Get nest treasures from bulk fetch
+        nest_treasures_rows = all_nest_treasures.get(user_id, [])
         nest_treasures = []
         for decoration in nest_treasures_rows:
             tid = decoration.get('treasure_id')
@@ -78,9 +89,6 @@ def get_home_page():
                 treasure_info['x'] = decoration.get('x', 0)
                 treasure_info['y'] = decoration.get('y', 0)
                 nest_treasures.append(treasure_info)
-
-        birds = db.get_player_birds_sync(user_id)
-        plants = db.get_player_plants_sync(user_id)
 
         personal_nests.append({
             "user_id": user_id,
@@ -104,21 +112,25 @@ def get_home_page():
     personal_nests.sort(key=lambda x: x["songs_given"], reverse=True)
 
     # Get discovered species tally
-    total_bird_species = get_total_bird_species_sync()
-    discovered_species_count = get_discovered_species_count_sync()
+    total_bird_species = len(bird_species_list)
+
+    # get_discovered_species_sync does 2 DB queries (all_birds + released_birds)
+    # Reuse the result for both count and species list
+    discovered = get_discovered_species_sync()
+    discovered_species_count = len(discovered)
     discovered_plant_species_count = get_discovered_plant_species_count_sync()
 
+    # Build discovered species list using the bird_species_data dict (no extra queries)
     discovered_species = []
-    for common_name, scientific_name in get_discovered_species_sync():
-        for bird in load_bird_species_sync():
-            if bird["scientificName"] == scientific_name:
-                discovered_species.append({
-                    "commonName": common_name,
-                    "scientificName": scientific_name,
-                    "rarity": bird["rarity"],
-                    "effect": bird.get("effect", ""),
-                })
-                break
+    for common_name, scientific_name in discovered:
+        bird = bird_species_data.get(scientific_name)
+        if bird:
+            discovered_species.append({
+                "commonName": common_name,
+                "scientificName": scientific_name,
+                "rarity": bird["rarity"],
+                "effect": bird.get("effect", ""),
+            })
 
     exploration = db.get_exploration_data_sync()
 

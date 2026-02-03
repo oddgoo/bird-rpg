@@ -16,10 +16,11 @@ class LoreCommands(commands.Cog):
     @app_commands.command(name='memoir', description='Add a memoir to the Wings of Time')
     @app_commands.describe(text='Your memoir text (max 256 characters)')
     async def add_memoir(self, interaction: discord.Interaction, text: str):
+        await interaction.response.defer()
         log_debug(f"add_memoir called by {interaction.user.id}")
 
         if len(text) > 2048:
-            await interaction.response.send_message("Your memoir is too long! Please keep it under 2048 characters.")
+            await interaction.followup.send("Your memoir is too long! Please keep it under 2048 characters.")
             return
 
         user_id = interaction.user.id
@@ -30,7 +31,7 @@ class LoreCommands(commands.Cog):
         memoirs = await db.get_player_memoirs(user_id)
         for memoir in memoirs:
             if memoir["date"] == today:
-                await interaction.response.send_message("You have already shared a memoir today. Return tomorrow to share more of your story!")
+                await interaction.followup.send("You have already shared a memoir today. Return tomorrow to share more of your story!")
                 return
 
         # Add memoir
@@ -40,7 +41,7 @@ class LoreCommands(commands.Cog):
         # Add inspiration
         await db.increment_player_field(user_id, "inspiration", 1)
 
-        await interaction.response.send_message(f"Your memoir has been added to the Wings of Time:\n✨ {text} ✨\n\n(+1 Inspiration)\nView all memoirs at: https://bird-rpg.onrender.com/wings-of-time")
+        await interaction.followup.send(f"Your memoir has been added to the Wings of Time:\n✨ {text} ✨\n\n(+1 Inspiration)\nView all memoirs at: https://bird-rpg.onrender.com/wings-of-time")
 
 async def setup(bot):
     await bot.add_cog(LoreCommands(bot))

@@ -16,16 +16,17 @@ class SeedCommands(commands.Cog):
     @app_commands.command(name='add_seed', description='Add seeds to your nest')
     @app_commands.describe(amount='Number of seeds to add (default: 1)')
     async def add_seed_own(self, interaction: discord.Interaction, amount: int = 1):
+        await interaction.response.defer()
         log_debug(f"add_seed_own called by {interaction.user.id} for {amount}")
         user_id = str(interaction.user.id)
 
         if amount < 1:
-            await interaction.response.send_message("Please specify a positive number of seeds to add! 🌱")
+            await interaction.followup.send("Please specify a positive number of seeds to add! 🌱")
             return
 
         remaining_actions = await get_remaining_actions(user_id)
         if remaining_actions <= 0:
-            await interaction.response.send_message(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
+            await interaction.followup.send(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
             return
 
         player = await db.load_player(user_id)
@@ -61,7 +62,7 @@ class SeedCommands(commands.Cog):
         amount = min(amount, space_available, remaining_actions)
 
         if amount <= 0:
-            await interaction.response.send_message("Your nest is full! Add more twigs to store more seeds. 🪹")
+            await interaction.followup.send("Your nest is full! Add more twigs to store more seeds. 🪹")
             return
 
         await db.increment_player_field(user_id, "seeds", amount)
@@ -69,23 +70,24 @@ class SeedCommands(commands.Cog):
 
         remaining = await get_remaining_actions(user_id)
         new_seeds = player["seeds"] + amount
-        await interaction.response.send_message(f"Added {amount} {'seed' if amount == 1 else 'seeds'} to your nest! 🏡\n"
+        await interaction.followup.send(f"Added {amount} {'seed' if amount == 1 else 'seeds'} to your nest! 🏡\n"
                       f"Your nest now has {player['twigs']} twigs and {new_seeds} seeds.{bonus_msg}\n"
                       f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today.")
 
     @app_commands.command(name='add_seed_common', description='Add seeds to the common nest')
     @app_commands.describe(amount='Number of seeds to add (default: 1)')
     async def add_seed_common(self, interaction: discord.Interaction, amount: int = 1):
+        await interaction.response.defer()
         log_debug(f"add_seed_common called by {interaction.user.id} for {amount}")
         user_id = str(interaction.user.id)
 
         if amount < 1:
-            await interaction.response.send_message("Please specify a positive number of seeds to add! 🌱")
+            await interaction.followup.send("Please specify a positive number of seeds to add! 🌱")
             return
 
         remaining_actions = await get_remaining_actions(user_id)
         if remaining_actions <= 0:
-            await interaction.response.send_message(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
+            await interaction.followup.send(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
             return
 
         # Get personal nest for checking cockatoo bonus
@@ -120,7 +122,7 @@ class SeedCommands(commands.Cog):
         amount = min(amount, space_available, remaining_actions)
 
         if amount <= 0:
-            await interaction.response.send_message("The common nest is full! Add more twigs to store more seeds. 🪺")
+            await interaction.followup.send("The common nest is full! Add more twigs to store more seeds. 🪺")
             return
 
         await db.increment_common_nest("seeds", amount)
@@ -128,29 +130,30 @@ class SeedCommands(commands.Cog):
 
         remaining = await get_remaining_actions(user_id)
         new_common_seeds = common_nest["seeds"] + amount
-        await interaction.response.send_message(f"Added {amount} {'seed' if amount == 1 else 'seeds'} to the common nest! 🌇\n"
+        await interaction.followup.send(f"Added {amount} {'seed' if amount == 1 else 'seeds'} to the common nest! 🌇\n"
                       f"The common nest now has {common_nest['twigs']} twigs and {new_common_seeds} seeds.{bonus_msg}\n"
                       f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today.")
 
     @app_commands.command(name='donate_seeds', description='Move seeds from your nest to the common nest')
     @app_commands.describe(amount='Number of seeds to donate')
     async def move_seeds_own(self, interaction: discord.Interaction, amount: int):
+        await interaction.response.defer()
         log_debug(f"move_seeds_own called by {interaction.user.id} for {amount} seeds")
         user_id = str(interaction.user.id)
 
         if amount <= 0:
-            await interaction.response.send_message("Please specify a positive number of seeds to move!")
+            await interaction.followup.send("Please specify a positive number of seeds to move!")
             return
 
         player = await db.load_player(user_id)
         common_nest = await db.load_common_nest()
 
         if amount > player["seeds"]:
-            await interaction.response.send_message("You don't have enough seeds in your nest! 🏡")
+            await interaction.followup.send("You don't have enough seeds in your nest! 🏡")
             return
 
         if common_nest["seeds"] + amount > common_nest["twigs"]:
-            await interaction.response.send_message("The common nest doesn't have enough space! 🌇")
+            await interaction.followup.send("The common nest doesn't have enough space! 🌇")
             return
 
         await db.increment_player_field(user_id, "seeds", -amount)
@@ -158,29 +161,30 @@ class SeedCommands(commands.Cog):
 
         new_player_seeds = player["seeds"] - amount
         new_common_seeds = common_nest["seeds"] + amount
-        await interaction.response.send_message(f"Moved {amount} seeds from your nest to the common nest!\n"
+        await interaction.followup.send(f"Moved {amount} seeds from your nest to the common nest!\n"
                       f"Your nest: {player['twigs']} twigs, {new_player_seeds} seeds\n"
                       f"Common nest: {common_nest['twigs']} twigs, {new_common_seeds} seeds")
 
     @app_commands.command(name='borrow_seeds', description='Move seeds from the common nest to your nest')
     @app_commands.describe(amount='Number of seeds to borrow')
     async def move_seeds_common(self, interaction: discord.Interaction, amount: int):
+        await interaction.response.defer()
         log_debug(f"move_seeds_common called by {interaction.user.id} for {amount} seeds")
         user_id = str(interaction.user.id)
 
         if amount <= 0:
-            await interaction.response.send_message("Please specify a positive number of seeds to move!")
+            await interaction.followup.send("Please specify a positive number of seeds to move!")
             return
 
         player = await db.load_player(user_id)
         common_nest = await db.load_common_nest()
 
         if amount > common_nest["seeds"]:
-            await interaction.response.send_message("There aren't enough seeds in the common nest! 🌇")
+            await interaction.followup.send("There aren't enough seeds in the common nest! 🌇")
             return
 
         if player["seeds"] + amount > player["twigs"]:
-            await interaction.response.send_message("Your nest doesn't have enough space! 🏡")
+            await interaction.followup.send("Your nest doesn't have enough space! 🏡")
             return
 
         await db.increment_common_nest("seeds", -amount)
@@ -188,7 +192,7 @@ class SeedCommands(commands.Cog):
 
         new_player_seeds = player["seeds"] + amount
         new_common_seeds = common_nest["seeds"] - amount
-        await interaction.response.send_message(f"Moved {amount} seeds from the common nest to your nest!\n"
+        await interaction.followup.send(f"Moved {amount} seeds from the common nest to your nest!\n"
                       f"Your nest: {player['twigs']} twigs, {new_player_seeds} seeds\n"
                       f"Common nest: {common_nest['twigs']} twigs, {new_common_seeds} seeds")
 

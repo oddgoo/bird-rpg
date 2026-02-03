@@ -20,15 +20,16 @@ class SocialCommands(commands.Cog):
         target_user='The user to give the bird to'
     )
     async def entrust(self, interaction: discord.Interaction, bird_name: str, target_user: discord.User):
+        await interaction.response.defer()
         try:
             # Don't allow giving birds to yourself
             if target_user.id == interaction.user.id:
-                await interaction.response.send_message("\u274C You can't give a bird to yourself!")
+                await interaction.followup.send("\u274C You can't give a bird to yourself!")
                 return
 
             # Don't allow giving birds to bots
             if target_user.bot:
-                await interaction.response.send_message("\u274C You can't give birds to bots!")
+                await interaction.followup.send("\u274C You can't give birds to bots!")
                 return
 
             log_debug(f"entrust called by {interaction.user.id} giving '{bird_name}' to {target_user.id}")
@@ -42,13 +43,13 @@ class SocialCommands(commands.Cog):
             receiver_birds = await db.get_player_birds(target_id)
 
             if len(receiver_birds) >= max_birds:
-                await interaction.response.send_message(f"\u274C {target_user.display_name}'s nest is already full! They have reached the limit of {max_birds} birds.")
+                await interaction.followup.send(f"\u274C {target_user.display_name}'s nest is already full! They have reached the limit of {max_birds} birds.")
                 return
 
             # Remove bird from giver's nest
             removed_bird = await db.remove_bird_by_name(user_id, bird_name)
             if not removed_bird:
-                await interaction.response.send_message(f"\u274C You don't have a {bird_name} in your nest!")
+                await interaction.followup.send(f"\u274C You don't have a {bird_name} in your nest!")
                 return
 
             # Add bird to receiver's nest
@@ -75,11 +76,11 @@ class SocialCommands(commands.Cog):
                 inline=True
             )
 
-            await interaction.response.send_message(embed=embed)
+            await interaction.followup.send(embed=embed)
 
         except Exception as e:
             log_debug(f"Error in entrust command: {e}")
-            await interaction.response.send_message("\u274C Usage: /entrust <bird_name> <@user>")
+            await interaction.followup.send("\u274C Usage: /entrust <bird_name> <@user>")
 
     @app_commands.command(name='regurgitate', description='Give some of your bonus actions to another user')
     @app_commands.describe(
@@ -87,14 +88,15 @@ class SocialCommands(commands.Cog):
         amount='The number of bonus actions to give'
     )
     async def regurgitate(self, interaction: discord.Interaction, target_user: discord.User, amount: int):
+        await interaction.response.defer()
         try:
             # Don't allow giving actions to yourself
             if target_user.id == interaction.user.id:
-                await interaction.response.send_message("\u274C You can't regurgitate actions to yourself!")
+                await interaction.followup.send("\u274C You can't regurgitate actions to yourself!")
                 return
 
             if amount <= 0:
-                await interaction.response.send_message("\u274C You must regurgitate a positive amount of actions!")
+                await interaction.followup.send("\u274C You must regurgitate a positive amount of actions!")
                 return
 
             log_debug(f"regurgitate called by {interaction.user.id} giving {amount} bonus_actions to {target_user.id}")
@@ -107,7 +109,7 @@ class SocialCommands(commands.Cog):
 
             # Check if giver has enough bonus actions
             if giver_player.get("bonus_actions", 0) < amount:
-                await interaction.response.send_message(f"\u274C You don't have enough bonus actions! You only have {giver_player.get('bonus_actions', 0)}.")
+                await interaction.followup.send(f"\u274C You don't have enough bonus actions! You only have {giver_player.get('bonus_actions', 0)}.")
                 return
 
             # Transfer bonus actions: decrement giver, increment receiver
@@ -135,17 +137,18 @@ class SocialCommands(commands.Cog):
                 inline=True
             )
 
-            await interaction.response.send_message(embed=embed)
+            await interaction.followup.send(embed=embed)
 
         except Exception as e:
             log_debug(f"Error in regurgitate command: {e}")
-            await interaction.response.send_message(f"\u274C An error occurred. Usage: /regurgitate <@user> <amount>")
+            await interaction.followup.send(f"\u274C An error occurred. Usage: /regurgitate <@user> <amount>")
 
     @app_commands.command(name='gift_treasure', description='Give a treasure to another user')
     @app_commands.describe(treasure_name='The name of the treasure to gift', target_user='The user to give the treasure to')
     async def gift_treasure(self, interaction: discord.Interaction, treasure_name: str, target_user: discord.User):
+        await interaction.response.defer()
         if target_user.id == interaction.user.id:
-            await interaction.response.send_message("You can't gift a treasure to yourself!", ephemeral=True)
+            await interaction.followup.send("You can't gift a treasure to yourself!", ephemeral=True)
             return
 
         user_id = str(interaction.user.id)
@@ -155,7 +158,7 @@ class SocialCommands(commands.Cog):
         giver_treasures = await db.get_player_treasures(user_id)
 
         if not giver_treasures:
-            await interaction.response.send_message("You don't have any treasures to gift!", ephemeral=True)
+            await interaction.followup.send("You don't have any treasures to gift!", ephemeral=True)
             return
 
         treasures_data = load_treasures()
@@ -170,13 +173,13 @@ class SocialCommands(commands.Cog):
                 break
 
         if not found_treasure_id:
-            await interaction.response.send_message(f"Treasure '{treasure_name}' not found in your inventory.", ephemeral=True)
+            await interaction.followup.send(f"Treasure '{treasure_name}' not found in your inventory.", ephemeral=True)
             return
 
         # Remove treasure from giver's inventory
         removed = await db.remove_player_treasure(user_id, found_treasure_id)
         if not removed:
-            await interaction.response.send_message(f"Failed to remove treasure from your inventory.", ephemeral=True)
+            await interaction.followup.send(f"Failed to remove treasure from your inventory.", ephemeral=True)
             return
 
         # Add treasure to receiver's inventory
@@ -188,7 +191,7 @@ class SocialCommands(commands.Cog):
             description=f"{interaction.user.mention} has gifted a **{treasure_info['name']}** to {target_user.mention}!",
             color=discord.Color.blue()
         )
-        await interaction.response.send_message(embed=embed)
+        await interaction.followup.send(embed=embed)
 
 async def setup(bot):
     await bot.add_cog(SocialCommands(bot))

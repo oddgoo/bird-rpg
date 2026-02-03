@@ -67,8 +67,8 @@ class TestIncubationCommands:
 
             await cog.lay_egg.callback(cog, mock_interaction)
 
-        mock_interaction.response.send_message.assert_called_once()
-        msg = mock_interaction.response.send_message.call_args[0][0]
+        mock_interaction.followup.send.assert_called_once()
+        msg = mock_interaction.followup.send.call_args[0][0]
         assert "You laid an egg" in msg
 
     @pytest.mark.asyncio
@@ -85,8 +85,8 @@ class TestIncubationCommands:
 
             await cog.lay_egg.callback(cog, mock_interaction)
 
-        mock_interaction.response.send_message.assert_called_once()
-        msg = mock_interaction.response.send_message.call_args[0][0]
+        mock_interaction.followup.send.assert_called_once()
+        msg = mock_interaction.followup.send.call_args[0][0]
         assert "You need" in msg
 
     @pytest.mark.asyncio
@@ -103,7 +103,7 @@ class TestIncubationCommands:
 
             await cog.lay_egg.callback(cog, mock_interaction)
 
-        msg = mock_interaction.response.send_message.call_args[0][0]
+        msg = mock_interaction.followup.send.call_args[0][0]
         assert "already has an egg" in msg
 
     @pytest.mark.asyncio
@@ -189,8 +189,8 @@ class TestIncubationCommands:
 
             await cog.pray_for_bird.callback(cog, mock_interaction, "Test Bird", 3)
 
-        mock_interaction.response.send_message.assert_called_once()
-        msg = mock_interaction.response.send_message.call_args[0][0]
+        mock_interaction.followup.send.assert_called_once()
+        msg = mock_interaction.followup.send.call_args[0][0]
         assert "You offered 3 prayers for Test Bird" in msg
 
     @pytest.mark.asyncio
@@ -202,8 +202,8 @@ class TestIncubationCommands:
         with patch("commands.incubation.db.get_egg", new=AsyncMock(return_value=None)):
             await cog.pray_for_bird.callback(cog, mock_interaction, "Test Bird", 1)
 
-        mock_interaction.response.send_message.assert_called_once()
-        msg = mock_interaction.response.send_message.call_args[0][0]
+        mock_interaction.followup.send.assert_called_once()
+        msg = mock_interaction.followup.send.call_args[0][0]
         assert "don't have an egg to pray for" in msg
 
     @pytest.mark.asyncio
@@ -264,8 +264,8 @@ class TestFlockCommands:
 
             await cog.start_flock.callback(cog, mock_interaction)
 
-        mock_interaction.response.send_message.assert_called_once()
-        msg = mock_interaction.response.send_message.call_args[0][0]
+        mock_interaction.followup.send.assert_called_once()
+        msg = mock_interaction.followup.send.call_args[0][0]
         assert "has started a pomodoro flock" in msg
 
         # The channel.send (follow-up at end of flock) should also be called
@@ -292,8 +292,8 @@ class TestFlockCommands:
 
         await cog.start_flock.callback(cog, mock_interaction)
 
-        mock_interaction.response.send_message.assert_called_once()
-        msg = mock_interaction.response.send_message.call_args[0][0]
+        mock_interaction.followup.send.assert_called_once()
+        msg = mock_interaction.followup.send.call_args[0][0]
         assert "already an active flock session" in msg
 
     @pytest.mark.asyncio
@@ -313,8 +313,8 @@ class TestFlockCommands:
 
         await cog.join_flock.callback(cog, mock_interaction)
 
-        mock_interaction.response.send_message.assert_called_once()
-        msg = mock_interaction.response.send_message.call_args[0][0]
+        mock_interaction.followup.send.assert_called_once()
+        msg = mock_interaction.followup.send.call_args[0][0]
         assert "has joined the flock" in msg
         assert "minutes remaining" in msg
         assert mock_interaction.user in cog.active_flock['members']
@@ -328,8 +328,8 @@ class TestFlockCommands:
 
         await cog.join_flock.callback(cog, mock_interaction)
 
-        mock_interaction.response.send_message.assert_called_once()
-        msg = mock_interaction.response.send_message.call_args[0][0]
+        mock_interaction.followup.send.assert_called_once()
+        msg = mock_interaction.followup.send.call_args[0][0]
         assert "no active flock session" in msg
 
 

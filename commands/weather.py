@@ -48,6 +48,7 @@ class WeatherCommands(commands.Cog):
     @app_commands.checks.has_permissions(manage_channels=True)
     async def set_weather_channel(self, interaction: discord.Interaction, channel: discord.TextChannel = None):
         """Set which channel should receive daily weather updates"""
+        await interaction.response.defer()
         log_debug(f"set_weather_channel called by {interaction.user.id}")
 
         guild_id = str(interaction.guild.id)
@@ -57,20 +58,20 @@ class WeatherCommands(commands.Cog):
             channels = await db.get_weather_channels()
             if guild_id in channels:
                 await db.remove_weather_channel(guild_id)
-                await interaction.response.send_message("❌ Weather updates disabled for this server.")
+                await interaction.followup.send("❌ Weather updates disabled for this server.")
             else:
-                await interaction.response.send_message("❓ Weather updates were not configured for this server.")
+                await interaction.followup.send("❓ Weather updates were not configured for this server.")
         else:
             # Check if we have permission to send messages in this channel
             permissions = channel.permissions_for(interaction.guild.me)
             if not permissions.send_messages:
-                await interaction.response.send_message(f"❌ I don't have permission to send messages in {channel.mention}!")
+                await interaction.followup.send(f"❌ I don't have permission to send messages in {channel.mention}!")
                 return
 
             # Set the channel
             await db.set_weather_channel(guild_id, str(channel.id))
 
-            await interaction.response.send_message(f"✅ Daily weather updates will be sent to {channel.mention} at 9 AM Naarm/Melbourne time.")
+            await interaction.followup.send(f"✅ Daily weather updates will be sent to {channel.mention} at 9 AM Naarm/Melbourne time.")
 
     async def fetch_weather(self):
         """Fetch weather data from Open-Meteo API"""

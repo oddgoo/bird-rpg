@@ -121,20 +121,21 @@ class ResearchCommands(commands.Cog):
     @app_commands.describe(actions='Number of actions to invest in study')
     async def study(self, interaction: discord.Interaction, actions: int):
         """Invest actions into studying research and test your knowledge"""
+        await interaction.response.defer(ephemeral=True)
         log_debug(f"study command called by {interaction.user.id} with {actions} actions")
 
         user_id = str(interaction.user.id)
 
         # Validate actions
         if actions <= 0:
-            await interaction.response.send_message("You must invest at least 1 action to study! 📚", ephemeral=True)
+            await interaction.followup.send("You must invest at least 1 action to study! 📚", ephemeral=True)
             return
 
         # Check if user has enough actions
         remaining_actions = await get_remaining_actions(user_id)
 
         if remaining_actions < actions:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 f"You don't have enough actions! You need {actions} but only have {remaining_actions} remaining. 🌙",
                 ephemeral=True
             )
@@ -164,7 +165,7 @@ class ResearchCommands(commands.Cog):
 
         # Check if there are any available authors
         if not available_authors:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "All authors have reached their maximum research threshold! The research is complete. 🎓",
                 ephemeral=True
             )
@@ -232,7 +233,7 @@ class ResearchCommands(commands.Cog):
         )
 
         # Send the message with the view
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
         # Define what happens when the select menu is used
         async def select_callback(select_interaction):

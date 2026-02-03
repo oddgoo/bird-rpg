@@ -20,6 +20,7 @@ class InfoCommands(commands.Cog):
 
     @app_commands.command(name='nests', description='Show information about your nest')
     async def show_nests(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         log_debug(f"nests command called by {interaction.user.id}")
         user_id = str(interaction.user.id)
 
@@ -62,15 +63,16 @@ class InfoCommands(commands.Cog):
 
         status += f"\nTime until reset: {get_time_until_reset()} 🕒"
 
-        await interaction.response.send_message(status)
+        await interaction.followup.send(status)
 
     @app_commands.command(name='help', description='Show help information')
     async def help_command(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         help_text = "**🪹 Bird RPG Help**\n"
         help_text += "Visit the help page for a complete guide to all commands and game mechanics:\n"
         help_text += "https://bird-rpg.onrender.com/help\n\n"
 
-        await interaction.response.send_message(help_text)
+        await interaction.followup.send(help_text)
 
 async def setup(bot):
     await bot.add_cog(InfoCommands(bot))

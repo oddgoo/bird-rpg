@@ -14,16 +14,17 @@ class BuildCommands(commands.Cog):
     @app_commands.command(name='build', description='Add twigs to your nest')
     @app_commands.describe(amount='Number of twigs to add (default: 1)')
     async def build_nest_own(self, interaction: discord.Interaction, amount: int = 1):
+        await interaction.response.defer()
         user_id = str(interaction.user.id)
         log_debug(f"build_nest_own called by {user_id} for {amount}")
 
         if amount < 1:
-            await interaction.response.send_message("Please specify a positive number of twigs to add! 🪹")
+            await interaction.followup.send("Please specify a positive number of twigs to add! 🪹")
             return
 
         remaining_actions = await get_remaining_actions(user_id)
         if remaining_actions <= 0:
-            await interaction.response.send_message(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
+            await interaction.followup.send(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
             return
 
         amount = min(amount, remaining_actions)
@@ -45,21 +46,22 @@ class BuildCommands(commands.Cog):
         message += f"\n🪹 Your nest now has {player['twigs']} twigs and {player['seeds']} seeds.\n"
         message += f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today."
 
-        await interaction.response.send_message(message)
+        await interaction.followup.send(message)
 
     @app_commands.command(name='build_common', description='Add twigs to the common nest')
     @app_commands.describe(amount='Number of twigs to add (default: 1)')
     async def build_nest_common(self, interaction: discord.Interaction, amount: int = 1):
+        await interaction.response.defer()
         user_id = str(interaction.user.id)
         log_debug(f"build_nest_common called by {user_id} for {amount}")
 
         if amount < 1:
-            await interaction.response.send_message("Please specify a positive number of twigs to add! 🪺")
+            await interaction.followup.send("Please specify a positive number of twigs to add! 🪺")
             return
 
         remaining_actions = await get_remaining_actions(user_id)
         if remaining_actions <= 0:
-            await interaction.response.send_message(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
+            await interaction.followup.send(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
             return
 
         amount = min(amount, remaining_actions)
@@ -81,7 +83,7 @@ class BuildCommands(commands.Cog):
         message += f"\n🪺 The common nest now has {common_nest['twigs']} twigs and {common_nest['seeds']} seeds.\n"
         message += f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today."
 
-        await interaction.response.send_message(message)
+        await interaction.followup.send(message)
 
 async def setup(bot):
     await bot.add_cog(BuildCommands(bot))

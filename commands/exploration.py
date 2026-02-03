@@ -80,21 +80,22 @@ class ExplorationCommands(commands.Cog):
         amount='Number of exploration points to add'
     )
     async def explore(self, interaction: discord.Interaction, region: str, amount: int):
+        await interaction.response.defer()
         try:
             log_debug(f"explore called by {interaction.user.id} for {amount} in {region}")
             region = region.lower()
 
             if region not in VALID_REGIONS:
-                await interaction.response.send_message(f"That region isn't available for exploration yet! Currently available: {', '.join(VALID_REGIONS)}")
+                await interaction.followup.send(f"That region isn't available for exploration yet! Currently available: {', '.join(VALID_REGIONS)}")
                 return
 
             if amount < 1:
-                await interaction.response.send_message("Please specify a positive number of exploration points to add! 🗺️")
+                await interaction.followup.send("Please specify a positive number of exploration points to add! 🗺️")
                 return
 
             remaining_actions = await get_remaining_actions(interaction.user.id)
             if remaining_actions <= 0:
-                await interaction.response.send_message(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
+                await interaction.followup.send(f"You've used all your actions for today! Come back in {get_time_until_reset()}! 🌙")
                 return
 
             # Limit amount to remaining actions
@@ -128,9 +129,9 @@ class ExplorationCommands(commands.Cog):
                           f"Total exploration in {region}: {new_total} points\n"
                           f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today."
                 )
-                await interaction.response.send_message(embed=embed)
+                await interaction.followup.send(embed=embed)
             else:
-                await interaction.response.send_message(f"Added {amount} exploration {'point' if amount == 1 else 'points'} to {region}! 🗺️\n"
+                await interaction.followup.send(f"Added {amount} exploration {'point' if amount == 1 else 'points'} to {region}! 🗺️\n"
                               f"Total exploration in {region}: {new_total} points\n"
                               f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today.")
         except Exception as e:

@@ -433,6 +433,15 @@ async def delete_egg(user_id):
     await sb.table("eggs").delete().eq("user_id", str(user_id)).execute()
 
 
+def get_egg_progress_sync(user_id):
+    """Return the brooding_progress for a user's egg, or None if no egg."""
+    sb = _sync_client()
+    res = sb.table("eggs").select("brooding_progress").eq("user_id", str(user_id)).execute()
+    if not res.data:
+        return None
+    return res.data[0]["brooding_progress"]
+
+
 async def upsert_egg_multiplier(user_id, scientific_name, multiplier):
     sb = await _client()
     await sb.table("egg_multipliers").upsert({
@@ -822,3 +831,44 @@ async def set_weather_channel(guild_id, channel_id):
 async def remove_weather_channel(guild_id):
     sb = await _client()
     await sb.table("weather_channels").delete().eq("guild_id", str(guild_id)).execute()
+
+
+# ---------------------------------------------------------------------------
+# Bulk-fetch functions (for homepage performance)
+# ---------------------------------------------------------------------------
+
+def get_all_eggs_sync():
+    """Fetch all eggs in one query. Returns dict keyed by user_id."""
+    sb = _sync_client()
+    res = sb.table("eggs").select("user_id, brooding_progress").execute()
+    return {row["user_id"]: row["brooding_progress"] for row in (res.data or [])}
+
+
+def get_all_player_birds_sync():
+    """Fetch all player birds. Returns dict of user_id -> list of birds."""
+    sb = _sync_client()
+    res = sb.table("player_birds").select("*").execute()
+    grouped = {}
+    for row in (res.data or []):
+        grouped.setdefault(str(row["user_id"]), []).append(row)
+    return grouped
+
+
+def get_all_player_plants_sync():
+    """Fetch all player plants. Returns dict of user_id -> list of plants."""
+    sb = _sync_client()
+    res = sb.table("player_plants").select("*").execute()
+    grouped = {}
+    for row in (res.data or []):
+        grouped.setdefault(str(row["user_id"]), []).append(row)
+    return grouped
+
+
+def get_all_nest_treasures_sync():
+    """Fetch all nest treasures. Returns dict of user_id -> list of decorations."""
+    sb = _sync_client()
+    res = sb.table("nest_treasures").select("*").execute()
+    grouped = {}
+    for row in (res.data or []):
+        grouped.setdefault(str(row["user_id"]), []).append(row)
+    return grouped

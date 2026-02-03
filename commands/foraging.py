@@ -26,23 +26,24 @@ class ForagingCommands(commands.Cog):
     @app_commands.describe(actions='Number of actions to invest (more=faster)')
     async def forage(self, interaction: discord.Interaction, actions: int):
         """Forage for treasures in different locations"""
+        await interaction.response.defer(ephemeral=True)
         user_id = interaction.user.id
         log_debug(f"forage called by {user_id} with {actions} actions")
 
         if user_id in self.active_foraging_tasks:
-            await interaction.response.send_message("You are already foraging! Use `/cancel_forage` if you want to stop.", ephemeral=True)
+            await interaction.followup.send("You are already foraging! Use `/cancel_forage` if you want to stop.", ephemeral=True)
             return
 
         # Validate actions
         if actions <= 0:
-            await interaction.response.send_message("You must invest at least 1 action to find a treasure! 🗺️", ephemeral=True)
+            await interaction.followup.send("You must invest at least 1 action to find a treasure! 🗺️", ephemeral=True)
             return
 
         # Check remaining actions
         remaining_actions = await get_remaining_actions(user_id)
 
         if remaining_actions < actions:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 f"You don't have enough actions! You need {actions} but only have {remaining_actions} remaining. 🌙",
                 ephemeral=True
             )
@@ -77,7 +78,7 @@ class ForagingCommands(commands.Cog):
         select.callback = select_callback
         view = discord.ui.View()
         view.add_item(select)
-        await interaction.response.send_message("Where would you like to forage?", view=view, ephemeral=True)
+        await interaction.followup.send("Where would you like to forage?", view=view, ephemeral=True)
 
 
     async def forage_task(self, interaction, location, actions, foraging_time):
@@ -122,9 +123,10 @@ class ForagingCommands(commands.Cog):
     @app_commands.command(name='cancel_forage', description='Cancel your ongoing foraging action')
     async def cancel_forage(self, interaction: discord.Interaction):
         """Cancel your ongoing foraging action"""
+        await interaction.response.defer(ephemeral=True)
         user_id = interaction.user.id
         if user_id not in self.active_foraging_tasks:
-            await interaction.response.send_message("You are not currently foraging.", ephemeral=True)
+            await interaction.followup.send("You are not currently foraging.", ephemeral=True)
             return
 
         task_info = self.active_foraging_tasks[user_id]
@@ -134,7 +136,7 @@ class ForagingCommands(commands.Cog):
         await add_bonus_actions(user_id, task_info["actions"])
 
         del self.active_foraging_tasks[user_id]
-        await interaction.response.send_message(f"Foraging cancelled. {task_info['actions']} actions have been refunded.", ephemeral=True)
+        await interaction.followup.send(f"Foraging cancelled. {task_info['actions']} actions have been refunded.", ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(ForagingCommands(bot))

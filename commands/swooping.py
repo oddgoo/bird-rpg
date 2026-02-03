@@ -168,9 +168,10 @@ class Swooping(commands.Cog):
         description="Check the current human intruder's status"
     )
     async def check_human(self, interaction):
+        await interaction.response.defer()
         spawner = HumanSpawner()
         human = spawner.spawn_human()
-        await interaction.response.send_message(
+        await interaction.followup.send(
             f"Current intruder: {human['name']}\n"
             f"Resilience: {human['resilience']}/{human['max_resilience']}\n"
             f"{human['description']}"

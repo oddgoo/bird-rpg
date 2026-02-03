@@ -25,6 +25,7 @@ class IncubationCommands(commands.Cog):
     @app_commands.command(name='lay_egg', description='Convert seeds into an egg in your nest')
     async def lay_egg(self, interaction: discord.Interaction):
         """Convert seeds into an egg in your nest"""
+        await interaction.response.defer()
         log_debug(f"lay_egg called by {interaction.user.id}")
         user_id = str(interaction.user.id)
         player = await db.load_player(user_id)
@@ -32,7 +33,7 @@ class IncubationCommands(commands.Cog):
         # Check if nest already has an egg
         egg = await db.get_egg(user_id)
         if egg is not None:
-            await interaction.response.send_message("Your nest already has an egg! \U0001f95a")
+            await interaction.followup.send("Your nest already has an egg! \U0001f95a")
             return
 
         # Calculate egg cost based on number of chicks
@@ -40,7 +41,7 @@ class IncubationCommands(commands.Cog):
 
         # Check if enough seeds
         if player["seeds"] < egg_cost:
-            await interaction.response.send_message(f"You need {egg_cost} seeds to lay an egg! You only have {player['seeds']} seeds. \U0001f330")
+            await interaction.followup.send(f"You need {egg_cost} seeds to lay an egg! You only have {player['seeds']} seeds. \U0001f330")
             return
 
         # Deduct seeds
@@ -88,7 +89,7 @@ class IncubationCommands(commands.Cog):
 
         message += f"Your nest now has {player['seeds']} seeds remaining."
 
-        await interaction.response.send_message(message)
+        await interaction.followup.send(message)
 
     @app_commands.command(name='brood', description='Brood eggs to help them hatch')
     @app_commands.describe(target_users='The users whose eggs you want to brood (mention them)')
@@ -322,42 +323,45 @@ class IncubationCommands(commands.Cog):
     @app_commands.command(name='lock_nest', description='Lock your nest to prevent others from brooding')
     async def lock_nest(self, interaction: discord.Interaction):
         """Lock your nest to prevent others from brooding"""
+        await interaction.response.defer()
         log_debug(f"lock_nest called by {interaction.user.id}")
         user_id = str(interaction.user.id)
         player = await db.load_player(user_id)
 
         # Check if nest is already locked
         if player.get("locked", False):
-            await interaction.response.send_message("Your nest is already locked! \U0001f512")
+            await interaction.followup.send("Your nest is already locked! \U0001f512")
             return
 
         # Lock the nest
         await db.update_player(user_id, locked=True)
-        await interaction.response.send_message("Your nest is now locked! Other players cannot brood your eggs. \U0001f512")
+        await interaction.followup.send("Your nest is now locked! Other players cannot brood your eggs. \U0001f512")
 
     @app_commands.command(name='unlock_nest', description='Unlock your nest to allow others to brood')
     async def unlock_nest(self, interaction: discord.Interaction):
         """Unlock your nest to allow others to brood"""
+        await interaction.response.defer()
         log_debug(f"unlock_nest called by {interaction.user.id}")
         user_id = str(interaction.user.id)
         player = await db.load_player(user_id)
 
         # Check if nest is already unlocked
         if not player.get("locked", False):
-            await interaction.response.send_message("Your nest is already unlocked! \U0001f513")
+            await interaction.followup.send("Your nest is already unlocked! \U0001f513")
             return
 
         # Unlock the nest
         await db.update_player(user_id, locked=False)
-        await interaction.response.send_message("Your nest is now unlocked! Other players can brood your eggs. \U0001f513")
+        await interaction.followup.send("Your nest is now unlocked! Other players can brood your eggs. \U0001f513")
 
     @app_commands.command(name='bless_egg', description='Use 1 \U0001f4a1Inspiration and 30 \U0001f330Seeds to bless your egg, preserving it and its prayers.')
     async def bless_egg_cmd(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         log_debug(f"bless_egg called by {interaction.user.id}")
         user_id = str(interaction.user.id)
 
         success, message = await bless_egg(user_id)
-        await interaction.response.send_message(message)
+        await interaction.followup.send(message)
 
     async def process_brooding(self, interaction_or_ctx, target_user, remaining_actions):
         """Helper function to process brooding for a single user"""
@@ -604,24 +608,25 @@ class IncubationCommands(commands.Cog):
         amount_of_prayers: int
     ):
         """Pray for a specific bird to increase its hatching chance"""
+        await interaction.response.defer()
         log_debug(f"pray_for_bird called by {interaction.user.id}")
         user_id = str(interaction.user.id)
 
         # Check if nest has an egg
         egg = await db.get_egg(user_id)
         if egg is None:
-            await interaction.response.send_message("You don't have an egg to pray for! \U0001f95a")
+            await interaction.followup.send("You don't have an egg to pray for! \U0001f95a")
             return
 
         # Validate amount of prayers
         if amount_of_prayers <= 0:
-            await interaction.response.send_message("You must pray at least once! \U0001f64f")
+            await interaction.followup.send("You must pray at least once! \U0001f64f")
             return
 
         # Check if user has enough actions
         remaining_actions = await get_remaining_actions(user_id)
         if remaining_actions < amount_of_prayers:
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 f"You don't have enough actions! You need {amount_of_prayers} but only have {remaining_actions} remaining. \U0001f319"
             )
             return
@@ -637,7 +642,7 @@ class IncubationCommands(commands.Cog):
                 break
 
         if not valid_species:
-            await interaction.response.send_message(f"Invalid bird species: {scientific_name}. Make sure it exists in the codex or has been fully manifested.")
+            await interaction.followup.send(f"Invalid bird species: {scientific_name}. Make sure it exists in the codex or has been fully manifested.")
             return
 
         # Get current multiplier from the egg
@@ -697,7 +702,7 @@ class IncubationCommands(commands.Cog):
             f"Base chance: {base_percentage:.1f}% \u2192 Current chance: {actual_percentage:.1f}%"
         )
 
-        await interaction.response.send_message(response_message)
+        await interaction.followup.send(response_message)
 
 async def setup(bot):
     await bot.add_cog(IncubationCommands(bot))

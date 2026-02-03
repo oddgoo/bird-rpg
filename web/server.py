@@ -1,4 +1,4 @@
-from flask import Flask, render_template, send_from_directory, request, redirect, url_for, session, flash
+from flask import Flask, render_template, send_from_directory, request, redirect, url_for, session, flash, jsonify
 from threading import Thread
 from config.config import PORT, DEBUG, ADMIN_PASSWORD, SPECIES_IMAGES_DIR
 from web.home import get_home_page
@@ -11,6 +11,7 @@ from datetime import timedelta
 import json
 import os
 import secrets
+import time
 
 import data.storage as db
 
@@ -23,7 +24,10 @@ admin_routes(app)
 
 @app.route('/')
 def home():
-    return get_home_page()
+    start = time.time()
+    result = get_home_page()
+    print(f"Homepage rendered in {time.time()-start:.1f}s")
+    return result
 
 @app.route('/help')
 def help_page():
@@ -218,7 +222,29 @@ def research():
     return get_research_page()
 
 
+@app.route('/health')
+def health():
+    """Health check endpoint that tests the sync Supabase connection."""
+    try:
+        start = time.time()
+        sb = get_sync_client()
+        sb.table("common_nest").select("id").limit(1).execute()
+        elapsed = time.time() - start
+        return jsonify({"status": "ok", "supabase_latency_ms": round(elapsed * 1000, 1)})
+    except Exception as e:
+        return jsonify({"status": "error", "error": str(e)}), 500
+
 def run_server():
+    # Startup diagnostic: test sync Supabase client
+    try:
+        start = time.time()
+        sb = get_sync_client()
+        sb.table("common_nest").select("id").limit(1).execute()
+        elapsed = time.time() - start
+        print(f"Sync Supabase connection verified ({elapsed*1000:.0f}ms)")
+    except Exception as e:
+        print(f"Sync Supabase connection FAILED: {e}")
+
     app.jinja_env.auto_reload = DEBUG
     app.config['TEMPLATES_AUTO_RELOAD'] = DEBUG
     app.run(host='0.0.0.0', port=PORT)

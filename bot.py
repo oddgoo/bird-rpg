@@ -17,14 +17,19 @@ bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
 @bot.tree.error
 async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
     if isinstance(error, app_commands.CommandNotFound):
-        await interaction.response.send_message("❌ Command not recognized! Use `/help` to see available commands.")
+        msg = "❌ Command not recognized! Use `/help` to see available commands."
     elif isinstance(error, app_commands.MissingPermissions):
-        await interaction.response.send_message("❌ You don't have permission to use this command!")
+        msg = "❌ You don't have permission to use this command!"
     elif isinstance(error, app_commands.TransformerError):
-        await interaction.response.send_message("❌ Invalid argument! Please check the command options.")
+        msg = "❌ Invalid argument! Please check the command options."
     else:
         log_debug(f"Unexpected error: {str(error)}")
-        await interaction.response.send_message("❌ An unexpected error occurred. Please try again later.")
+        msg = "❌ An unexpected error occurred. Please try again later."
+
+    if interaction.response.is_done():
+        await interaction.followup.send(msg)
+    else:
+        await interaction.response.send_message(msg)
 
 @bot.event
 async def on_ready():
