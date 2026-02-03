@@ -179,9 +179,9 @@ class ResearchCommands(commands.Cog):
         # Randomly select a quote from that author
         random_quote = random.choice(random_author_data["quotes"])
 
-        # Create a dropdown with 6 shuffled authors (always including the correct one)
+        # Create a dropdown with 8 shuffled authors (always including the correct one)
         other_authors = [e for e in research_entities if e["author"] != author_name]
-        sample_count = min(5, len(other_authors))
+        sample_count = min(7, len(other_authors))
         sampled = random.sample(other_authors, sample_count)
         dropdown_authors = [author_name] + [e["author"] for e in sampled]
         random.shuffle(dropdown_authors)
