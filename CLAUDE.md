@@ -87,6 +87,7 @@ RPC functions (`increment_common_nest`, `increment_player_field`) provide atomic
 - **No load-everything pattern**: Each command makes targeted DB calls (SELECT/INSERT/UPDATE) instead of loading all data
 - **Cached reference data**: Read-only JSON files (`treasures.json`, `research_entities.json`) are cached at module level. Use `data.models.load_treasures()` and `data.storage.load_research_entities(event)` instead of reading files directly. `commands/foraging.py:load_treasures()` delegates to the cached version.
 - **Event system**: The `game_settings` table stores `active_event` (default: `"default"`). Toggle events directly in Supabase. `load_research_entities(event)` loads event-specific JSON files (`research_entities_{event}.json`). `load_all_research_entities()` combines entities from all events for milestone bonus calculations. The `/study` dropdown shows 6 shuffled authors from the active event.
+- **Research entity format**: All research entity JSON files use `{"milestone": "+1 Bird Limit"}` (single string). The milestone repeats for every threshold. Use `_get_milestone_type(entity)` helper in `data/models.py` to read the milestone type.
 - **Bulk-fetch helpers**: Use `db.get_bird_treasures_for_birds_sync(bird_ids)` for batch bird treasure lookups instead of per-bird queries
 - Slash commands auto-sync on bot startup
 - Use `utils.logging.log_debug` for debug output
