@@ -459,7 +459,17 @@ class IncubationCommands(commands.Cog):
 
             # If we saved multipliers, create a new egg with them
             if saved_multipliers:
-                await db.create_egg(target_user_id, brooding_progress=0, protected_prayers=False)
+                # Apply plant brood reduction to the new egg (same as /lay_egg)
+                less_brood_chance = await get_less_brood_chance(target_plants)
+                initial_brooding_progress = 0
+                if less_brood_chance > 0:
+                    guaranteed_less_broods = int(less_brood_chance // 100)
+                    remaining_chance = less_brood_chance % 100
+                    if guaranteed_less_broods > 0:
+                        initial_brooding_progress += guaranteed_less_broods
+                    if remaining_chance > 0 and random.random() < (remaining_chance / 100):
+                        initial_brooding_progress += 1
+                await db.create_egg(target_user_id, brooding_progress=initial_brooding_progress, protected_prayers=False)
                 for sci_name, mult_value in saved_multipliers.items():
                     await db.upsert_egg_multiplier(target_user_id, sci_name, mult_value)
 
