@@ -782,10 +782,12 @@ async def get_defeated_humans(limit=5):
     return res.data or []
 
 
-def get_defeated_humans_sync(limit=5):
+def get_defeated_humans_sync(limit=None):
     sb = _sync_client()
-    res = sb.table("defeated_humans").select("*").order("defeat_date", desc=True).limit(limit).execute()
-    return res.data or []
+    query = sb.table("defeated_humans").select("*").order("defeat_date", desc=True)
+    if limit is not None:
+        query = query.limit(limit)
+    return query.execute().data or []
 
 
 # ---------------------------------------------------------------------------

@@ -82,6 +82,16 @@ def get_awards_page():
         if (m.get("memoir_date") or "") >= cutoff:
             tallies["author"][m["user_id"]] += 1
 
+    # Collective achievements
+    manifested_birds = db.load_manifested_birds_sync()
+    manifested_plants = db.load_manifested_plants_sync()
+    defeated_humans = db.get_defeated_humans_sync()
+    collective = [
+        {"name": "Manifested species", "emoji": "📖", "count": len(manifested_birds) + len(manifested_plants)},
+        {"name": "Sightings", "emoji": "📷", "count": len(sightings)},
+        {"name": "Defeated humans", "emoji": "🦅", "count": len(defeated_humans)},
+    ]
+
     # Build results
     awards = []
     for cat in AWARD_CATEGORIES:
@@ -100,4 +110,4 @@ def get_awards_page():
             "top3": top3,
         })
 
-    return render_template("awards.html", awards=awards)
+    return render_template("awards.html", awards=awards, collective=collective)
