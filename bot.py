@@ -13,6 +13,23 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents, help_command=None)
 
+# Global check: block commands for users in an active flock (pomobirdo)
+@bot.tree.interaction_check
+async def flock_focus_check(interaction: discord.Interaction) -> bool:
+    # Allow flock commands through
+    if interaction.command and interaction.command.name in ('start_flock', 'join_flock'):
+        return True
+    # Check if user is in an active flock
+    flock_cog = bot.cogs.get('FlockCommands')
+    if flock_cog and flock_cog.active_flock:
+        if interaction.user in flock_cog.active_flock['members']:
+            if interaction.response.is_done():
+                await interaction.followup.send("You cant do any actions while in a pomobirdo! You are focusing!")
+            else:
+                await interaction.response.send_message("You cant do any actions while in a pomobirdo! You are focusing!")
+            return False
+    return True
+
 # Error handling
 @bot.tree.error
 async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
