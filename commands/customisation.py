@@ -177,7 +177,8 @@ class CustomisationCommands(commands.Cog):
 
         # Find the treasure by name in the player's inventory
         found_treasure_id = None
-        for t_id in player_treasures:
+        for row in player_treasures:
+            t_id = row["treasure_id"]
             if all_treasures.get(t_id, {}).get("name", "").lower() == treasure_name.lower():
                 found_treasure_id = t_id
                 break
@@ -262,7 +263,7 @@ class CustomisationCommands(commands.Cog):
 
             # Return all treasures to inventory
             for t in nest_treasures:
-                await db.add_player_treasure(user_id, t['id'])
+                await db.add_player_treasure(user_id, t['treasure_id'])
             # Remove all nest decorations
             await db.remove_nest_treasures(user_id)
 
@@ -292,7 +293,7 @@ class CustomisationCommands(commands.Cog):
 
             # Return all treasures to inventory
             for t in bird_treasures:
-                await db.add_player_treasure(user_id, t['id'])
+                await db.add_player_treasure(user_id, t['treasure_id'])
             # Remove all bird decorations
             await db.remove_bird_treasures(target_entity['id'])
 
@@ -317,7 +318,7 @@ class CustomisationCommands(commands.Cog):
 
             # Return all treasures to inventory
             for t in plant_treasures:
-                await db.add_player_treasure(user_id, t['id'])
+                await db.add_player_treasure(user_id, t['treasure_id'])
             # Remove all plant decorations
             await db.remove_plant_treasures(target_entity['id'])
 

@@ -43,7 +43,7 @@ class ResearchCommands(commands.Cog):
         bird_to_release = None
 
         for bird in birds:
-            if bird["commonName"].lower() == bird_name.lower() or bird["scientificName"].lower() == bird_name.lower():
+            if bird["common_name"].lower() == bird_name.lower() or bird["scientific_name"].lower() == bird_name.lower():
                 bird_to_release = bird
                 break
 
@@ -52,13 +52,13 @@ class ResearchCommands(commands.Cog):
             return
 
         # Remove the bird from the user's nest
-        await db.remove_bird_by_name(user_id, bird_to_release["commonName"])
+        await db.remove_bird_by_name(user_id, bird_to_release["common_name"])
 
         # Add to released birds
-        await db.upsert_released_bird(bird_to_release["commonName"], bird_to_release["scientificName"])
+        await db.upsert_released_bird(bird_to_release["common_name"], bird_to_release["scientific_name"])
 
         # Increment research progress for the bird's author/species (1 point per graduation)
-        await db.increment_research(bird_to_release["scientificName"], 1)
+        await db.increment_research(bird_to_release["scientific_name"], 1)
 
         # Get updated bird count
         remaining_birds = await db.get_player_birds(user_id)
@@ -67,7 +67,7 @@ class ResearchCommands(commands.Cog):
         # Create embed
         embed = discord.Embed(
             title="🕊️ Bird Graduated!",
-            description=f" **{bird_to_release['commonName']}** (*{bird_to_release['scientificName']}*) has graduated from your nest!",
+            description=f" **{bird_to_release['common_name']}** (*{bird_to_release['scientific_name']}*) has graduated from your nest!",
             color=discord.Color.blue()
         )
 
@@ -90,12 +90,12 @@ class ResearchCommands(commands.Cog):
         )
 
         # Get the image path and check if it exists
-        image_path = await self.fetch_bird_image_path(bird_to_release['scientificName'])
+        image_path = await self.fetch_bird_image_path(bird_to_release['scientific_name'])
 
         if image_path and os.path.exists(image_path):
             # Send the file as an attachment with the embed
-            file = discord.File(image_path, filename=f"{bird_to_release['scientificName']}.jpg")
-            embed.set_image(url=f"attachment://{bird_to_release['scientificName']}.jpg")
+            file = discord.File(image_path, filename=f"{bird_to_release['scientific_name']}.jpg")
+            embed.set_image(url=f"attachment://{bird_to_release['scientific_name']}.jpg")
             await interaction.followup.send(file=file, embed=embed)
         else:
             # If image doesn't exist, send embed without image

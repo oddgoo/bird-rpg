@@ -91,7 +91,7 @@ def manifest_cog():
     async def mock_upsert_manifested_bird(bird_data):
         # Replace existing entry or append
         for i, b in enumerate(manifested_birds):
-            if b["scientificName"] == bird_data["scientificName"]:
+            if b["scientific_name"] == bird_data["scientific_name"]:
                 manifested_birds[i] = bird_data
                 return
         manifested_birds.append(bird_data)
@@ -101,7 +101,7 @@ def manifest_cog():
 
     async def mock_upsert_manifested_plant(plant_data):
         for i, p in enumerate(manifested_plants):
-            if p["scientificName"] == plant_data["scientificName"]:
+            if p["scientific_name"] == plant_data["scientific_name"]:
                 manifested_plants[i] = plant_data
                 return
         manifested_plants.append(plant_data)
@@ -145,8 +145,8 @@ class TestManifestBirdCommand:
         await cog.manifest_bird.callback(cog, mock_interaction, "Casuarius casuarius", 5)
 
         assert len(manifested_birds) == 1
-        assert manifested_birds[0]["scientificName"] == "Casuarius casuarius"
-        assert manifested_birds[0]["commonName"] == "Southern Cassowary"
+        assert manifested_birds[0]["scientific_name"] == "Casuarius casuarius"
+        assert manifested_birds[0]["common_name"] == "Southern Cassowary"
         assert manifested_birds[0]["manifested_points"] == 5
         assert manifested_birds[0]["rarity"] == "uncommon"
         assert not manifested_birds[0]["fully_manifested"]
@@ -179,9 +179,9 @@ class TestManifestBirdCommand:
         actions_state["remaining"] = 50
 
         manifested_birds.append({
-            "commonName": "Southern Cassowary",
-            "scientificName": "Casuarius casuarius",
-            "rarityWeight": 4,
+            "common_name": "Southern Cassowary",
+            "scientific_name": "Casuarius casuarius",
+            "rarity_weight": 4,
             "effect": "Your first nest-building action of the day gives +3 twigs.",
             "rarity": "uncommon",
             "manifested_points": 60,
@@ -204,9 +204,9 @@ class TestManifestBirdCommand:
         actions_state["remaining"] = 10
 
         manifested_birds.append({
-            "commonName": "Southern Cassowary",
-            "scientificName": "Casuarius casuarius",
-            "rarityWeight": 4,
+            "common_name": "Southern Cassowary",
+            "scientific_name": "Casuarius casuarius",
+            "rarity_weight": 4,
             "effect": "Your first nest-building action of the day gives +3 twigs.",
             "rarity": "uncommon",
             "manifested_points": 100,
@@ -227,9 +227,9 @@ class TestManifestBirdCommand:
         actions_state["remaining"] = 100
 
         manifested_birds.append({
-            "commonName": "Southern Cassowary",
-            "scientificName": "Casuarius casuarius",
-            "rarityWeight": 4,
+            "common_name": "Southern Cassowary",
+            "scientific_name": "Casuarius casuarius",
+            "rarity_weight": 4,
             "effect": "Your first nest-building action of the day gives +3 twigs.",
             "rarity": "uncommon",
             "manifested_points": 50,
@@ -307,8 +307,8 @@ class TestManifestPlantCommand:
         await cog.manifest_plant.callback(cog, mock_interaction, "Swainsona formosa", 5)
 
         assert len(manifested_plants) == 1
-        assert manifested_plants[0]["scientificName"] == "Swainsona formosa"
-        assert manifested_plants[0]["commonName"] == "Sturt's Desert Pea"
+        assert manifested_plants[0]["scientific_name"] == "Swainsona formosa"
+        assert manifested_plants[0]["common_name"] == "Sturt's Desert Pea"
         assert manifested_plants[0]["manifested_points"] == 5
         assert manifested_plants[0]["rarity"] == "uncommon"
         assert not manifested_plants[0]["fully_manifested"]
@@ -341,14 +341,14 @@ class TestManifestPlantCommand:
         actions_state["remaining"] = 50
 
         manifested_plants.append({
-            "commonName": "Sturt's Desert Pea",
-            "scientificName": "Swainsona formosa",
-            "rarityWeight": 7,
+            "common_name": "Sturt's Desert Pea",
+            "scientific_name": "Swainsona formosa",
+            "rarity_weight": 7,
             "effect": "+10% chance of your eggs needing one less brood (when laying an egg)",
             "rarity": "common",
-            "seedCost": 30,
-            "sizeCost": 1,
-            "inspirationCost": 1,
+            "seed_cost": 30,
+            "size_cost": 1,
+            "inspiration_cost": 1,
             "manifested_points": 35,
             "fully_manifested": False,
         })

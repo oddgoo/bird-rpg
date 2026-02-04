@@ -20,16 +20,16 @@ class ManifestCommands(commands.Cog):
     def find_bird_by_name(self, name, manifested_birds):
         """Find a bird in the manifested birds list by scientific or common name"""
         for bird in manifested_birds:
-            if (bird["scientificName"].lower() == name.lower() or
-                bird["commonName"].lower() == name.lower()):
+            if (bird["scientific_name"].lower() == name.lower() or
+                bird["common_name"].lower() == name.lower()):
                 return bird
         return None
 
     def find_plant_by_name(self, name, manifested_plants):
         """Find a plant in the manifested plants list by scientific or common name"""
         for plant in manifested_plants:
-            if (plant["scientificName"].lower() == name.lower() or
-                plant["commonName"].lower() == name.lower()):
+            if (plant["scientific_name"].lower() == name.lower() or
+                plant["common_name"].lower() == name.lower()):
                 return plant
         return None
 
@@ -88,8 +88,8 @@ class ManifestCommands(commands.Cog):
 
         if existing_bird:
             # Bird already exists in our database
-            scientific_name = existing_bird["scientificName"]
-            common_name = existing_bird["commonName"]
+            scientific_name = existing_bird["scientific_name"]
+            common_name = existing_bird["common_name"]
 
             # Check if it's already fully manifested
             if existing_bird.get("fully_manifested", False):
@@ -117,9 +117,9 @@ class ManifestCommands(commands.Cog):
 
             # Create new bird entry
             bird = {
-                "commonName": common_name,
-                "scientificName": scientific_name,
-                "rarityWeight": similar_bird.get("rarityWeight", 0),
+                "common_name": common_name,
+                "scientific_name": scientific_name,
+                "rarity_weight": similar_bird.get("rarityWeight", 0),
                 "effect": similar_bird.get("effect", ""),
                 "rarity": rarity,
                 "manifested_points": 0,
@@ -144,7 +144,7 @@ class ManifestCommands(commands.Cog):
             is_newly_manifested = True
 
             # Download the image if it's newly manifested
-            await self.download_species_image(bird["scientificName"])
+            await self.download_species_image(bird["scientific_name"])
 
         # Save the updated data via upsert
         await db.upsert_manifested_bird(bird)
@@ -222,8 +222,8 @@ class ManifestCommands(commands.Cog):
 
         if existing_plant:
             # Plant already exists in our database
-            scientific_name = existing_plant["scientificName"]
-            common_name = existing_plant["commonName"]
+            scientific_name = existing_plant["scientific_name"]
+            common_name = existing_plant["common_name"]
 
             # Check if it's already fully manifested
             if existing_plant.get("fully_manifested", False):
@@ -251,14 +251,14 @@ class ManifestCommands(commands.Cog):
 
             # Create new plant entry
             plant = {
-                "commonName": common_name,
-                "scientificName": scientific_name,
-                "rarityWeight": similar_plant.get("rarityWeight", 0),
+                "common_name": common_name,
+                "scientific_name": scientific_name,
+                "rarity_weight": similar_plant.get("rarityWeight", 0),
                 "effect": similar_plant.get("effect", ""),
                 "rarity": rarity,
-                "seedCost": similar_plant.get("seedCost", 30),
-                "sizeCost": similar_plant.get("sizeCost", 1),
-                "inspirationCost": similar_plant.get("inspirationCost", 0.2),
+                "seed_cost": similar_plant.get("seedCost", 30),
+                "size_cost": similar_plant.get("sizeCost", 1),
+                "inspiration_cost": similar_plant.get("inspirationCost", 0.2),
                 "manifested_points": 0,
                 "fully_manifested": False
             }
@@ -281,7 +281,7 @@ class ManifestCommands(commands.Cog):
             is_newly_manifested = True
 
             # Download the image if it's newly manifested
-            await self.download_species_image(plant["scientificName"])
+            await self.download_species_image(plant["scientific_name"])
 
         # Save the updated data via upsert
         await db.upsert_manifested_plant(plant)
@@ -414,12 +414,12 @@ class ManifestCommands(commands.Cog):
     async def send_fully_manifested_response(self, interaction, bird):
         """Send a response for a fully manifested bird"""
         # Create the image path
-        image_filename = f"{urllib.parse.quote(bird['scientificName'])}.jpg"
+        image_filename = f"{urllib.parse.quote(bird['scientific_name'])}.jpg"
         image_path = os.path.join(SPECIES_IMAGES_DIR, image_filename)
 
         embed = discord.Embed(
             title="🐦 Bird Fully Manifested! ✨",
-            description=f"You have fully manifested **{bird['commonName']}** (*{bird['scientificName']}*)!",
+            description=f"You have fully manifested **{bird['common_name']}** (*{bird['scientific_name']}*)!",
             color=discord.Color.green()
         )
 
@@ -444,8 +444,8 @@ class ManifestCommands(commands.Cog):
         # Check if the image file exists
         if os.path.exists(image_path):
             # Send the file as an attachment with the embed
-            file = discord.File(image_path, filename=f"{bird['scientificName']}.jpg")
-            embed.set_image(url=f"attachment://{bird['scientificName']}.jpg")
+            file = discord.File(image_path, filename=f"{bird['scientific_name']}.jpg")
+            embed.set_image(url=f"attachment://{bird['scientific_name']}.jpg")
             await interaction.followup.send(file=file, embed=embed)
         else:
             # If image doesn't exist, send embed without image
@@ -454,12 +454,12 @@ class ManifestCommands(commands.Cog):
     async def send_fully_manifested_plant_response(self, interaction, plant):
         """Send a response for a fully manifested plant"""
         # Create the image path
-        image_filename = f"{urllib.parse.quote(plant['scientificName'])}.jpg"
+        image_filename = f"{urllib.parse.quote(plant['scientific_name'])}.jpg"
         image_path = os.path.join(SPECIES_IMAGES_DIR, image_filename)
 
         embed = discord.Embed(
             title="🌱 Plant Fully Manifested! ✨",
-            description=f"You have fully manifested **{plant['commonName']}** (*{plant['scientificName']}*)!",
+            description=f"You have fully manifested **{plant['common_name']}** (*{plant['scientific_name']}*)!",
             color=discord.Color.green()
         )
 
@@ -477,7 +477,7 @@ class ManifestCommands(commands.Cog):
 
         embed.add_field(
             name="Costs",
-            value=f"Seeds: {plant['seedCost']}\nGarden Size: {plant['sizeCost']}\nInspiration: {plant['inspirationCost']}",
+            value=f"Seeds: {plant['seed_cost']}\nGarden Size: {plant['size_cost']}\nInspiration: {plant['inspiration_cost']}",
             inline=True
         )
 
@@ -490,8 +490,8 @@ class ManifestCommands(commands.Cog):
         # Check if the image file exists
         if os.path.exists(image_path):
             # Send the file as an attachment with the embed
-            file = discord.File(image_path, filename=f"{plant['scientificName']}.jpg")
-            embed.set_image(url=f"attachment://{plant['scientificName']}.jpg")
+            file = discord.File(image_path, filename=f"{plant['scientific_name']}.jpg")
+            embed.set_image(url=f"attachment://{plant['scientific_name']}.jpg")
             await interaction.followup.send(file=file, embed=embed)
         else:
             # If image doesn't exist, send embed without image
@@ -504,7 +504,7 @@ class ManifestCommands(commands.Cog):
 
         embed = discord.Embed(
             title=f"{emoji} {species_type} Manifestation Progress",
-            description=f"You spent {actions_spent} actions manifesting **{species['commonName']}** (*{species['scientificName']}*).",
+            description=f"You spent {actions_spent} actions manifesting **{species['common_name']}** (*{species['scientific_name']}*).",
             color=discord.Color.blue()
         )
 

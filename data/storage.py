@@ -804,6 +804,12 @@ async def add_memoir(user_id, nest_name, text, memoir_date):
     }).execute()
 
 
+async def get_player_memoirs(user_id):
+    sb = await _client()
+    res = await sb.table("memoirs").select("*").eq("user_id", str(user_id)).order("memoir_date", desc=True).execute()
+    return res.data or []
+
+
 async def load_memoirs():
     sb = await _client()
     res = await sb.table("memoirs").select("*").order("memoir_date", desc=True).execute()

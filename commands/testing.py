@@ -210,7 +210,7 @@ class TestCommands(commands.Cog):
         # Remove all birds
         birds = await db.get_player_birds(user_id)
         for bird in birds:
-            await db.remove_bird(user_id, bird["id"])
+            await db.remove_bird(bird["id"])
 
         await interaction.response.send_message(f"✅ {target_user.display_name}'s nest has been reset to its initial state.")
 

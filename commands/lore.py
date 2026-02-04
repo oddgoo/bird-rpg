@@ -30,7 +30,7 @@ class LoreCommands(commands.Cog):
         # Check if user already posted today
         memoirs = await db.get_player_memoirs(user_id)
         for memoir in memoirs:
-            if memoir["date"] == today:
+            if memoir["memoir_date"] == today:
                 await interaction.followup.send("You have already shared a memoir today. Return tomorrow to share more of your story!")
                 return
 
