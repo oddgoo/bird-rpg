@@ -126,7 +126,7 @@ class SeedCommands(commands.Cog):
             return
 
         await db.increment_common_nest("seeds", amount)
-        await record_actions(user_id, amount, "seed")
+        await record_actions(user_id, amount, "seed_common")
 
         remaining = await get_remaining_actions(user_id)
         new_common_seeds = common_nest["seeds"] + amount

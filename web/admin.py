@@ -48,13 +48,13 @@ def admin_routes(app):
 
         try:
             current_time = get_australian_time()
-            four_days_ago = (current_time - timedelta(days=4)).strftime('%Y-%m-%d')
+            cutoff_date = (current_time - timedelta(days=35)).strftime('%Y-%m-%d')
 
-            db.delete_old_daily_actions_sync(four_days_ago)
-            db.delete_old_songs_sync(four_days_ago)
-            db.delete_old_brooding_sync(four_days_ago)
+            db.delete_old_daily_actions_sync(cutoff_date)
+            db.delete_old_songs_sync(cutoff_date)
+            db.delete_old_brooding_sync(cutoff_date)
 
-            message = f"Successfully purged old actions older than {four_days_ago}."
+            message = f"Successfully purged old actions older than {cutoff_date}."
             flash(message, 'success')
 
             return redirect(url_for('admin'))

@@ -558,6 +558,18 @@ def delete_old_daily_actions_sync(cutoff_date):
     sb.table("daily_actions").delete().lt("action_date", cutoff_date).execute()
 
 
+def get_all_daily_actions_sync():
+    sb = _sync_client()
+    res = sb.table("daily_actions").select("*").execute()
+    return res.data or []
+
+
+def get_all_birdwatch_sightings_unpaginated_sync():
+    sb = _sync_client()
+    res = sb.table("birdwatch_sightings").select("user_id, created_at").execute()
+    return res.data or []
+
+
 # ---------------------------------------------------------------------------
 # Daily Songs
 # ---------------------------------------------------------------------------

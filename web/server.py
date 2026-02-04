@@ -5,6 +5,7 @@ from web.home import get_home_page
 from web.admin import admin_routes
 from web.research import get_research_page
 from web.birdwatch import get_birdwatch_page
+from web.awards import get_awards_page
 from data.models import load_bird_species_sync, load_plant_species_sync, get_discovered_species_sync, get_discovered_plants_sync, load_treasures
 from data.db import get_sync_client
 from utils.time_utils import get_time_until_reset, get_current_date, get_australian_time
@@ -259,6 +260,10 @@ def research():
 @app.route('/birdwatch')
 def birdwatch():
     return get_birdwatch_page()
+
+@app.route('/awards')
+def awards():
+    return get_awards_page()
 
 
 @app.route('/health')

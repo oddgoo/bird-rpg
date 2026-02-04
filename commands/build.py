@@ -71,7 +71,7 @@ class BuildCommands(commands.Cog):
         total_twigs = amount + bonus_twigs
 
         await db.increment_common_nest("twigs", total_twigs)
-        await record_actions(user_id, amount, "build")
+        await record_actions(user_id, amount, "build_common")
 
         common_nest = await db.load_common_nest()
         remaining = await get_remaining_actions(user_id)
