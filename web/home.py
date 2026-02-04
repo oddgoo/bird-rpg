@@ -6,7 +6,9 @@ from data.models import (
     get_discovered_species_sync,
     get_discovered_plant_species_count_sync,
     load_treasures,
+    get_extra_bird_space_sync,
 )
+from config.config import MAX_BIRDS_PER_NEST
 from utils.time_utils import get_time_until_reset
 from utils.human_spawner import HumanSpawner
 
@@ -144,9 +146,13 @@ def get_home_page():
     # Get defeated humans data
     defeated_humans = db.get_defeated_humans_sync(limit=5)
 
+    # Bird capacity per nest
+    max_birds = MAX_BIRDS_PER_NEST + get_extra_bird_space_sync()
+
     return render_template(
         'home.html',
         common_nest=common_nest,
+        max_birds=max_birds,
         personal_nests=personal_nests,
         time_until_reset=time_until_reset,
         total_bird_species=total_bird_species,
