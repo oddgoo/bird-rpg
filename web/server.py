@@ -67,6 +67,18 @@ def wings_of_time():
 
     return render_template('wings-of-time.html', entries=sorted_entries)
 
+def _organize_by_group(items):
+    """Split items into (groups_dict, ungrouped_list). groups_dict is {name: [items]}."""
+    groups = {}
+    ungrouped = []
+    for item in items:
+        gn = item.get("groupName")
+        if gn:
+            groups.setdefault(gn, []).append(item)
+        else:
+            ungrouped.append(item)
+    return groups, ungrouped
+
 @app.route('/user/<user_id>')
 def user_page(user_id):
     player = db.load_player_sync(user_id)
@@ -109,6 +121,7 @@ def user_page(user_id):
             "rarity": species_info.get("rarity", "common"),
             "effect": species_info.get("effect", ""),
             "treasures": chick_treasures,
+            "groupName": bird.get("group_name"),
         })
 
     today = get_current_date()
@@ -172,6 +185,7 @@ def user_page(user_id):
             "rarity": species_info.get("rarity", "common"),
             "effect": species_info.get("effect", ""),
             "treasures": [],
+            "groupName": plant.get("group_name"),
         })
 
     # Enrich inventory treasures
@@ -186,12 +200,19 @@ def user_page(user_id):
     egg_data = sb.table("eggs").select("*").eq("user_id", str(user_id)).execute().data
     egg = egg_data[0] if egg_data else None
 
+    chick_groups, ungrouped_chicks = _organize_by_group(enriched_chicks)
+    plant_groups, ungrouped_plants = _organize_by_group(enriched_plants)
+
     nest_data = {
         "name": player.get("nest_name", "Some Bird's Nest"),
         "twigs": player["twigs"],
         "seeds": player["seeds"],
         "chicks": enriched_chicks,
         "plants": enriched_plants,
+        "chick_groups": chick_groups,
+        "ungrouped_chicks": ungrouped_chicks,
+        "plant_groups": plant_groups,
+        "ungrouped_plants": ungrouped_plants,
         "treasures": enriched_treasures,
         "songs_given": songs_given,
         "egg": egg,

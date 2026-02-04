@@ -33,7 +33,8 @@ CREATE TABLE player_birds (
     id SERIAL PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES players(user_id),
     common_name TEXT NOT NULL,
-    scientific_name TEXT NOT NULL
+    scientific_name TEXT NOT NULL,
+    group_name TEXT
 );
 
 -- Treasures/decorations on birds
@@ -51,7 +52,8 @@ CREATE TABLE player_plants (
     user_id TEXT NOT NULL REFERENCES players(user_id),
     common_name TEXT NOT NULL,
     scientific_name TEXT NOT NULL,
-    planted_date TEXT
+    planted_date TEXT,
+    group_name TEXT
 );
 
 -- Treasures/decorations on plants

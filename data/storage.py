@@ -262,6 +262,22 @@ async def remove_bird_by_name(user_id, common_name):
     return bird
 
 
+async def update_bird_group(bird_id, group_name):
+    """Set group_name on a bird row by its DB id."""
+    sb = await _client()
+    await sb.table("player_birds").update({"group_name": group_name}).eq("id", bird_id).execute()
+
+
+async def clear_group_birds(user_id, group_name):
+    """Set group_name=NULL for all birds matching user_id + group_name. Returns count cleared."""
+    sb = await _client()
+    res = await sb.table("player_birds").select("id").eq("user_id", str(user_id)).eq("group_name", group_name).execute()
+    count = len(res.data or [])
+    if count:
+        await sb.table("player_birds").update({"group_name": None}).eq("user_id", str(user_id)).eq("group_name", group_name).execute()
+    return count
+
+
 async def get_all_birds():
     """Get all birds across all players."""
     sb = await _client()
@@ -352,6 +368,22 @@ async def remove_plant_by_name(user_id, common_name):
     plant = res.data[0]
     await sb.table("player_plants").delete().eq("id", plant["id"]).execute()
     return plant
+
+
+async def update_plant_group(plant_id, group_name):
+    """Set group_name on a plant row by its DB id."""
+    sb = await _client()
+    await sb.table("player_plants").update({"group_name": group_name}).eq("id", plant_id).execute()
+
+
+async def clear_group_plants(user_id, group_name):
+    """Set group_name=NULL for all plants matching user_id + group_name. Returns count cleared."""
+    sb = await _client()
+    res = await sb.table("player_plants").select("id").eq("user_id", str(user_id)).eq("group_name", group_name).execute()
+    count = len(res.data or [])
+    if count:
+        await sb.table("player_plants").update({"group_name": None}).eq("user_id", str(user_id)).eq("group_name", group_name).execute()
+    return count
 
 
 async def get_all_plants():

@@ -2,6 +2,99 @@
 
 {% block title %}{{ nest.name }} | bird-rpg Village{% endblock %}
 
+{% macro bird_card(chick) %}
+<li class="bg-white rounded-xl p-4 shadow-md flex flex-col items-center transition-transform transform hover:-translate-y-1 cursor-pointer relative aspect-[5/7]">
+    <a href="#" class="flex flex-col items-center no-underline w-full h-full bird-card-link" data-scientific="{{ chick.scientificName }}" data-rarity="{{ chick.rarity }}" data-type="bird" target="_blank">
+        <div class="relative w-90% h-3/5">
+            <img
+                class="w-full h-full rounded-lg object-cover mb-4 transition-transform duration-200 bird-card-img"
+                data-scientific="{{ chick.scientificName }}"
+                data-rarity="{{ chick.rarity }}"
+                data-type="bird"
+                src=""
+                alt="{{ chick.commonName }}"
+            >
+            {% if chick.treasures %}
+                {% for treasure in chick.treasures %}
+                    {% if treasure.type == 'sticker' %}
+                    <img src="/static/images/decorations/{{ treasure.id }}.png"
+                         class="absolute"
+                         style="left: {{ treasure.x }}%; top: {{ treasure.y }}%; transform: translate(-50%, -50%); width: {{ treasure.size|default(25) }}%;">
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="text-center">
+            <div class="text-lg font-bold text-orange-700">{{ chick.commonName }}</div>
+            <div class="italic text-gray-600 text-sm">{{ chick.scientificName }}</div>
+            <div class="mt-2 uppercase tracking-wide font-medium
+                {% if chick.rarity == 'mythical' %}
+                    text-yellow-700
+                {% elif chick.rarity == 'rare' %}
+                    text-purple-600
+                {% elif chick.rarity == 'uncommon' %}
+                    text-blue-500
+                {% else %}
+                    text-green-500
+                {% endif %}">
+                ✧ {{ chick.rarity|title }} ✧
+            </div>
+            {% if chick.effect %}
+            <div class="mt-2 italic text-gray-600 text-xs px-2">
+                "{{ chick.effect }}"
+            </div>
+            {% endif %}
+        </div>
+    </a>
+</li>
+{% endmacro %}
+
+{% macro plant_card(plant) %}
+<li class="bg-lime-50 rounded-xl p-4 shadow-md flex flex-col items-center transition-transform transform hover:-translate-y-1 cursor-pointer relative aspect-[5/7]">
+    <a href="#" class="flex flex-col items-center no-underline w-full h-full plant-card-link" data-scientific="{{ plant.scientificName }}" data-type="plant" target="_blank">
+        <div class="relative w-90% h-3/5">
+            <img
+                class="w-full h-full rounded-lg object-cover mb-4 transition-transform duration-200 plant-card-img"
+                data-scientific="{{ plant.scientificName }}"
+                data-type="plant"
+                src=""
+                alt="{{ plant.commonName }}"
+            >
+            {% if plant.treasures %}
+                {% for treasure in plant.treasures %}
+                    {% if treasure.type == 'sticker' %}
+                    <img src="/static/images/decorations/{{ treasure.id }}.png"
+                         class="absolute"
+                         style="left: {{ treasure.x }}%; top: {{ treasure.y }}%; transform: translate(-50%, -50%); width: {{ treasure.size|default(25) }}%;">
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="text-center">
+            <div class="text-lg font-bold text-lime-700">{{ plant.commonName }}</div>
+            <div class="italic text-gray-600 text-sm">{{ plant.scientificName }}</div>
+            <div class="mt-2 uppercase tracking-wide font-medium
+                {% if plant.rarity == 'mythical' %}
+                    text-yellow-700
+                {% elif plant.rarity == 'rare' %}
+                    text-purple-600
+                {% elif plant.rarity == 'uncommon' %}
+                    text-blue-500
+                {% else %}
+                    text-green-500
+                {% endif %}">
+                ✧ {{ plant.rarity|title }} ✧
+            </div>
+            {% if plant.effect %}
+            <div class="mt-2 italic text-gray-600 text-xs px-2">
+                "{{ plant.effect }}"
+            </div>
+            {% endif %}
+        </div>
+    </a>
+</li>
+{% endmacro %}
+
 {% block content %}
 <h2 class="text-center text-4xl text-yellow-900 mb-8 font-mystical font-bold">🏠 {{ nest.name }}</h2>
 
@@ -41,52 +134,25 @@
     <div class="border border-amber-300/50 rounded-lg p-4">
         <h2 class="text-2xl text-center text-yellow-900 mb-4 font-mystical font-bold">🐣 Hatched Chicks</h2>
         {% if nest.chicks %}
-        <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {% for chick in nest.chicks %}
-            <li class="bg-white rounded-xl p-4 shadow-md flex flex-col items-center transition-transform transform hover:-translate-y-1 cursor-pointer relative aspect-[5/7]">
-                <a href="#" class="flex flex-col items-center no-underline w-full h-full" target="_blank" id="chick-link-{{ loop.index }}">
-                    <div class="relative w-90% h-3/5">
-                        <img 
-                            class="w-full h-full rounded-lg object-cover mb-4 transition-transform duration-200"
-                            id="bird-{{ loop.index }}"
-                            src=""
-                            alt="{{ chick.commonName }}"
-                        >
-                        {% if chick.treasures %}
-                            {% for treasure in chick.treasures %}
-                                {% if treasure.type == 'sticker' %}
-                                <img src="/static/images/decorations/{{ treasure.id }}.png" 
-                                     class="absolute" 
-                                     style="left: {{ treasure.x }}%; top: {{ treasure.y }}%; transform: translate(-50%, -50%); width: {{ treasure.size|default(25) }}%;">
-                                {% endif %}
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                    <div class="text-center">
-                        <div class="text-lg font-bold text-orange-700">{{ chick.commonName }}</div>
-                        <div class="italic text-gray-600 text-sm">{{ chick.scientificName }}</div>
-                        <div class="mt-2 uppercase tracking-wide font-medium 
-                            {% if chick.rarity == 'mythical' %}
-                                text-yellow-700
-                            {% elif chick.rarity == 'rare' %}
-                                text-purple-600
-                            {% elif chick.rarity == 'uncommon' %}
-                                text-blue-500
-                            {% else %}
-                                text-green-500
-                            {% endif %}">
-                            ✧ {{ chick.rarity|title }} ✧
-                        </div>
-                        {% if chick.effect %}
-                        <div class="mt-2 italic text-gray-600 text-xs px-2">
-                            "{{ chick.effect }}"
-                        </div>
-                        {% endif %}
-                    </div>
-                </a>
-            </li>
+            {% for group_name, group_chicks in nest.chick_groups.items() %}
+            <h3 class="text-xl text-orange-700 font-mystical font-bold mt-6 mb-3 text-center">{{ group_name }}</h3>
+            <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-4">
+                {% for chick in group_chicks %}
+                {{ bird_card(chick) }}
+                {% endfor %}
+            </ul>
             {% endfor %}
-        </ul>
+
+            {% if nest.ungrouped_chicks %}
+            {% if nest.chick_groups %}
+            <hr class="my-4 border-amber-300/50">
+            {% endif %}
+            <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {% for chick in nest.ungrouped_chicks %}
+                {{ bird_card(chick) }}
+                {% endfor %}
+            </ul>
+            {% endif %}
         {% else %}
         <p class="text-center">This nest hasn't hatched any chicks yet! 🐣</p>
         {% endif %}
@@ -97,52 +163,25 @@
     <div class="border border-amber-300/50 rounded-lg p-4">
         <h2 class="text-2xl text-center text-yellow-900 mb-4 font-mystical font-bold">🌿 Garden Plants</h2>
         {% if nest.plants %}
-        <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {% for plant in nest.plants %}
-            <li class="bg-lime-50 rounded-xl p-4 shadow-md flex flex-col items-center transition-transform transform hover:-translate-y-1 cursor-pointer relative aspect-[5/7]">
-                <a href="#" class="flex flex-col items-center no-underline w-full h-full" target="_blank" id="plant-link-{{ loop.index }}">
-                    <div class="relative w-90% h-3/5">
-                        <img 
-                            class="w-full h-full rounded-lg object-cover mb-4 transition-transform duration-200"
-                            id="plant-{{ loop.index }}"
-                            src=""
-                            alt="{{ plant.commonName }}"
-                        >
-                        {% if plant.treasures %}
-                            {% for treasure in plant.treasures %}
-                                {% if treasure.type == 'sticker' %}
-                                <img src="/static/images/decorations/{{ treasure.id }}.png" 
-                                     class="absolute" 
-                                     style="left: {{ treasure.x }}%; top: {{ treasure.y }}%; transform: translate(-50%, -50%); width: {{ treasure.size|default(25) }}%;">
-                                {% endif %}
-                            {% endfor %}
-                        {% endif %}
-                    </div>
-                    <div class="text-center">
-                        <div class="text-lg font-bold text-lime-700">{{ plant.commonName }}</div>
-                        <div class="italic text-gray-600 text-sm">{{ plant.scientificName }}</div>
-                        <div class="mt-2 uppercase tracking-wide font-medium 
-                            {% if plant.rarity == 'mythical' %}
-                                text-yellow-700
-                            {% elif plant.rarity == 'rare' %}
-                                text-purple-600
-                            {% elif plant.rarity == 'uncommon' %}
-                                text-blue-500
-                            {% else %}
-                                text-green-500
-                            {% endif %}">
-                            ✧ {{ plant.rarity|title }} ✧
-                        </div>
-                        {% if plant.effect %}
-                        <div class="mt-2 italic text-gray-600 text-xs px-2">
-                            "{{ plant.effect }}"
-                        </div>
-                        {% endif %}
-                    </div>
-                </a>
-            </li>
+            {% for group_name, group_plants in nest.plant_groups.items() %}
+            <h3 class="text-xl text-lime-700 font-mystical font-bold mt-6 mb-3 text-center">{{ group_name }}</h3>
+            <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-4">
+                {% for plant in group_plants %}
+                {{ plant_card(plant) }}
+                {% endfor %}
+            </ul>
             {% endfor %}
-        </ul>
+
+            {% if nest.ungrouped_plants %}
+            {% if nest.plant_groups %}
+            <hr class="my-4 border-amber-300/50">
+            {% endif %}
+            <ul class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {% for plant in nest.ungrouped_plants %}
+                {{ plant_card(plant) }}
+                {% endfor %}
+            </ul>
+            {% endif %}
         {% else %}
         <p class="text-center">This garden doesn't have any plants yet! 🌱</p>
         {% endif %}
@@ -157,7 +196,7 @@
             {% for treasure in nest.treasures %}
             <li class="flex flex-col items-center transition-transform transform hover:-translate-y-1 cursor-pointer ">
                 <div class="relative w-full h-24">
-                    <img 
+                    <img
                         class="absolute inset-0 w-full h-full object-contain"
                         src="/static/images/decorations/{{ treasure.id }}.png"
                         alt="{{ treasure.name }}"
@@ -219,33 +258,29 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Set bird images
-        {% for chick in nest.chicks %}
-        var scientificName = "{{ chick.scientificName }}";
-        var index = "{{ loop.index }}";
-        
-        // Check if it's a special bird
-        if ("{{ chick.rarity }}" === "Special") {
-            document.getElementById('bird-' + index).src = "/static/images/special-birds/" + scientificName + ".png";
-            document.getElementById('chick-link-' + index).removeAttribute('href');
-        } else {
-            // Use local image if available
-            document.getElementById('bird-' + index).src = "/species_images/" + encodeURIComponent(scientificName) + ".jpg";
-            document.getElementById('chick-link-' + index).href = "https://www.inaturalist.org/taxa/" + encodeURIComponent(scientificName);
-            
-        }
-        {% endfor %}
-        
-        // Set plant images
-        {% for plant in nest.plants %}
-        var scientificName = "{{ plant.scientificName }}";
-        var index = "{{ loop.index }}";
-        
-        // Use local image if available
-        document.getElementById('plant-' + index).src = "/species_images/" + encodeURIComponent(scientificName) + ".jpg";
-        document.getElementById('plant-link-' + index).href = "https://www.inaturalist.org/taxa/" + encodeURIComponent(scientificName);
-        
-        {% endfor %}
+        // Set bird images using data attributes
+        document.querySelectorAll('.bird-card-img').forEach(function(img) {
+            var scientificName = img.dataset.scientific;
+            var rarity = img.dataset.rarity;
+            var link = img.closest('.bird-card-link');
+
+            if (rarity === "Special") {
+                img.src = "/static/images/special-birds/" + scientificName + ".png";
+                if (link) link.removeAttribute('href');
+            } else {
+                img.src = "/species_images/" + encodeURIComponent(scientificName) + ".jpg";
+                if (link) link.href = "https://www.inaturalist.org/taxa/" + encodeURIComponent(scientificName);
+            }
+        });
+
+        // Set plant images using data attributes
+        document.querySelectorAll('.plant-card-img').forEach(function(img) {
+            var scientificName = img.dataset.scientific;
+            var link = img.closest('.plant-card-link');
+
+            img.src = "/species_images/" + encodeURIComponent(scientificName) + ".jpg";
+            if (link) link.href = "https://www.inaturalist.org/taxa/" + encodeURIComponent(scientificName);
+        });
     });
 </script>
 {% endblock %}
