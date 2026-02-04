@@ -172,6 +172,87 @@ class TestIncubationCommands:
         assert "You've used all your actions for today" in msg
 
     @pytest.mark.asyncio
+    async def test_brood_stuck_egg_recovery(self, mock_interaction):
+        """Test that an egg stuck at progress >= 10 hatches without incrementing."""
+        bot = AsyncMock()
+        cog = IncubationCommands(bot)
+
+        target_user = mock_interaction.add_member(456, "Target")
+        target_player = {"user_id": "456", "nest_name": "Target Nest", "locked": False}
+        # Egg is stuck at progress 10 (previously incremented but not hatched)
+        stuck_egg = {"user_id": "456", "brooding_progress": 10, "multipliers": {}, "brooded_by": []}
+        test_bird = {"commonName": "Robin", "scientificName": "Turdus migratorius", "rarityWeight": 10}
+
+        bot.fetch_user = AsyncMock(return_value=target_user)
+
+        mock_record_brooding = AsyncMock()
+        mock_update_egg = AsyncMock()
+        mock_delete_egg = AsyncMock()
+
+        with patch("commands.incubation.get_remaining_actions", new=AsyncMock(return_value=5)), \
+             patch("commands.incubation.record_actions", new=AsyncMock()), \
+             patch("commands.incubation.db.load_player", new=AsyncMock(return_value=target_player)), \
+             patch("commands.incubation.db.get_egg", new=AsyncMock(return_value=stuck_egg)), \
+             patch("commands.incubation.db.has_brooded_today", new=AsyncMock(return_value=False)), \
+             patch("commands.incubation.db.record_brooding", new=mock_record_brooding), \
+             patch("commands.incubation.db.update_egg", new=mock_update_egg), \
+             patch("commands.incubation.db.add_egg_brooder", new=AsyncMock()), \
+             patch("commands.incubation.get_extra_bird_space", new=AsyncMock(return_value=0)), \
+             patch("commands.incubation.select_random_bird_species", new=AsyncMock(return_value=test_bird)), \
+             patch("commands.incubation.db.add_bird", new=AsyncMock()), \
+             patch("commands.incubation.db.get_player_plants", new=AsyncMock(return_value=[])), \
+             patch("commands.incubation.get_extra_bird_chance", new=AsyncMock(return_value=0)), \
+             patch("commands.incubation.handle_blessed_egg_hatching", return_value=None), \
+             patch("commands.incubation.db.delete_egg", new=mock_delete_egg), \
+             patch("commands.incubation.db.get_player_birds", new=AsyncMock(return_value=[{"id": 1}])):
+
+            await cog.brood.callback(cog, mock_interaction, f"<@{target_user.id}>")
+
+        # Should NOT have incremented brooding or recorded brooding (stuck recovery path)
+        mock_record_brooding.assert_not_called()
+        mock_update_egg.assert_not_called()
+        # Egg should have been deleted (hatched)
+        mock_delete_egg.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_brood_full_nest_blocks_without_incrementing(self, mock_interaction):
+        """Test that brooding at progress 9 with a full nest blocks WITHOUT incrementing progress."""
+        bot = AsyncMock()
+        cog = IncubationCommands(bot)
+
+        target_user = mock_interaction.add_member(456, "Target")
+        target_player = {"user_id": "456", "nest_name": "Target Nest", "locked": False}
+        target_egg = {"user_id": "456", "brooding_progress": 9, "multipliers": {}, "brooded_by": []}
+
+        bot.fetch_user = AsyncMock(return_value=target_user)
+
+        # Nest is at max capacity (45 birds, 0 extra space)
+        many_birds = [{"id": i} for i in range(45)]
+        mock_update_egg = AsyncMock()
+        mock_record_brooding = AsyncMock()
+
+        with patch("commands.incubation.get_remaining_actions", new=AsyncMock(return_value=5)), \
+             patch("commands.incubation.record_actions", new=AsyncMock()), \
+             patch("commands.incubation.db.load_player", new=AsyncMock(return_value=target_player)), \
+             patch("commands.incubation.db.get_egg", new=AsyncMock(return_value=target_egg)), \
+             patch("commands.incubation.db.has_brooded_today", new=AsyncMock(return_value=False)), \
+             patch("commands.incubation.db.record_brooding", new=mock_record_brooding), \
+             patch("commands.incubation.db.update_egg", new=mock_update_egg), \
+             patch("commands.incubation.get_extra_bird_space", new=AsyncMock(return_value=0)), \
+             patch("commands.incubation.db.get_player_birds", new=AsyncMock(return_value=many_birds)):
+
+            await cog.brood.callback(cog, mock_interaction, f"<@{target_user.id}>")
+
+        # Should NOT have incremented — egg stays at 9
+        mock_update_egg.assert_not_called()
+        mock_record_brooding.assert_not_called()
+
+        # Should report the error
+        mock_interaction.followup.send.assert_called()
+        msg = mock_interaction.followup.send.call_args[0][0]
+        assert "maximum" in msg.lower() or "free a spot" in msg.lower()
+
+    @pytest.mark.asyncio
     async def test_pray_for_bird_success(self, mock_interaction):
         """Test praying for a bird successfully."""
         bot = AsyncMock()

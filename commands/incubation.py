@@ -384,25 +384,28 @@ class IncubationCommands(commands.Cog):
         if await db.has_brooded_today(brooder_id, target_user_id, today):
             return None, "already brooded this egg today"
 
-        # Record brooding
-        await db.record_brooding(brooder_id, target_user_id, today)
-        new_progress = egg["brooding_progress"] + 1
-        await db.update_egg(target_user_id, brooding_progress=new_progress)
-        await db.add_egg_brooder(target_user_id, brooder_id)
+        # Check nest capacity before hatching would occur
+        would_hatch = egg["brooding_progress"] >= 10 or egg["brooding_progress"] + 1 >= 10
+        if would_hatch:
+            extra_bird_space = await get_extra_bird_space()
+            max_birds = MAX_BIRDS_PER_NEST + extra_bird_space
+            current_birds = await db.get_player_birds(target_user_id)
+            if len(current_birds) >= max_birds:
+                return None, f"nest already has the maximum of {max_birds} birds — free a spot before hatching"
+
+        # If egg is already at hatching threshold (stuck state recovery), skip increment
+        if egg["brooding_progress"] >= 10:
+            new_progress = egg["brooding_progress"]
+        else:
+            # Record brooding and increment
+            await db.record_brooding(brooder_id, target_user_id, today)
+            new_progress = egg["brooding_progress"] + 1
+            await db.update_egg(target_user_id, brooding_progress=new_progress)
+            await db.add_egg_brooder(target_user_id, brooder_id)
 
         target_nest_name = target_player.get("nest_name", "Some Bird's Nest")
 
-        # Check if egg is ready to hatch
         if new_progress >= 10:
-            # Get extra bird space from research progress
-            extra_bird_space = await get_extra_bird_space()
-            max_birds = MAX_BIRDS_PER_NEST + extra_bird_space
-
-            # Check if the nest has reached the maximum bird limit
-            current_birds = await db.get_player_birds(target_user_id)
-            current_bird_count = len(current_birds)
-            if current_bird_count >= max_birds:
-                return None, f"nest already has the maximum of {max_birds} birds"
 
             # Get multipliers if they exist
             multipliers = egg.get("multipliers", {})
