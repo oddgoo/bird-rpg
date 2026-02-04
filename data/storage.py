@@ -606,20 +606,21 @@ def get_all_birdwatch_sightings_unpaginated_sync():
 # Daily Songs
 # ---------------------------------------------------------------------------
 
-async def record_song(singer_user_id, target_user_id, song_date):
+async def record_song(singer_user_id, target_user_id, song_date, points_given=3):
     sb = await _client()
     await sb.table("daily_songs").upsert({
         "song_date": song_date,
         "singer_user_id": str(singer_user_id),
         "target_user_id": str(target_user_id),
+        "points_given": points_given,
     }, on_conflict="song_date,singer_user_id,target_user_id").execute()
 
 
-async def record_songs_batch(singer_user_id, target_user_ids, song_date):
+async def record_songs_batch(singer_user_id, target_user_ids, song_date, points_given=3):
     """Record multiple songs at once."""
     sb = await _client()
     rows = [{"song_date": song_date, "singer_user_id": str(singer_user_id),
-             "target_user_id": str(tid)} for tid in target_user_ids]
+             "target_user_id": str(tid), "points_given": points_given} for tid in target_user_ids]
     await sb.table("daily_songs").upsert(rows,
         on_conflict="song_date,singer_user_id,target_user_id").execute()
 

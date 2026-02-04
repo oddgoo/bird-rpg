@@ -63,9 +63,10 @@ class SingingCommands(commands.Cog):
             remaining_actions -= 1
 
         # 4. Batch write all results
+        points_per_target = 3 + singing_bonus
         if successful_targets:
             # Batch record all songs (1 DB call)
-            await db.record_songs_batch(singer_id, successful_target_ids, today)
+            await db.record_songs_batch(singer_id, successful_target_ids, today, points_given=points_per_target)
             # Batch bonus actions concurrently (parallel RPC calls)
             await asyncio.gather(*[add_bonus_actions(tid, 3 + singing_bonus)
                                     for tid in successful_target_ids])

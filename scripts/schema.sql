@@ -121,6 +121,7 @@ CREATE TABLE daily_songs (
     song_date TEXT NOT NULL,
     singer_user_id TEXT NOT NULL,
     target_user_id TEXT NOT NULL,
+    points_given INTEGER NOT NULL DEFAULT 3,
     UNIQUE(song_date, singer_user_id, target_user_id)
 );
 
