@@ -228,12 +228,29 @@ def codex():
 
     realm_messages = db.load_realm_messages_sync()
 
+    per_page = 20
+    birds_page = max(1, request.args.get('birds_page', 1, type=int))
+    plants_page = max(1, request.args.get('plants_page', 1, type=int))
+
+    birds_total_pages = max(1, -(-len(birds) // per_page))  # ceil division
+    plants_total_pages = max(1, -(-len(plants) // per_page))
+
+    birds_page = min(birds_page, birds_total_pages)
+    plants_page = min(plants_page, plants_total_pages)
+
+    birds_slice = birds[(birds_page - 1) * per_page : birds_page * per_page]
+    plants_slice = plants[(plants_page - 1) * per_page : plants_page * per_page]
+
     return render_template('codex.html',
-                         birds=birds,
-                         plants=plants,
+                         birds=birds_slice,
+                         plants=plants_slice,
                          discovered_birds=discovered_birds,
                          discovered_plants=discovered_plants,
-                         realm_messages=realm_messages)
+                         realm_messages=realm_messages,
+                         birds_page=birds_page,
+                         birds_total_pages=birds_total_pages,
+                         plants_page=plants_page,
+                         plants_total_pages=plants_total_pages)
 
 @app.route('/research')
 def research():

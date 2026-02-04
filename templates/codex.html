@@ -52,6 +52,17 @@
             </div>
             {% endfor %}
         </div>
+        {% if birds_total_pages > 1 %}
+        <div class="flex justify-center items-center gap-3 mt-6">
+            {% if birds_page > 1 %}
+            <a href="?birds_page={{ birds_page - 1 }}&plants_page={{ plants_page }}" class="px-3 py-1 bg-yellow-900 text-white rounded hover:bg-yellow-800 text-sm no-underline">← Prev</a>
+            {% endif %}
+            <span class="text-yellow-900 font-mystical">Page {{ birds_page }} of {{ birds_total_pages }}</span>
+            {% if birds_page < birds_total_pages %}
+            <a href="?birds_page={{ birds_page + 1 }}&plants_page={{ plants_page }}" class="px-3 py-1 bg-yellow-900 text-white rounded hover:bg-yellow-800 text-sm no-underline">Next →</a>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 </div>
 
@@ -104,6 +115,17 @@
             </div>
             {% endfor %}
         </div>
+        {% if plants_total_pages > 1 %}
+        <div class="flex justify-center items-center gap-3 mt-6">
+            {% if plants_page > 1 %}
+            <a href="?birds_page={{ birds_page }}&plants_page={{ plants_page - 1 }}" class="px-3 py-1 bg-yellow-900 text-white rounded hover:bg-yellow-800 text-sm no-underline">← Prev</a>
+            {% endif %}
+            <span class="text-yellow-900 font-mystical">Page {{ plants_page }} of {{ plants_total_pages }}</span>
+            {% if plants_page < plants_total_pages %}
+            <a href="?birds_page={{ birds_page }}&plants_page={{ plants_page + 1 }}" class="px-3 py-1 bg-yellow-900 text-white rounded hover:bg-yellow-800 text-sm no-underline">Next →</a>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 </div>
 
