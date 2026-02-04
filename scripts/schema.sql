@@ -244,6 +244,7 @@ CREATE TABLE game_settings (
     value TEXT NOT NULL
 );
 INSERT INTO game_settings (key, value) VALUES ('active_event', 'default');
+INSERT INTO game_settings (key, value) VALUES ('weather_location', '{"latitude": -37.8142, "longitude": 144.9632, "timezone": "Australia/Sydney", "name": "Naarm"}');
 
 -- Birdwatch sightings (user-uploaded bird photos)
 CREATE TABLE birdwatch_sightings (

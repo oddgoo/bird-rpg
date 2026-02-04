@@ -82,7 +82,7 @@ Schema SQL is at `scripts/schema.sql`. Key tables:
 - `manifested_birds` / `manifested_plants` - Community-created species
 - `research_progress` / `exploration` - Progression systems
 - `birdwatch_sightings` - User-uploaded bird photos (stored in Supabase Storage `birdwatch-images` bucket)
-- `game_settings` - Key-value config (e.g. `active_event` for the event system)
+- `game_settings` - Key-value config (e.g. `active_event` for the event system, `weather_location` for configurable weather coordinates)
 
 RPC functions (`increment_common_nest`, `increment_player_field`) provide atomic operations.
 
@@ -95,6 +95,7 @@ RPC functions (`increment_common_nest`, `increment_player_field`) provide atomic
 - **Group/ungroup commands**: `/group` and `/ungroup` in `commands/customisation.py` let players organize birds and plants into named groups. Groups display as subheadings on the user profile page (`templates/user.html`). The template uses Jinja2 macros (`bird_card`, `plant_card`) and data-attribute-based JS for image loading.
 - **Batch singing operations**: `_process_singing()` in `commands/singing.py` uses batch DB operations (`db.get_sung_to_targets_today()`, `db.record_songs_batch()`) and `asyncio.gather()` for concurrent bonus actions to minimize DB round-trips. Bird bonuses and inspiration are pre-computed once before the loop.
 - **Event system**: The `game_settings` table stores `active_event` (default: `"default"`). Toggle events directly in Supabase. `load_research_entities(event)` loads event-specific JSON files (`research_entities_{event}.json`). `load_all_research_entities()` combines entities from all events for milestone bonus calculations. The `/study` dropdown shows 6 shuffled authors from the active event.
+- **Weather location**: The `game_settings` table stores `weather_location` as a JSON string with `latitude`, `longitude`, `timezone`, and `name` fields. Defaults to Melbourne/Naarm if not set. Change it in Supabase when switching events to update `/weather` and daily weather updates.
 - **Research entity format**: All research entity JSON files use `{"milestone": "+1 Bird Limit"}` (single string). The milestone repeats for every threshold. Use `_get_milestone_type(entity)` helper in `data/models.py` to read the milestone type.
 - **Bulk-fetch helpers**: Use `db.get_bird_treasures_for_birds_sync(bird_ids)` for batch bird treasure lookups instead of per-bird queries
 - Slash commands auto-sync on bot startup

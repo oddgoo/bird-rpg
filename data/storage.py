@@ -1037,6 +1037,52 @@ async def set_active_event(event_name):
 
 
 # ---------------------------------------------------------------------------
+# Weather Location
+# ---------------------------------------------------------------------------
+
+_DEFAULT_WEATHER_LOCATION = {
+    "latitude": -37.8142,
+    "longitude": 144.9632,
+    "timezone": "Australia/Sydney",
+    "name": "Naarm",
+}
+
+
+async def get_weather_location():
+    """Get the weather location from game_settings. Returns Melbourne defaults if not set."""
+    sb = await _client()
+    res = await sb.table("game_settings").select("value").eq("key", "weather_location").execute()
+    if res.data:
+        try:
+            return json.loads(res.data[0]["value"])
+        except (json.JSONDecodeError, KeyError):
+            pass
+    return dict(_DEFAULT_WEATHER_LOCATION)
+
+
+def get_weather_location_sync():
+    """Sync variant: get the weather location."""
+    sb = _sync_client()
+    res = sb.table("game_settings").select("value").eq("key", "weather_location").execute()
+    if res.data:
+        try:
+            return json.loads(res.data[0]["value"])
+        except (json.JSONDecodeError, KeyError):
+            pass
+    return dict(_DEFAULT_WEATHER_LOCATION)
+
+
+async def set_weather_location(latitude, longitude, timezone, name):
+    """Set the weather location in game_settings (upsert)."""
+    sb = await _client()
+    value = json.dumps({"latitude": latitude, "longitude": longitude, "timezone": timezone, "name": name})
+    await sb.table("game_settings").upsert({
+        "key": "weather_location",
+        "value": value,
+    }, on_conflict="key").execute()
+
+
+# ---------------------------------------------------------------------------
 # Birdwatch Sightings
 # ---------------------------------------------------------------------------
 

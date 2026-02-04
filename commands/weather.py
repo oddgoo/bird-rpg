@@ -33,9 +33,9 @@ class WeatherCommands(commands.Cog):
         """Wait until the bot is ready before starting the task"""
         await self.bot.wait_until_ready()
 
-    @app_commands.command(name='weather', description='Get the current weather in Naarm/Melbourne')
+    @app_commands.command(name='weather', description='Get the current weather at the flock\'s location')
     async def weather_command(self, interaction: discord.Interaction):
-        """Show current weather in Melbourne"""
+        """Show current weather at the configured location"""
         log_debug(f"weather command called by {interaction.user.id}")
 
         await interaction.response.defer()  # This gives us more time to fetch the data
@@ -71,16 +71,18 @@ class WeatherCommands(commands.Cog):
             # Set the channel
             await db.set_weather_channel(guild_id, str(channel.id))
 
-            await interaction.followup.send(f"✅ Daily weather updates will be sent to {channel.mention} at 9 AM Naarm/Melbourne time.")
+            location = await db.get_weather_location()
+            await interaction.followup.send(f"✅ Daily weather updates will be sent to {channel.mention} at 9 AM ({location['name']}).")
 
     async def fetch_weather(self):
         """Fetch weather data from Open-Meteo API"""
+        location = await db.get_weather_location()
         url = "https://api.open-meteo.com/v1/forecast"
         params = {
-            "latitude": -37.8142,  # Melbourne coordinates
-            "longitude": 144.9632,
+            "latitude": location["latitude"],
+            "longitude": location["longitude"],
             "daily": "weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max",
-            "timezone": "Australia/Sydney",
+            "timezone": location["timezone"],
             "forecast_days": 1
         }
 
@@ -88,12 +90,12 @@ class WeatherCommands(commands.Cog):
             async with session.get(url, params=params) as response:
                 if response.status == 200:
                     data = await response.json()
-                    return self.format_weather_message(data)
+                    return self.format_weather_message(data, location["name"])
                 else:
                     log_debug(f"Error fetching weather: {response.status}")
                     return "Could not fetch weather information today."
 
-    def format_weather_message(self, data):
+    def format_weather_message(self, data, location_name="Naarm"):
         """Format weather data into a nice message"""
         try:
             # Extract data
@@ -108,7 +110,7 @@ class WeatherCommands(commands.Cog):
             weather_info = self.get_weather_description(weather_code)
 
             # Format message
-            message = f"**{weather_info['emoji']} Good morning everybird! Today's weather in Naarm is:** {weather_info['emoji']}\n\n"
+            message = f"**{weather_info['emoji']} Good morning everybird! Today's weather in {location_name} is:** {weather_info['emoji']}\n\n"
             message += f"**Conditions:** {weather_info['description']}\n"
             message += f"**Temperature:** {temp_min}°C to {temp_max}°C\n"
 
