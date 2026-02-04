@@ -1,5 +1,7 @@
 from datetime import datetime
 import asyncio
+import io
+import random
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -10,6 +12,7 @@ from data.models import (
     get_singing_bonus, get_singing_inspiration_chance
 )
 from utils.logging import log_debug
+from utils.birdsong_audio import get_birdsong_for_bird
 from utils.time_utils import get_time_until_reset, get_current_date
 from config.config import DEBUG
 
@@ -25,7 +28,7 @@ class SingingCommands(commands.Cog):
         # 1. Pre-fetch all needed data (few DB calls total)
         remaining_actions = await get_remaining_actions(singer_id)
         if remaining_actions <= 0:
-            return [], [(u, "no actions left") for u in target_users]
+            return [], [(u, "no actions left") for u in target_users], []
 
         birds = await db.get_player_birds(singer_id)
         singing_bonus = await get_singing_bonus(birds)
@@ -73,7 +76,7 @@ class SingingCommands(commands.Cog):
             if total_inspiration > 0:
                 await db.increment_player_field(singer_id, "inspiration", total_inspiration)
 
-        return successful_targets, skipped_targets
+        return successful_targets, skipped_targets, birds
 
 
     @app_commands.command(name='sing', description='Give other users extra actions for the day')
@@ -103,7 +106,7 @@ class SingingCommands(commands.Cog):
         await db.set_last_song_targets(interaction.user.id, [str(user.id) for user in target_users])
 
         # Call the helper method to process singing
-        successful_targets, skipped_targets = await self._process_singing(interaction, target_users)
+        successful_targets, skipped_targets, birds = await self._process_singing(interaction, target_users)
 
         # Construct response message
         if not successful_targets and not skipped_targets:
@@ -134,7 +137,22 @@ class SingingCommands(commands.Cog):
             singer_actions_left = await get_remaining_actions(interaction.user.id)
             message.append(f"\n(You have {singer_actions_left} {'action' if singer_actions_left == 1 else 'actions'} remaining)")
 
-        await interaction.followup.send("\n".join(message)) # Use followup.send
+        # Try to attach a birdsong audio clip
+        audio_file = None
+        if successful_targets and birds:
+            try:
+                chosen_bird = random.choice(birds)
+                mp3_data, singing_bird_name = await get_birdsong_for_bird(chosen_bird)
+                if mp3_data:
+                    audio_file = discord.File(io.BytesIO(mp3_data), filename="birdsong.mp3")
+                    message.insert(0, f"🐦 Your {singing_bird_name} sings!")
+            except Exception as e:
+                log_debug(f"Error attaching birdsong audio: {e}")
+
+        if audio_file:
+            await interaction.followup.send("\n".join(message), file=audio_file)
+        else:
+            await interaction.followup.send("\n".join(message))
 
     @app_commands.command(name='sing_repeat', description='Repeat your last singing action, targeting the same users.')
     async def sing_repeat(self, interaction: discord.Interaction):
@@ -171,7 +189,7 @@ class SingingCommands(commands.Cog):
             return
 
         # Call the helper method to process singing
-        successful_targets, skipped_targets = await self._process_singing(interaction, target_users)
+        successful_targets, skipped_targets, birds = await self._process_singing(interaction, target_users)
 
         # Construct response message
         if not successful_targets and not skipped_targets:
@@ -212,7 +230,22 @@ class SingingCommands(commands.Cog):
             singer_actions_left = await get_remaining_actions(interaction.user.id)
             message.append(f"\n(You have {singer_actions_left} {'action' if singer_actions_left == 1 else 'actions'} remaining)")
 
-        await interaction.followup.send("\n".join(message)) # Use followup.send
+        # Try to attach a birdsong audio clip
+        audio_file = None
+        if successful_targets and birds:
+            try:
+                chosen_bird = random.choice(birds)
+                mp3_data, singing_bird_name = await get_birdsong_for_bird(chosen_bird)
+                if mp3_data:
+                    audio_file = discord.File(io.BytesIO(mp3_data), filename="birdsong.mp3")
+                    message.insert(0, f"🐦 Your {singing_bird_name} sings!")
+            except Exception as e:
+                log_debug(f"Error attaching birdsong audio: {e}")
+
+        if audio_file:
+            await interaction.followup.send("\n".join(message), file=audio_file)
+        else:
+            await interaction.followup.send("\n".join(message))
 
 async def setup(bot):
     await bot.add_cog(SingingCommands(bot))

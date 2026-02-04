@@ -35,3 +35,6 @@ BIRDWATCH_MAX_DIMENSION = 1920  # Max px on longest side after resize
 BIRDWATCH_JPEG_QUALITY = 85
 ALLOWED_IMAGE_TYPES = {'image/png', 'image/jpeg', 'image/gif', 'image/webp'}
 ALLOWED_IMAGE_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.gif', '.webp'}
+
+# Xeno-canto API (optional, for bird song audio in /sing commands)
+XENO_CANTO_API_KEY = os.getenv('XENO_CANTO_API_KEY', '')

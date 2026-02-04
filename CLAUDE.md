@@ -40,6 +40,7 @@ Required in `.env`:
 - `SUPABASE_KEY` - Supabase anon/public key
 - `ADMIN_PASSWORD` - Password for web admin panel
 - `DEBUG` - Set to `true` for debug mode (optional)
+- `XENO_CANTO_API_KEY` - Xeno-canto API key for bird song audio in `/sing` commands (optional, falls back to bundled MP3s)
 
 ## Architecture
 
@@ -65,6 +66,8 @@ Reference data files (read-only, bundled with code):
 - `data/realm_lore.json` - Realm narrative messages
 
 **Birdwatch**: `/birdwatch` command accepts image attachments via `discord.Attachment`. Images are resized (max 1920px) and compressed to JPEG with Pillow before uploading to a **Supabase Storage** public bucket (`birdwatch-images`). Requires the bucket to be created manually in the Supabase dashboard.
+
+**Birdsong audio**: `/sing` and `/sing_repeat` commands attach a short MP3 of a bird song from a random bird in the singer's collection. `utils/birdsong_audio.py` fetches audio from xeno-canto API v3 (requires `XENO_CANTO_API_KEY`), with an in-memory LRU cache (50 entries). Falls back to bundled MP3s in `static/audio/birdsongs/` when the API is unavailable. Audio failure never blocks the text response.
 
 **Configuration**: `config/config.py` holds limits (MAX_BIRDS_PER_NEST, MAX_GARDEN_SIZE), birdwatch image settings, Supabase connection config, and environment variables. Game constants in `constants.py` and `data/constants.py`.
 
