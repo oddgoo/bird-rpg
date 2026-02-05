@@ -148,6 +148,7 @@
         inventory.forEach(function(item, index) {
             var div = document.createElement('div');
             div.className = 'w-16 h-16 relative cursor-grab flex-shrink-0 hover:scale-110 transition-transform';
+            div.style.touchAction = 'none';
             div.dataset.palIndex = index;
 
             var img = document.createElement('img');
@@ -208,6 +209,7 @@
         e.currentTarget.setPointerCapture(e.pointerId);
         e.currentTarget.addEventListener('pointermove', onStickerPointerMove);
         e.currentTarget.addEventListener('pointerup', onStickerPointerUp);
+        e.currentTarget.addEventListener('pointercancel', onStickerPointerUp);
 
         // Update controls panel (doesn't rebuild canvas)
         renderControls();
@@ -236,6 +238,7 @@
         dragging = false;
         e.currentTarget.removeEventListener('pointermove', onStickerPointerMove);
         e.currentTarget.removeEventListener('pointerup', onStickerPointerUp);
+        e.currentTarget.removeEventListener('pointercancel', onStickerPointerUp);
         render();
     }
 
@@ -245,10 +248,17 @@
     var palDragIndex = -1;
     var palGhost = null;
 
+    var palDragElement = null;
+
     function onPalettePointerDown(e) {
         e.preventDefault();
+        e.stopPropagation();
         palDragging = true;
         palDragIndex = parseInt(e.currentTarget.dataset.palIndex);
+        palDragElement = e.currentTarget;
+
+        // Capture pointer for reliable mobile tracking
+        palDragElement.setPointerCapture(e.pointerId);
 
         // Create ghost element
         var item = inventory[palDragIndex];
@@ -265,19 +275,25 @@
         palGhost.style.top = (e.clientY - 30) + 'px';
         document.body.appendChild(palGhost);
 
-        document.addEventListener('pointermove', onPalDragMove);
-        document.addEventListener('pointerup', onPalDragUp);
+        palDragElement.addEventListener('pointermove', onPalDragMove);
+        palDragElement.addEventListener('pointerup', onPalDragUp);
+        palDragElement.addEventListener('pointercancel', onPalDragUp);
     }
 
     function onPalDragMove(e) {
         if (!palDragging || !palGhost) return;
+        e.preventDefault();
         palGhost.style.left = (e.clientX - 30) + 'px';
         palGhost.style.top = (e.clientY - 30) + 'px';
     }
 
     function onPalDragUp(e) {
-        document.removeEventListener('pointermove', onPalDragMove);
-        document.removeEventListener('pointerup', onPalDragUp);
+        if (palDragElement) {
+            palDragElement.removeEventListener('pointermove', onPalDragMove);
+            palDragElement.removeEventListener('pointerup', onPalDragUp);
+            palDragElement.removeEventListener('pointercancel', onPalDragUp);
+            palDragElement = null;
+        }
 
         if (palGhost) {
             palGhost.remove();
