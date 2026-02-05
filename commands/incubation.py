@@ -106,7 +106,7 @@ class IncubationCommands(commands.Cog):
                     user_id = user_id.strip('<@!>')
                     user = await self.bot.fetch_user(int(user_id))
                     mentioned_users.append(user)
-                except:
+                except (ValueError, discord.NotFound, discord.HTTPException):
                     continue
 
         if not mentioned_users:
@@ -204,7 +204,7 @@ class IncubationCommands(commands.Cog):
                 member = await interaction.guild.fetch_member(int(p_user_id))
                 if member and not member.bot:
                     valid_targets.append(member)
-            except:
+            except (ValueError, discord.NotFound, discord.HTTPException):
                 continue
 
         if not valid_targets:
@@ -295,7 +295,7 @@ class IncubationCommands(commands.Cog):
                 member = await interaction.guild.fetch_member(int(p_user_id))
                 if member and not member.bot:
                     valid_targets.append(member)
-            except:
+            except (ValueError, discord.NotFound, discord.HTTPException):
                 continue
 
         if not valid_targets:

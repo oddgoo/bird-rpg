@@ -13,7 +13,7 @@ def get_current_date():
 def get_time_until_reset():
     eastern_australia = pytz.timezone('Australia/Sydney')
     now = datetime.now(eastern_australia)
-    tomorrow = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    tomorrow = (now + timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
 
     time_remaining = tomorrow - now
     hours = time_remaining.seconds // 3600

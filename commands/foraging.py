@@ -61,7 +61,7 @@ class ForagingCommands(commands.Cog):
             location = select.values[0]
 
             # Record actions used
-            await record_actions(user_id, 1, "forage")
+            await record_actions(user_id, actions, "forage")
 
             # Calculate foraging time
             b = math.log(3600) / 470
