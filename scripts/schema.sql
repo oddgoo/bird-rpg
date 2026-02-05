@@ -197,7 +197,7 @@ CREATE TABLE manifested_plants (
     rarity TEXT DEFAULT 'common',
     effect TEXT DEFAULT '',
     seed_cost INTEGER DEFAULT 30,
-    size_cost INTEGER DEFAULT 1,
+    size_cost NUMERIC DEFAULT 1,
     inspiration_cost NUMERIC DEFAULT 0.2,
     manifested_points INTEGER DEFAULT 0,
     fully_manifested BOOLEAN DEFAULT FALSE
