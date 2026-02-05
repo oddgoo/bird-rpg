@@ -41,6 +41,7 @@ Required in `.env`:
 - `ADMIN_PASSWORD` - Password for web admin panel
 - `DEBUG` - Set to `true` for debug mode (optional)
 - `XENO_CANTO_API_KEY` - Xeno-canto API key for bird song audio in `/sing` commands (optional, falls back to bundled MP3s)
+- `WEB_BASE_URL` - Base URL for the web server (optional, defaults to `http://localhost:10000`). Used for generating decorator links.
 
 ## Architecture
 
@@ -48,7 +49,7 @@ Required in `.env`:
 
 **Commands**: Discord slash commands live in `commands/` as cogs. Each cog class inherits from `commands.Cog` and registers via `async def setup(bot)`. Add new commands by creating a cog file and adding it to the `COGS` list in `bot.py`.
 
-**Web**: Flask routes in `web/server.py`, templates in `templates/` (Jinja2), static assets in `static/`. `templates/base.html` provides the layout with a mystical/papyrus aesthetic. Route handlers are split into `web/home.py`, `web/research.py`, `web/birdwatch.py`, `web/awards.py`, and `web/admin.py`. Navigation menu is in `templates/components/navbar.html`.
+**Web**: Flask routes in `web/server.py`, templates in `templates/` (Jinja2), static assets in `static/`. `templates/base.html` provides the layout with a mystical/papyrus aesthetic. Route handlers are split into `web/home.py`, `web/research.py`, `web/birdwatch.py`, `web/awards.py`, `web/admin.py`, and `web/decorator.py`. Navigation menu is in `templates/components/navbar.html`.
 
 **Data storage**: Supabase (PostgreSQL) via the `supabase-py` library. All game state is stored in ~20 normalized tables (players, player_birds, eggs, daily_actions, etc.).
 
@@ -66,6 +67,8 @@ Reference data files (read-only, bundled with code):
 - `data/realm_lore.json` - Realm narrative messages
 
 **Birdwatch**: `/birdwatch` command accepts image attachments via `discord.Attachment`. Images are resized (max 1920px) and compressed to JPEG with Pillow before uploading to a **Supabase Storage** public bucket (`birdwatch-images`). Requires the bucket to be created manually in the Supabase dashboard.
+
+**Visual Decorator**: `/decorator` command generates a temporary URL (1-hour expiry) that opens a web-based drag-and-drop sticker decorator. Players can visually place, rotate, resize, reorder, and remove stickers on birds, plants, or their nest. Token management is in `web/decorator_tokens.py` (in-memory, thread-safe). Routes are in `web/decorator.py`. The decorator template (`templates/decorator.html`) uses vanilla JS with Pointer Events for unified mouse/touch handling. Treasure tables (`bird_treasures`, `plant_treasures`, `nest_treasures`) include `rotation` (degrees), `z_index` (layering), and `size` (percentage, default 25%) columns.
 
 **Birdsong audio**: `/sing` and `/sing_repeat` commands attach a short MP3 of a bird song from a random bird in the singer's collection. `utils/birdsong_audio.py` fetches audio from xeno-canto API v3 (requires `XENO_CANTO_API_KEY`), with an in-memory LRU cache (50 entries). Falls back to bundled MP3s in `static/audio/birdsongs/` when the API is unavailable. Audio failure never blocks the text response.
 

@@ -93,6 +93,10 @@ def get_home_page():
                 treasure_info = all_treasures[tid].copy()
                 treasure_info['x'] = decoration.get('x', 0)
                 treasure_info['y'] = decoration.get('y', 0)
+                treasure_info['rotation'] = decoration.get('rotation', 0)
+                treasure_info['z_index'] = decoration.get('z_index', 0)
+                if decoration.get('size') is not None:
+                    treasure_info['size'] = decoration.get('size')
                 nest_treasures.append(treasure_info)
 
         personal_nests.append({

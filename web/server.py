@@ -3,6 +3,7 @@ from threading import Thread
 from config.config import PORT, DEBUG, ADMIN_PASSWORD, SPECIES_IMAGES_DIR
 from web.home import get_home_page
 from web.admin import admin_routes
+from web.decorator import decorator_routes
 from web.research import get_research_page
 from web.birdwatch import get_birdwatch_page
 from web.awards import get_awards_page
@@ -22,6 +23,9 @@ app.secret_key = secrets.token_hex(16)
 
 # Register admin routes
 admin_routes(app)
+
+# Register decorator routes
+decorator_routes(app)
 
 @app.route('/')
 def home():
@@ -113,6 +117,11 @@ def user_page(user_id):
                 treasure_info = all_treasures[tid].copy()
                 treasure_info['x'] = decoration.get('x', 0)
                 treasure_info['y'] = decoration.get('y', 0)
+                treasure_info['rotation'] = decoration.get('rotation', 0)
+                treasure_info['z_index'] = decoration.get('z_index', 0)
+                # Use saved size if available, otherwise keep the treasure default
+                if decoration.get('size') is not None:
+                    treasure_info['size'] = decoration.get('size')
                 chick_treasures.append(treasure_info)
 
         enriched_chicks.append({

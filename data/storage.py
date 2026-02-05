@@ -313,13 +313,15 @@ def get_bird_treasures_for_birds_sync(bird_ids):
     return grouped
 
 
-async def add_bird_treasure(bird_id, treasure_id, x=0, y=0):
+async def add_bird_treasure(bird_id, treasure_id, x=0, y=0, rotation=0, z_index=0):
     sb = await _client()
     await sb.table("bird_treasures").insert({
         "bird_id": bird_id,
         "treasure_id": treasure_id,
         "x": x,
         "y": y,
+        "rotation": rotation,
+        "z_index": z_index,
     }).execute()
 
 
@@ -409,13 +411,15 @@ async def get_plant_treasures(plant_id):
     return res.data or []
 
 
-async def add_plant_treasure(plant_id, treasure_id, x=0, y=0):
+async def add_plant_treasure(plant_id, treasure_id, x=0, y=0, rotation=0, z_index=0):
     sb = await _client()
     await sb.table("plant_treasures").insert({
         "plant_id": plant_id,
         "treasure_id": treasure_id,
         "x": x,
         "y": y,
+        "rotation": rotation,
+        "z_index": z_index,
     }).execute()
 
 
@@ -473,13 +477,15 @@ def get_nest_treasures_sync(user_id):
     return res.data or []
 
 
-async def add_nest_treasure(user_id, treasure_id, x=0, y=0):
+async def add_nest_treasure(user_id, treasure_id, x=0, y=0, rotation=0, z_index=0):
     sb = await _client()
     await sb.table("nest_treasures").insert({
         "user_id": str(user_id),
         "treasure_id": treasure_id,
         "x": x,
         "y": y,
+        "rotation": rotation,
+        "z_index": z_index,
     }).execute()
 
 
@@ -491,6 +497,91 @@ async def remove_nest_treasures(user_id):
     if ids:
         await sb.table("nest_treasures").delete().eq("user_id", str(user_id)).execute()
     return ids
+
+
+# ---------------------------------------------------------------------------
+# Decorator sync helpers (for visual decorator web page)
+# ---------------------------------------------------------------------------
+
+def get_bird_treasures_sync(bird_id):
+    """Fetch treasures for a single bird (sync)."""
+    sb = _sync_client()
+    res = sb.table("bird_treasures").select("*").eq("bird_id", bird_id).execute()
+    return res.data or []
+
+
+def get_plant_treasures_sync(plant_id):
+    """Fetch treasures for a single plant (sync)."""
+    sb = _sync_client()
+    res = sb.table("plant_treasures").select("*").eq("plant_id", plant_id).execute()
+    return res.data or []
+
+
+def get_player_treasures_sync(user_id):
+    """Get unplaced treasure inventory (sync)."""
+    sb = _sync_client()
+    res = sb.table("player_treasures").select("*").eq("user_id", str(user_id)).execute()
+    return res.data or []
+
+
+def add_player_treasure_sync(user_id, treasure_id):
+    """Add a treasure to player inventory (sync)."""
+    sb = _sync_client()
+    sb.table("player_treasures").insert({
+        "user_id": str(user_id),
+        "treasure_id": treasure_id,
+    }).execute()
+
+
+def remove_player_treasure_sync(user_id, treasure_id):
+    """Remove one instance of a treasure from inventory (sync). Returns True if removed."""
+    sb = _sync_client()
+    res = sb.table("player_treasures").select("id").eq("user_id", str(user_id)).eq("treasure_id", treasure_id).limit(1).execute()
+    if not res.data:
+        return False
+    sb.table("player_treasures").delete().eq("id", res.data[0]["id"]).execute()
+    return True
+
+
+def save_bird_decorations_sync(bird_id, decorations):
+    """Replace all bird decorations. decorations = [{treasure_id, x, y, rotation, z_index}, ...]"""
+    sb = _sync_client()
+    sb.table("bird_treasures").delete().eq("bird_id", bird_id).execute()
+    if decorations:
+        rows = [{"bird_id": bird_id, **d} for d in decorations]
+        sb.table("bird_treasures").insert(rows).execute()
+
+
+def save_plant_decorations_sync(plant_id, decorations):
+    """Replace all plant decorations."""
+    sb = _sync_client()
+    sb.table("plant_treasures").delete().eq("plant_id", plant_id).execute()
+    if decorations:
+        rows = [{"plant_id": plant_id, **d} for d in decorations]
+        sb.table("plant_treasures").insert(rows).execute()
+
+
+def save_nest_decorations_sync(user_id, decorations):
+    """Replace all nest decorations."""
+    sb = _sync_client()
+    sb.table("nest_treasures").delete().eq("user_id", str(user_id)).execute()
+    if decorations:
+        rows = [{"user_id": str(user_id), **d} for d in decorations]
+        sb.table("nest_treasures").insert(rows).execute()
+
+
+def verify_entity_ownership_sync(user_id, entity_type, entity_id):
+    """Returns True if user_id owns the entity."""
+    sb = _sync_client()
+    if entity_type == "nest":
+        return str(entity_id) == str(user_id)
+    elif entity_type == "bird":
+        res = sb.table("player_birds").select("user_id").eq("id", entity_id).execute()
+        return bool(res.data) and str(res.data[0]["user_id"]) == str(user_id)
+    elif entity_type == "plant":
+        res = sb.table("player_plants").select("user_id").eq("id", entity_id).execute()
+        return bool(res.data) and str(res.data[0]["user_id"]) == str(user_id)
+    return False
 
 
 # ---------------------------------------------------------------------------

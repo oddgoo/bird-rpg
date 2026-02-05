@@ -1,0 +1,462 @@
+{% extends 'base.html' %}
+
+{% block title %}Decorate {{ entity_info.name }} | bird-rpg Village{% endblock %}
+
+{% block content %}
+<style>
+    /* Hide the main navigation menu on the decorator page */
+    body > nav { display: none !important; }
+</style>
+
+<div class="max-w-3xl mx-auto px-4 pb-8 pt-6 rounded-xl shadow-lg border-4 border-yellow-900"
+     style="background-image: url('/static/images/papyrus.jpg'); background-repeat: repeat;">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-2xl text-yellow-900 font-mystical font-bold">Decorating: {{ entity_info.name }}</h2>
+        <div class="flex gap-2">
+            <button id="btn-reset" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm font-bold">Reset</button>
+            <button id="btn-save" class="px-4 py-2 bg-green-700 text-white rounded hover:bg-green-800 text-sm font-bold">Save</button>
+        </div>
+    </div>
+
+    <div id="save-status" class="hidden mb-3 px-4 py-2 rounded text-sm font-bold text-center"></div>
+
+    <!-- Decorator canvas -->
+    <div id="canvas-wrapper" class="relative mx-auto bg-white rounded-xl shadow-lg overflow-hidden border-4 border-yellow-900"
+         style="width: 100%; max-width: 500px; aspect-ratio: 1 / 1;">
+        <img id="entity-image" src="{{ entity_info.image_url }}" alt="{{ entity_info.name }}"
+             class="w-full h-full object-cover" draggable="false">
+        <div id="sticker-canvas" class="absolute inset-0" style="touch-action: none;">
+            <!-- Placed stickers will be rendered here -->
+        </div>
+    </div>
+
+    <!-- Selected sticker controls -->
+    <div id="controls" class="hidden mt-4 p-4 rounded-xl border-2 border-yellow-900 bg-white/70">
+        <div class="text-center mb-3">
+            <span id="selected-name" class="text-sm font-bold text-yellow-900"></span>
+        </div>
+        <div class="grid grid-cols-3 gap-3 max-w-md mx-auto">
+            <!-- Size controls -->
+            <div class="flex flex-col gap-1">
+                <span class="text-xs text-yellow-800 font-bold text-center">Size</span>
+                <div class="flex gap-1">
+                    <button id="btn-size-down" class="flex-1 px-2 py-1 bg-purple-700 text-white rounded text-sm hover:bg-purple-800">−</button>
+                    <button id="btn-size-up" class="flex-1 px-2 py-1 bg-purple-700 text-white rounded text-sm hover:bg-purple-800">+</button>
+                </div>
+            </div>
+            <!-- Rotation controls -->
+            <div class="flex flex-col gap-1">
+                <span class="text-xs text-yellow-800 font-bold text-center">Rotate</span>
+                <div class="flex gap-1">
+                    <button id="btn-rotate-left" class="flex-1 px-2 py-1 bg-yellow-700 text-white rounded text-sm hover:bg-yellow-800">↶</button>
+                    <button id="btn-rotate-right" class="flex-1 px-2 py-1 bg-yellow-700 text-white rounded text-sm hover:bg-yellow-800">↷</button>
+                </div>
+            </div>
+            <!-- Layer controls -->
+            <div class="flex flex-col gap-1">
+                <span class="text-xs text-yellow-800 font-bold text-center">Layer</span>
+                <div class="flex gap-1">
+                    <button id="btn-back" class="flex-1 px-2 py-1 bg-blue-700 text-white rounded text-sm hover:bg-blue-800">↓</button>
+                    <button id="btn-front" class="flex-1 px-2 py-1 bg-blue-700 text-white rounded text-sm hover:bg-blue-800">↑</button>
+                </div>
+            </div>
+        </div>
+        <!-- Remove button -->
+        <div class="mt-3 text-center">
+            <button id="btn-remove" class="px-4 py-1 bg-red-700 text-white rounded text-sm hover:bg-red-800">Remove Sticker</button>
+        </div>
+    </div>
+
+    <!-- Sticker palette -->
+    <div class="mt-4 p-3 rounded-xl border-2 border-yellow-900 bg-white/70">
+        <h3 class="text-lg text-yellow-900 font-mystical font-bold mb-2 text-center">Your Stickers</h3>
+        <div id="palette" class="flex flex-wrap justify-center gap-3 max-h-48 overflow-y-auto p-2">
+            <!-- Inventory stickers rendered here -->
+        </div>
+        <p id="palette-empty" class="hidden text-center text-gray-500 text-sm py-4">No stickers in inventory</p>
+    </div>
+</div>
+
+<script>
+(function() {
+    // Data from server
+    var TOKEN = {{ token|tojson }};
+    var initialPlaced = {{ current_decorations|tojson }};
+    var initialInventory = {{ inventory|tojson }};
+    var allTreasures = {{ all_treasures|tojson }};
+
+    // Current state
+    var placed = JSON.parse(JSON.stringify(initialPlaced));
+    var inventory = JSON.parse(JSON.stringify(initialInventory));
+    var selectedIndex = -1;
+    var nextZIndex = 1;
+
+    // Compute initial max z_index
+    placed.forEach(function(s) {
+        if (s.z_index >= nextZIndex) nextZIndex = s.z_index + 1;
+    });
+
+    var canvas = document.getElementById('sticker-canvas');
+    var palette = document.getElementById('palette');
+    var controls = document.getElementById('controls');
+    var saveStatus = document.getElementById('save-status');
+
+    // --- Rendering ---
+
+    function render() {
+        renderCanvas();
+        renderPalette();
+        renderControls();
+    }
+
+    function renderCanvas() {
+        canvas.innerHTML = '';
+        placed.forEach(function(sticker, index) {
+            var img = document.createElement('img');
+            img.src = '/static/images/decorations/' + sticker.treasure_id + '.png';
+            img.className = 'absolute cursor-move';
+            img.draggable = false;
+            img.style.left = sticker.x + '%';
+            img.style.top = sticker.y + '%';
+            img.style.width = (sticker.size || 100) + '%';
+            img.style.transform = 'translate(-50%, -50%) rotate(' + (sticker.rotation || 0) + 'deg)';
+            img.style.zIndex = sticker.z_index || 1;
+            img.style.userSelect = 'none';
+            img.dataset.index = index;
+
+            if (index === selectedIndex) {
+                img.style.outline = '3px solid #b45309';
+                img.style.outlineOffset = '2px';
+                img.style.borderRadius = '4px';
+            }
+
+            // Pointer events for drag and select
+            img.addEventListener('pointerdown', onStickerPointerDown);
+            canvas.appendChild(img);
+        });
+    }
+
+    function renderPalette() {
+        palette.innerHTML = '';
+        var emptyMsg = document.getElementById('palette-empty');
+        if (inventory.length === 0) {
+            emptyMsg.classList.remove('hidden');
+            return;
+        }
+        emptyMsg.classList.add('hidden');
+
+        inventory.forEach(function(item, index) {
+            var div = document.createElement('div');
+            div.className = 'w-16 h-16 relative cursor-grab flex-shrink-0 hover:scale-110 transition-transform';
+            div.dataset.palIndex = index;
+
+            var img = document.createElement('img');
+            img.src = '/static/images/decorations/' + item.treasure_id + '.png';
+            img.className = 'w-full h-full object-contain';
+            img.draggable = false;
+            img.title = item.name || item.treasure_id;
+
+            div.appendChild(img);
+            div.addEventListener('pointerdown', onPalettePointerDown);
+            palette.appendChild(div);
+        });
+    }
+
+    function renderControls() {
+        if (selectedIndex < 0 || selectedIndex >= placed.length) {
+            controls.classList.add('hidden');
+            return;
+        }
+        controls.classList.remove('hidden');
+        var sticker = placed[selectedIndex];
+        document.getElementById('selected-name').textContent = sticker.name || sticker.treasure_id;
+    }
+
+    // --- Dragging placed stickers ---
+
+    var dragging = false;
+    var dragIndex = -1;
+    var dragOffsetX = 0;
+    var dragOffsetY = 0;
+
+    function onStickerPointerDown(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var index = parseInt(e.currentTarget.dataset.index);
+
+        // Update selection visually without full re-render (which would destroy the element)
+        var prevSelected = canvas.querySelector('[data-index="' + selectedIndex + '"]');
+        if (prevSelected) {
+            prevSelected.style.outline = '';
+            prevSelected.style.outlineOffset = '';
+        }
+
+        selectedIndex = index;
+        dragging = true;
+        dragIndex = index;
+
+        // Add selection highlight to current element
+        e.currentTarget.style.outline = '3px solid #b45309';
+        e.currentTarget.style.outlineOffset = '2px';
+
+        var rect = canvas.getBoundingClientRect();
+        var stickerX = placed[index].x / 100 * rect.width;
+        var stickerY = placed[index].y / 100 * rect.height;
+        dragOffsetX = (e.clientX - rect.left) - stickerX;
+        dragOffsetY = (e.clientY - rect.top) - stickerY;
+
+        e.currentTarget.setPointerCapture(e.pointerId);
+        e.currentTarget.addEventListener('pointermove', onStickerPointerMove);
+        e.currentTarget.addEventListener('pointerup', onStickerPointerUp);
+
+        // Update controls panel (doesn't rebuild canvas)
+        renderControls();
+    }
+
+    function onStickerPointerMove(e) {
+        if (!dragging) return;
+        e.preventDefault();
+        var rect = canvas.getBoundingClientRect();
+        var x = ((e.clientX - rect.left - dragOffsetX) / rect.width) * 100;
+        var y = ((e.clientY - rect.top - dragOffsetY) / rect.height) * 100;
+        x = Math.max(0, Math.min(100, x));
+        y = Math.max(0, Math.min(100, y));
+        placed[dragIndex].x = Math.round(x);
+        placed[dragIndex].y = Math.round(y);
+
+        // Update position directly for smooth drag
+        var img = canvas.querySelector('[data-index="' + dragIndex + '"]');
+        if (img) {
+            img.style.left = x + '%';
+            img.style.top = y + '%';
+        }
+    }
+
+    function onStickerPointerUp(e) {
+        dragging = false;
+        e.currentTarget.removeEventListener('pointermove', onStickerPointerMove);
+        e.currentTarget.removeEventListener('pointerup', onStickerPointerUp);
+        render();
+    }
+
+    // --- Dragging from palette ---
+
+    var palDragging = false;
+    var palDragIndex = -1;
+    var palGhost = null;
+
+    function onPalettePointerDown(e) {
+        e.preventDefault();
+        palDragging = true;
+        palDragIndex = parseInt(e.currentTarget.dataset.palIndex);
+
+        // Create ghost element
+        var item = inventory[palDragIndex];
+        palGhost = document.createElement('img');
+        palGhost.src = '/static/images/decorations/' + item.treasure_id + '.png';
+        palGhost.style.position = 'fixed';
+        palGhost.style.width = '60px';
+        palGhost.style.height = '60px';
+        palGhost.style.objectFit = 'contain';
+        palGhost.style.pointerEvents = 'none';
+        palGhost.style.zIndex = '9999';
+        palGhost.style.opacity = '0.8';
+        palGhost.style.left = (e.clientX - 30) + 'px';
+        palGhost.style.top = (e.clientY - 30) + 'px';
+        document.body.appendChild(palGhost);
+
+        document.addEventListener('pointermove', onPalDragMove);
+        document.addEventListener('pointerup', onPalDragUp);
+    }
+
+    function onPalDragMove(e) {
+        if (!palDragging || !palGhost) return;
+        palGhost.style.left = (e.clientX - 30) + 'px';
+        palGhost.style.top = (e.clientY - 30) + 'px';
+    }
+
+    function onPalDragUp(e) {
+        document.removeEventListener('pointermove', onPalDragMove);
+        document.removeEventListener('pointerup', onPalDragUp);
+
+        if (palGhost) {
+            palGhost.remove();
+            palGhost = null;
+        }
+
+        if (!palDragging) return;
+        palDragging = false;
+
+        // Check if dropped on canvas
+        var rect = canvas.getBoundingClientRect();
+        if (e.clientX >= rect.left && e.clientX <= rect.right &&
+            e.clientY >= rect.top && e.clientY <= rect.bottom) {
+
+            var x = ((e.clientX - rect.left) / rect.width) * 100;
+            var y = ((e.clientY - rect.top) / rect.height) * 100;
+
+            var item = inventory[palDragIndex];
+            var treasureMeta = allTreasures[item.treasure_id] || {};
+
+            placed.push({
+                treasure_id: item.treasure_id,
+                x: Math.round(x),
+                y: Math.round(y),
+                rotation: 0,
+                z_index: nextZIndex++,
+                size: treasureMeta.size || 100,
+                name: treasureMeta.name || item.treasure_id,
+            });
+
+            inventory.splice(palDragIndex, 1);
+            selectedIndex = placed.length - 1;
+        }
+
+        render();
+    }
+
+    // --- Deselect on canvas click ---
+    canvas.addEventListener('pointerdown', function(e) {
+        if (e.target === canvas) {
+            selectedIndex = -1;
+            render();
+        }
+    });
+
+    // --- Control buttons ---
+
+    document.getElementById('btn-size-down').addEventListener('click', function() {
+        if (selectedIndex < 0) return;
+        var currentSize = placed[selectedIndex].size || 100;
+        placed[selectedIndex].size = Math.max(5, currentSize - 5); // Min 5%
+        render();
+    });
+
+    document.getElementById('btn-size-up').addEventListener('click', function() {
+        if (selectedIndex < 0) return;
+        var currentSize = placed[selectedIndex].size || 100;
+        placed[selectedIndex].size = Math.min(100, currentSize + 5); // Max 100%
+        render();
+    });
+
+    document.getElementById('btn-rotate-left').addEventListener('click', function() {
+        if (selectedIndex < 0) return;
+        placed[selectedIndex].rotation = ((placed[selectedIndex].rotation || 0) - 15 + 360) % 360;
+        render();
+    });
+
+    document.getElementById('btn-rotate-right').addEventListener('click', function() {
+        if (selectedIndex < 0) return;
+        placed[selectedIndex].rotation = ((placed[selectedIndex].rotation || 0) + 15) % 360;
+        render();
+    });
+
+    document.getElementById('btn-front').addEventListener('click', function() {
+        if (selectedIndex < 0) return;
+        placed[selectedIndex].z_index = nextZIndex++;
+        render();
+    });
+
+    document.getElementById('btn-back').addEventListener('click', function() {
+        if (selectedIndex < 0) return;
+        // Find minimum z_index among placed stickers and go below it, but floor at 1
+        var minZ = Infinity;
+        placed.forEach(function(s) { if (s.z_index < minZ) minZ = s.z_index; });
+        if (minZ === Infinity) minZ = 1;
+        placed[selectedIndex].z_index = Math.max(1, minZ - 1);
+        render();
+    });
+
+    document.getElementById('btn-remove').addEventListener('click', function() {
+        if (selectedIndex < 0) return;
+        var sticker = placed[selectedIndex];
+        var treasureMeta = allTreasures[sticker.treasure_id] || {};
+        inventory.push({
+            treasure_id: sticker.treasure_id,
+            name: treasureMeta.name || sticker.name || sticker.treasure_id,
+        });
+        placed.splice(selectedIndex, 1);
+        selectedIndex = -1;
+        render();
+    });
+
+    // --- Save ---
+
+    document.getElementById('btn-save').addEventListener('click', function() {
+        var btn = document.getElementById('btn-save');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        var payload = {
+            placed: placed.map(function(s) {
+                return {
+                    treasure_id: s.treasure_id,
+                    x: s.x,
+                    y: s.y,
+                    rotation: s.rotation || 0,
+                    z_index: s.z_index || 0,
+                    size: s.size || 100,
+                };
+            }),
+            inventory: inventory.map(function(s) { return s.treasure_id; }),
+        };
+
+        fetch('/decorate/' + TOKEN + '/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+        })
+        .then(function(res) { return res.json().then(function(data) { return { ok: res.ok, data: data }; }); })
+        .then(function(result) {
+            btn.disabled = false;
+            btn.textContent = 'Save';
+            if (result.ok && result.data.success) {
+                showStatus('Decorations saved!', 'success');
+                // Update initial state so reset works from saved point
+                initialPlaced = JSON.parse(JSON.stringify(placed));
+                initialInventory = JSON.parse(JSON.stringify(inventory));
+            } else {
+                showStatus(result.data.error || 'Save failed', 'error');
+            }
+        })
+        .catch(function(err) {
+            btn.disabled = false;
+            btn.textContent = 'Save';
+            showStatus('Network error - please try again', 'error');
+        });
+    });
+
+    // --- Reset ---
+
+    document.getElementById('btn-reset').addEventListener('click', function() {
+        placed = JSON.parse(JSON.stringify(initialPlaced));
+        inventory = JSON.parse(JSON.stringify(initialInventory));
+        selectedIndex = -1;
+        nextZIndex = 1;
+        placed.forEach(function(s) {
+            if (s.z_index >= nextZIndex) nextZIndex = s.z_index + 1;
+        });
+        showStatus('Reset to last saved state', 'info');
+        render();
+    });
+
+    // --- Status message ---
+
+    function showStatus(msg, type) {
+        saveStatus.textContent = msg;
+        saveStatus.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800', 'bg-blue-100', 'text-blue-800');
+        if (type === 'success') {
+            saveStatus.classList.add('bg-green-100', 'text-green-800');
+        } else if (type === 'error') {
+            saveStatus.classList.add('bg-red-100', 'text-red-800');
+        } else {
+            saveStatus.classList.add('bg-blue-100', 'text-blue-800');
+        }
+        setTimeout(function() { saveStatus.classList.add('hidden'); }, 3000);
+    }
+
+    // --- Initial render ---
+    render();
+})();
+</script>
+{% endblock %}

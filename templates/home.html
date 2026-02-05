@@ -76,9 +76,9 @@
                     {% if nest.treasures %}
                         {% for treasure in nest.treasures %}
                             {% if treasure.type == 'sticker' %}
-                            <img src="/static/images/decorations/{{ treasure.id }}.png" 
-                                 class="absolute" 
-                                 style="z-index: 5; left: {{ treasure.x }}%; top: {{ treasure.y }}%; transform: translate(-50%, -50%); width: {{ treasure.size|default(25) }}%;">
+                            <img src="/static/images/decorations/{{ treasure.id }}.png"
+                                 class="absolute"
+                                 style="z-index: {{ treasure.z_index|default(5) }}; left: {{ treasure.x }}%; top: {{ treasure.y }}%; transform: translate(-50%, -50%) rotate({{ treasure.rotation|default(0) }}deg); width: {{ treasure.size|default(100) }}%;">
                             {% endif %}
                         {% endfor %}
                     {% endif %}

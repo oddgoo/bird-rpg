@@ -36,5 +36,8 @@ BIRDWATCH_JPEG_QUALITY = 85
 ALLOWED_IMAGE_TYPES = {'image/png', 'image/jpeg', 'image/gif', 'image/webp'}
 ALLOWED_IMAGE_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.gif', '.webp'}
 
+# Web base URL for generating decorator links (optional, defaults to localhost)
+WEB_BASE_URL = os.getenv('WEB_BASE_URL', f'http://localhost:{PORT}')
+
 # Xeno-canto API (optional, for bird song audio in /sing commands)
 XENO_CANTO_API_KEY = os.getenv('XENO_CANTO_API_KEY', '')

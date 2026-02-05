@@ -19,7 +19,7 @@
                     {% if treasure.type == 'sticker' %}
                     <img src="/static/images/decorations/{{ treasure.id }}.png"
                          class="absolute"
-                         style="left: {{ treasure.x }}%; top: {{ treasure.y }}%; transform: translate(-50%, -50%); width: {{ treasure.size|default(25) }}%;">
+                         style="left: {{ treasure.x }}%; top: {{ treasure.y }}%; transform: translate(-50%, -50%) rotate({{ treasure.rotation|default(0) }}deg); width: {{ treasure.size|default(100) }}%; z-index: {{ treasure.z_index|default(0) }};">
                     {% endif %}
                 {% endfor %}
             {% endif %}
@@ -65,7 +65,7 @@
                     {% if treasure.type == 'sticker' %}
                     <img src="/static/images/decorations/{{ treasure.id }}.png"
                          class="absolute"
-                         style="left: {{ treasure.x }}%; top: {{ treasure.y }}%; transform: translate(-50%, -50%); width: {{ treasure.size|default(25) }}%;">
+                         style="left: {{ treasure.x }}%; top: {{ treasure.y }}%; transform: translate(-50%, -50%) rotate({{ treasure.rotation|default(0) }}deg); width: {{ treasure.size|default(100) }}%; z-index: {{ treasure.z_index|default(0) }};">
                     {% endif %}
                 {% endfor %}
             {% endif %}

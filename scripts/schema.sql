@@ -43,7 +43,10 @@ CREATE TABLE bird_treasures (
     bird_id INTEGER NOT NULL REFERENCES player_birds(id) ON DELETE CASCADE,
     treasure_id TEXT NOT NULL,
     x INTEGER DEFAULT 0,
-    y INTEGER DEFAULT 0
+    y INTEGER DEFAULT 0,
+    rotation INTEGER DEFAULT 0,
+    z_index INTEGER DEFAULT 0,
+    size INTEGER DEFAULT 25
 );
 
 -- Plants in player gardens
@@ -62,7 +65,10 @@ CREATE TABLE plant_treasures (
     plant_id INTEGER NOT NULL REFERENCES player_plants(id) ON DELETE CASCADE,
     treasure_id TEXT NOT NULL,
     x INTEGER DEFAULT 0,
-    y INTEGER DEFAULT 0
+    y INTEGER DEFAULT 0,
+    rotation INTEGER DEFAULT 0,
+    z_index INTEGER DEFAULT 0,
+    size INTEGER DEFAULT 25
 );
 
 -- Treasure inventory (unplaced)
@@ -78,7 +84,10 @@ CREATE TABLE nest_treasures (
     user_id TEXT NOT NULL REFERENCES players(user_id),
     treasure_id TEXT NOT NULL,
     x INTEGER DEFAULT 0,
-    y INTEGER DEFAULT 0
+    y INTEGER DEFAULT 0,
+    rotation INTEGER DEFAULT 0,
+    z_index INTEGER DEFAULT 0,
+    size INTEGER DEFAULT 25
 );
 
 -- Eggs (0 or 1 per player)
