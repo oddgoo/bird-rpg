@@ -115,6 +115,8 @@ async def load_cogs(bot):
     ]
 
 
+    COGS = [c for c in COGS if c is not None]
+
     for cog in COGS:
         try:
             await bot.load_extension(cog)

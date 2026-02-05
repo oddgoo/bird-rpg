@@ -140,6 +140,14 @@ def load_player_sync(user_id):
     return row
 
 
+def get_player_sync(user_id):
+    """Read-only player lookup. Returns dict or None. Does NOT auto-create."""
+    user_id = str(user_id)
+    sb = _sync_client()
+    res = sb.table("players").select("*").eq("user_id", user_id).execute()
+    return res.data[0] if res.data else None
+
+
 async def update_player(user_id, **fields):
     """Update specific fields on a player row."""
     user_id = str(user_id)
@@ -837,19 +845,12 @@ def get_released_birds_sync():
 
 
 async def upsert_released_bird(common_name, scientific_name):
-    """Increment count for a released bird, or insert with count=1."""
+    """Atomically increment count for a released bird, or insert with count=1."""
     sb = await _client()
-    # Check if exists
-    res = await sb.table("released_birds").select("id, count").eq("scientific_name", scientific_name).execute()
-    if res.data:
-        new_count = res.data[0]["count"] + 1
-        await sb.table("released_birds").update({"count": new_count}).eq("id", res.data[0]["id"]).execute()
-    else:
-        await sb.table("released_birds").insert({
-            "common_name": common_name,
-            "scientific_name": scientific_name,
-            "count": 1,
-        }).execute()
+    await sb.rpc("upsert_released_bird_atomic", {
+        "p_common_name": common_name,
+        "p_scientific_name": scientific_name,
+    }).execute()
 
 
 # ---------------------------------------------------------------------------
@@ -1002,14 +1003,12 @@ def load_research_progress_sync():
 
 
 async def increment_research(author_name, points):
-    """Upsert research progress, incrementing points."""
+    """Atomically upsert research progress, incrementing points."""
     sb = await _client()
-    res = await sb.table("research_progress").select("points").eq("author_name", author_name).execute()
-    if res.data:
-        new_points = res.data[0]["points"] + points
-        await sb.table("research_progress").update({"points": new_points}).eq("author_name", author_name).execute()
-    else:
-        await sb.table("research_progress").insert({"author_name": author_name, "points": points}).execute()
+    await sb.rpc("increment_research_progress", {
+        "p_author_name": author_name,
+        "p_points": points,
+    }).execute()
 
 
 # ---------------------------------------------------------------------------
@@ -1029,15 +1028,14 @@ def get_exploration_data_sync():
 
 
 async def increment_exploration(region, amount):
+    """Atomically increment exploration points. Returns new total."""
     sb = await _client()
-    res = await sb.table("exploration").select("points").eq("region", region).execute()
-    if res.data:
-        new_points = res.data[0]["points"] + amount
-        await sb.table("exploration").update({"points": new_points}).eq("region", region).execute()
-        return new_points
-    else:
-        await sb.table("exploration").insert({"region": region, "points": amount}).execute()
-        return amount
+    res = await sb.rpc("increment_exploration_points", {
+        "p_region": region,
+        "p_amount": amount,
+    }).execute()
+    # RPC returns the new total as a scalar
+    return res.data
 
 
 # ---------------------------------------------------------------------------

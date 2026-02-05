@@ -259,6 +259,7 @@ class ExplorationCommands(commands.Cog):
                               f"You have {remaining} {'action' if remaining == 1 else 'actions'} remaining today.")
         except Exception as e:
             log_debug(f"Error in explore command: {str(e)}")
+            await interaction.followup.send("Something went wrong while exploring. Please try again later.")
 
 async def setup(bot):
     await bot.add_cog(ExplorationCommands(bot))

@@ -85,6 +85,17 @@ async def is_first_action_of_type(user_id, action_type):
     return action_type not in (actions.get("action_history") or [])
 
 
+async def is_first_action_of_any_type(user_id, action_types):
+    """Check if none of the given action types have been performed today."""
+    user_id = str(user_id)
+    today = get_current_date()
+    actions = await db.get_daily_actions(user_id, today)
+    if not actions:
+        return True
+    history = actions.get("action_history") or []
+    return not any(at in history for at in action_types)
+
+
 async def add_bonus_actions(user_id, amount):
     await db.increment_player_field(str(user_id), "bonus_actions", amount)
 
@@ -324,7 +335,7 @@ def get_total_bird_species_sync():
 
 async def get_nest_building_bonus(user_id, birds):
     """Calculate building bonus from birds that give first-build-of-day bonuses."""
-    if not await is_first_action_of_type(user_id, "build"):
+    if not await is_first_action_of_any_type(user_id, ["build", "build_common"]):
         return 0
 
     total_bonus = 0
@@ -366,7 +377,7 @@ async def get_singing_inspiration_chance(user_id, birds):
 
 async def get_seed_gathering_bonus(user_id, birds):
     """Calculate garden size bonus from birds that give first-gather-of-day bonuses."""
-    if not await is_first_action_of_type(user_id, "seed"):
+    if not await is_first_action_of_any_type(user_id, ["seed", "seed_common"]):
         return 0
 
     total_bonus = 0
@@ -393,6 +404,42 @@ async def get_swooping_bonus(user_id, birds):
             except ValueError:
                 continue
     return bonus
+
+
+# ---------------------------------------------------------------------------
+# Gardening pure-logic helpers
+# ---------------------------------------------------------------------------
+
+def can_afford_plant(player, plant):
+    """Check whether a player dict has enough resources for a plant dict."""
+    if player["seeds"] < plant["seedCost"]:
+        return False, f"You need {plant['seedCost']} seeds"
+    if player.get("inspiration", 0) < plant["inspirationCost"]:
+        return False, f"You need {plant['inspirationCost']} inspiration"
+    return True, None
+
+
+def has_garden_space(player_garden_size, existing_plants, plant_species_list, new_plant):
+    """Check whether there is enough garden space for a new plant."""
+    total_used = 0
+    for ep in existing_plants:
+        for sp in plant_species_list:
+            if sp["commonName"] == ep["common_name"]:
+                total_used += sp["sizeCost"]
+                break
+        else:
+            total_used += 1  # default
+    remaining = player_garden_size - total_used
+    if remaining < new_plant["sizeCost"]:
+        return False, "Not enough garden space"
+    return True, None
+
+
+def calc_compost_refund(plant_data):
+    """Calculate seed and inspiration refund (80% of cost)."""
+    seed_refund = int(plant_data["seedCost"] * 0.8)
+    inspiration_refund = int(plant_data["inspirationCost"] * 0.8)
+    return seed_refund, inspiration_refund
 
 
 # ---------------------------------------------------------------------------
