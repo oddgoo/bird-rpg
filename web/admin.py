@@ -40,8 +40,8 @@ def admin_routes(app):
         flash("Data is now stored in Supabase. Use the Supabase dashboard to export data.", 'info')
         return redirect(url_for('admin'))
 
-    @app.route('/admin/purge-old-actions')
-    @app.route('/admin/purge_old_actions')
+    @app.route('/admin/purge-old-actions', methods=['POST'])
+    @app.route('/admin/purge_old_actions', methods=['POST'])
     def purge_old_actions():
         if not session.get('admin_authenticated'):
             return redirect(url_for('admin'))
@@ -63,7 +63,7 @@ def admin_routes(app):
             flash(f"Error purging old actions: {str(e)}", 'error')
             return redirect(url_for('admin'))
 
-    @app.route('/admin/download_species_images')
+    @app.route('/admin/download_species_images', methods=['POST'])
     def download_species_images():
         if not session.get('admin_authenticated'):
             return redirect(url_for('admin'))

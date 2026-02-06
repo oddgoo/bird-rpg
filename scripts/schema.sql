@@ -275,3 +275,33 @@ BEGIN
     USING amount, p_user_id;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Atomic research progress upsert
+CREATE OR REPLACE FUNCTION increment_research_progress(p_author_name TEXT, p_points INTEGER)
+RETURNS void AS $$
+BEGIN
+    INSERT INTO research_progress (author_name, points) VALUES (p_author_name, p_points)
+    ON CONFLICT (author_name) DO UPDATE SET points = research_progress.points + EXCLUDED.points;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Atomic exploration upsert, returns new total
+CREATE OR REPLACE FUNCTION increment_exploration_points(p_region TEXT, p_amount INTEGER)
+RETURNS INTEGER AS $$
+DECLARE new_total INTEGER;
+BEGIN
+    INSERT INTO exploration (region, points) VALUES (p_region, p_amount)
+    ON CONFLICT (region) DO UPDATE SET points = exploration.points + EXCLUDED.points
+    RETURNING points INTO new_total;
+    RETURN new_total;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Atomic released bird upsert
+CREATE OR REPLACE FUNCTION upsert_released_bird_atomic(p_common_name TEXT, p_scientific_name TEXT)
+RETURNS void AS $$
+BEGIN
+    INSERT INTO released_birds (common_name, scientific_name, count) VALUES (p_common_name, p_scientific_name, 1)
+    ON CONFLICT (scientific_name) DO UPDATE SET count = released_birds.count + 1;
+END;
+$$ LANGUAGE plpgsql;

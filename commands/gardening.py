@@ -10,7 +10,7 @@ import json
 
 from config.config import SPECIES_IMAGES_DIR
 import data.storage as db
-from data.models import load_plant_species, get_extra_garden_space
+from data.models import load_plant_species, get_extra_garden_space, can_afford_plant, has_garden_space, calc_compost_refund
 from utils.logging import log_debug
 from utils.time_utils import get_time_until_reset, get_current_date
 

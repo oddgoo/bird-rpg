@@ -85,7 +85,9 @@ def _organize_by_group(items):
 
 @app.route('/user/<user_id>')
 def user_page(user_id):
-    player = db.load_player_sync(user_id)
+    player = db.get_player_sync(user_id)
+    if player is None:
+        return "Player not found", 404
     birds = db.get_player_birds_sync(user_id)
     plants = db.get_player_plants_sync(user_id)
     nest_treasures = db.get_nest_treasures_sync(user_id)
@@ -325,5 +327,6 @@ def run_server():
 
 def start_server():
     server_thread = Thread(target=run_server)
+    server_thread.daemon = True
     server_thread.start()
     return server_thread

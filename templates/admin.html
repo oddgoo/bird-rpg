@@ -60,18 +60,20 @@
             <div class="p-4">
                 <ul class="divide-y divide-gray-200">
                     <li class="py-4 flex items-center justify-between">
-                        <a href="{{ url_for('purge_old_actions') }}" 
-                           class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded transition-colors"
-                           onclick="return confirm('Are you sure you want to purge actions older than 4 days? This cannot be undone.')">
-                            Purge Old Actions
-                        </a>
+                        <form method="POST" action="{{ url_for('purge_old_actions') }}"
+                              onsubmit="return confirm('Are you sure you want to purge actions older than 4 days? This cannot be undone.')">
+                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded transition-colors">
+                                Purge Old Actions
+                            </button>
+                        </form>
                         <span class="text-gray-500 ml-4">Delete actions older than 4 days</span>
                     </li>
                     <li class="py-4 flex items-center justify-between">
-                        <a href="{{ url_for('download_species_images') }}"
-                           class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded transition-colors">
-                            Download Species Images
-                        </a>
+                        <form method="POST" action="{{ url_for('download_species_images') }}">
+                            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded transition-colors">
+                                Download Species Images
+                            </button>
+                        </form>
                         <span class="text-gray-500 ml-4">Download all bird and plant images from iNaturalist</span>
                     </li>
                 </ul>

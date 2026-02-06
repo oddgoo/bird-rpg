@@ -200,7 +200,7 @@ class ResearchCommands(commands.Cog):
         select = discord.ui.Select(
             placeholder="Who is the author?",
             options=options,
-            custom_id=f"study_select_{interaction.user.id}_{author_name}_{actions}"
+            custom_id=f"study_select|{interaction.user.id}|{author_name}|{actions}"
         )
 
         # Create the view with the select menu
@@ -251,10 +251,10 @@ class ResearchCommands(commands.Cog):
             selected_author = select_interaction.data["values"][0]
 
             # Get the correct author from the custom_id
-            correct_author = select_interaction.data["custom_id"].split("_")[3]
+            correct_author = select_interaction.data["custom_id"].split("|")[2]
 
             # Get the actions invested from the custom_id
-            invested_actions = int(select_interaction.data["custom_id"].split("_")[4])
+            invested_actions = int(select_interaction.data["custom_id"].split("|")[3])
 
             # Check if the answer is correct
             is_correct = selected_author == correct_author

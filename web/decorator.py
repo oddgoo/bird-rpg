@@ -186,9 +186,38 @@ def _load_entity_info(user_id, entity_type, entity_id):
     elif entity_type == "nest":
         player = db.load_player_sync(user_id)
         decorations = db.get_nest_treasures_sync(user_id)
+
+        # Load featured bird image (same logic as home page)
+        image_url = "/static/images/papyrus.jpg"  # fallback
+        featured_scientific_name = player.get("featured_bird_scientific_name")
+
+        if featured_scientific_name:
+            # Use the player's featured bird
+            from data.models import load_bird_species_sync
+            all_species = {s["scientificName"]: s for s in load_bird_species_sync()}
+            species_info = all_species.get(featured_scientific_name, {})
+            rarity = species_info.get("rarity", "common")
+            if rarity == "Special":
+                image_url = f"/static/images/special-birds/{featured_scientific_name}.png"
+            else:
+                image_url = f"/species_images/{featured_scientific_name}.jpg"
+        else:
+            # Fall back to first bird if no featured bird set
+            birds = db.get_player_birds_sync(user_id)
+            if birds:
+                first_bird = birds[0]
+                from data.models import load_bird_species_sync
+                all_species = {s["scientificName"]: s for s in load_bird_species_sync()}
+                species_info = all_species.get(first_bird["scientific_name"], {})
+                rarity = species_info.get("rarity", "common")
+                if rarity == "Special":
+                    image_url = f"/static/images/special-birds/{first_bird['scientific_name']}.png"
+                else:
+                    image_url = f"/species_images/{first_bird['scientific_name']}.jpg"
+
         return {
             "name": player.get("nest_name", "My Nest"),
-            "image_url": "/static/images/papyrus.jpg",
+            "image_url": image_url,
             "decorations": decorations,
         }
     return None

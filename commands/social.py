@@ -53,7 +53,14 @@ class SocialCommands(commands.Cog):
                 return
 
             # Add bird to receiver's nest
-            await db.add_bird(target_id, removed_bird["common_name"], removed_bird["scientific_name"])
+            try:
+                await db.add_bird(target_id, removed_bird["common_name"], removed_bird["scientific_name"])
+            except Exception as e:
+                # Re-add bird to giver on failure
+                log_debug(f"Failed to add bird to receiver, restoring to giver: {e}")
+                await db.add_bird(user_id, removed_bird["common_name"], removed_bird["scientific_name"])
+                await interaction.followup.send("\u274C Something went wrong while transferring the bird. Your bird has been returned.")
+                return
 
             # Get updated bird counts for the embed
             giver_birds = await db.get_player_birds(user_id)
@@ -183,7 +190,14 @@ class SocialCommands(commands.Cog):
             return
 
         # Add treasure to receiver's inventory
-        await db.add_player_treasure(target_id, found_treasure_id)
+        try:
+            await db.add_player_treasure(target_id, found_treasure_id)
+        except Exception as e:
+            # Re-add treasure to giver on failure
+            log_debug(f"Failed to add treasure to receiver, restoring to giver: {e}")
+            await db.add_player_treasure(user_id, found_treasure_id)
+            await interaction.followup.send("\u274C Something went wrong while transferring the treasure. Your treasure has been returned.")
+            return
 
         treasure_info = all_treasures.get(found_treasure_id)
         embed = discord.Embed(

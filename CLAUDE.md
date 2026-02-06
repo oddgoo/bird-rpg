@@ -87,12 +87,20 @@ Schema SQL is at `scripts/schema.sql`. Key tables:
 - `birdwatch_sightings` - User-uploaded bird photos (stored in Supabase Storage `birdwatch-images` bucket)
 - `game_settings` - Key-value config (e.g. `active_event` for the event system, `weather_location` for configurable weather coordinates)
 
-RPC functions (`increment_common_nest`, `increment_player_field`) provide atomic operations.
+RPC functions provide atomic operations:
+- `increment_common_nest` / `increment_player_field` - Atomic field increments
+- `increment_research_progress` - Atomic research progress upsert
+- `increment_exploration_points` - Atomic exploration upsert (returns new total)
+- `upsert_released_bird_atomic` - Atomic released bird count increment
 
 ## Key Patterns
 
 - **Async/sync split**: Discord commands use async DB functions; Flask routes use `_sync` suffixed variants
-- **Atomic operations**: Use `db.increment_player_field()` / `db.increment_common_nest()` (RPC calls) instead of read-modify-write for numeric fields
+- **Atomic operations**: Use `db.increment_player_field()` / `db.increment_common_nest()` (RPC calls) instead of read-modify-write for numeric fields. `db.increment_research()`, `db.increment_exploration()`, and `db.upsert_released_bird()` also use atomic RPCs.
+- **Read-only player lookup**: Use `db.get_player_sync(user_id)` for web routes that should NOT auto-create players (returns `None` if not found). Use `db.load_player_sync()` only when auto-creation is intended.
+- **First-action-of-day checks**: `is_first_action_of_type(user_id, type)` checks a single action type. `is_first_action_of_any_type(user_id, types)` checks multiple related types (e.g. `["build", "build_common"]`) to prevent bonuses firing twice for personal vs common nest actions.
+- **Gardening pure helpers**: `can_afford_plant()`, `has_garden_space()`, `calc_compost_refund()` in `data/models.py` are pure functions used by both `commands/gardening.py` and tests.
+- **Admin routes require POST**: Destructive admin routes (`purge_old_actions`, `download_species_images`) use `methods=['POST']` to prevent CSRF via GET requests.
 - **No load-everything pattern**: Each command makes targeted DB calls (SELECT/INSERT/UPDATE) instead of loading all data
 - **Cached reference data**: Read-only JSON files (`treasures.json`, `research_entities.json`) are cached at module level. Use `data.models.load_treasures()` and `data.storage.load_research_entities(event)` instead of reading files directly. `commands/foraging.py:load_treasures()` delegates to the cached version. `load_bird_species()` / `load_bird_species_sync()` are also cached; call `clear_bird_species_cache()` after manifesting a new bird.
 - **Group/ungroup commands**: `/group` and `/ungroup` in `commands/customisation.py` let players organize birds and plants into named groups. Groups display as subheadings on the user profile page (`templates/user.html`). The template uses Jinja2 macros (`bird_card`, `plant_card`) and data-attribute-based JS for image loading.

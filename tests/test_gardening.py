@@ -9,41 +9,7 @@ a real database or the old get_personal_nest helper.
 
 import pytest
 
-
-# ---------------------------------------------------------------------------
-# Pure logic helpers extracted from the gardening command flow
-# ---------------------------------------------------------------------------
-
-def can_afford_plant(player, plant):
-    """Check whether a player dict has enough resources for a plant dict."""
-    if player["seeds"] < plant["seedCost"]:
-        return False, f"You need {plant['seedCost']} seeds"
-    if player.get("inspiration", 0) < plant["inspirationCost"]:
-        return False, f"You need {plant['inspirationCost']} inspiration"
-    return True, None
-
-
-def has_garden_space(player_garden_size, existing_plants, plant_species_list, new_plant):
-    """Check whether there is enough garden space for a new plant."""
-    total_used = 0
-    for ep in existing_plants:
-        for sp in plant_species_list:
-            if sp["commonName"] == ep["common_name"]:
-                total_used += sp["sizeCost"]
-                break
-        else:
-            total_used += 1  # default
-    remaining = player_garden_size - total_used
-    if remaining < new_plant["sizeCost"]:
-        return False, "Not enough garden space"
-    return True, None
-
-
-def calc_compost_refund(plant_data):
-    """Calculate seed and inspiration refund (80% of cost)."""
-    seed_refund = int(plant_data["seedCost"] * 0.8)
-    inspiration_refund = int(plant_data["inspirationCost"] * 0.8)
-    return seed_refund, inspiration_refund
+from data.models import can_afford_plant, has_garden_space, calc_compost_refund
 
 
 # ---------------------------------------------------------------------------
