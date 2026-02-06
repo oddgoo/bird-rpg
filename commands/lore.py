@@ -14,7 +14,7 @@ class LoreCommands(commands.Cog):
         self.bot = bot
 
     @app_commands.command(name='memoir', description='Add a memoir to the Wings of Time')
-    @app_commands.describe(text='Your memoir text (max 256 characters)')
+    @app_commands.describe(text='Your memoir text (max 2048 characters)')
     async def add_memoir(self, interaction: discord.Interaction, text: str):
         await interaction.response.defer()
         log_debug(f"add_memoir called by {interaction.user.id}")
