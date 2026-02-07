@@ -1,5 +1,5 @@
 from flask import render_template
-from datetime import datetime
+from datetime import datetime, timedelta
 import data.storage as db
 from data.models import (
     load_bird_species_sync,
@@ -9,7 +9,7 @@ from data.models import (
     get_extra_bird_space_sync,
 )
 from config.config import MAX_BIRDS_PER_NEST
-from utils.time_utils import get_time_until_reset
+from utils.time_utils import get_time_until_reset, get_australian_time
 from utils.human_spawner import HumanSpawner
 
 def get_home_page():
@@ -39,11 +39,14 @@ def get_home_page():
     all_plants_by_user = db.get_all_player_plants_sync()
     all_nest_treasures = db.get_all_nest_treasures_sync()
 
-    # Pre-compute songs_given per user
+    # Pre-compute songs_given per user (last 30 days)
+    now = get_australian_time()
+    songs_cutoff = (now - timedelta(days=30)).strftime('%Y-%m-%d')
     songs_count = {}
     for s in all_songs:
-        uid = s["singer_user_id"]
-        songs_count[uid] = songs_count.get(uid, 0) + 1
+        if s["song_date"] >= songs_cutoff:
+            uid = s["singer_user_id"]
+            songs_count[uid] = songs_count.get(uid, 0) + 1
 
     # Get all personal nests with singing data
     personal_nests = []

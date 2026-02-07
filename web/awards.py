@@ -56,11 +56,11 @@ def get_awards_page():
             if award_key:
                 tallies[award_key][row["user_id"]] += 1
 
-    # Songs (sum points given to recipients, not just song count)
+    # Songs (count of recipients sung to in last 30 days)
     songs = db.get_all_songs_sync()
     for song in songs:
         if song["song_date"] >= cutoff:
-            tallies["bard"][song["singer_user_id"]] += song.get("points_given", 3)
+            tallies["bard"][song["singer_user_id"]] += 1
 
     # Birdwatch sightings
     sightings = db.get_all_birdwatch_sightings_unpaginated_sync()
