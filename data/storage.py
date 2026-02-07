@@ -689,9 +689,13 @@ def delete_old_daily_actions_sync(cutoff_date):
     sb.table("daily_actions").delete().lt("action_date", cutoff_date).execute()
 
 
-def get_all_daily_actions_sync():
+def get_all_daily_actions_sync(since_date=None):
+    """Get all daily actions, optionally filtered to on or after since_date."""
     sb = _sync_client()
-    res = sb.table("daily_actions").select("*").execute()
+    query = sb.table("daily_actions").select("*")
+    if since_date:
+        query = query.gte("action_date", since_date)
+    res = query.order("action_date", desc=True).execute()
     return res.data or []
 
 
@@ -759,10 +763,13 @@ async def get_all_songs_for_date(song_date):
     return res.data or []
 
 
-def get_all_songs_sync():
-    """Get all songs (for home page)."""
+def get_all_songs_sync(since_date=None):
+    """Get all songs, optionally filtered to on or after since_date."""
     sb = _sync_client()
-    res = sb.table("daily_songs").select("*").execute()
+    query = sb.table("daily_songs").select("*")
+    if since_date:
+        query = query.gte("song_date", since_date)
+    res = query.order("song_date", desc=True).execute()
     return res.data or []
 
 

@@ -46,10 +46,8 @@ def get_awards_page():
     tallies = defaultdict(lambda: defaultdict(int))
 
     # Daily actions
-    actions = db.get_all_daily_actions_sync()
+    actions = db.get_all_daily_actions_sync(since_date=cutoff)
     for row in actions:
-        if row["action_date"] < cutoff:
-            continue
         history = row.get("action_history") or []
         for entry in history:
             award_key = ACTION_AWARDS.get(entry)
@@ -57,10 +55,9 @@ def get_awards_page():
                 tallies[award_key][row["user_id"]] += 1
 
     # Songs (count of recipients sung to in last 30 days)
-    songs = db.get_all_songs_sync()
+    songs = db.get_all_songs_sync(since_date=cutoff)
     for song in songs:
-        if song["song_date"] >= cutoff:
-            tallies["bard"][song["singer_user_id"]] += 1
+        tallies["bard"][song["singer_user_id"]] += 1
 
     # Birdwatch sightings
     sightings = db.get_all_birdwatch_sightings_unpaginated_sync()

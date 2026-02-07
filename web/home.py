@@ -33,20 +33,19 @@ def get_home_page():
 
     # ---- BULK FETCH (one query each) ----
     all_players = db.load_all_players_sync()
-    all_songs = db.get_all_songs_sync()
+    now = get_australian_time()
+    songs_cutoff = (now - timedelta(days=30)).strftime('%Y-%m-%d')
+    all_songs = db.get_all_songs_sync(since_date=songs_cutoff)
     all_eggs = db.get_all_eggs_sync()
     all_birds_by_user = db.get_all_player_birds_sync()
     all_plants_by_user = db.get_all_player_plants_sync()
     all_nest_treasures = db.get_all_nest_treasures_sync()
 
     # Pre-compute songs_given per user (last 30 days)
-    now = get_australian_time()
-    songs_cutoff = (now - timedelta(days=30)).strftime('%Y-%m-%d')
     songs_count = {}
     for s in all_songs:
-        if s["song_date"] >= songs_cutoff:
-            uid = s["singer_user_id"]
-            songs_count[uid] = songs_count.get(uid, 0) + 1
+        uid = s["singer_user_id"]
+        songs_count[uid] = songs_count.get(uid, 0) + 1
 
     # Get all personal nests with singing data
     personal_nests = []
