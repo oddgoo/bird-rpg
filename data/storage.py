@@ -129,6 +129,14 @@ async def load_player(user_id):
     return row
 
 
+async def get_player(user_id):
+    """Read-only player lookup. Returns dict or None. Does NOT auto-create."""
+    user_id = str(user_id)
+    sb = await _client()
+    res = await sb.table("players").select("*").eq("user_id", user_id).execute()
+    return res.data[0] if res.data else None
+
+
 def load_player_sync(user_id):
     user_id = str(user_id)
     sb = _sync_client()

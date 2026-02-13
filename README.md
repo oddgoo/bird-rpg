@@ -160,6 +160,7 @@ Tests mock the database layer and don't require a Supabase connection.
 | `/regurgitate @user [amount]` | Share bonus actions |
 | `/gift_treasure [treasure] @user` | Give a treasure |
 | `/nests` | View nest status |
+| `/showcase_nest [@user]` | Post a rendered nest showcase image in Discord |
 
 ### Garden & Foraging
 | Command | Description |

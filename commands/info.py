@@ -1,4 +1,4 @@
-from datetime import datetime
+import io
 from discord.ext import commands
 from discord import app_commands
 import discord
@@ -9,6 +9,7 @@ from data.models import (
     get_total_bird_species
 )
 from utils.logging import log_debug
+from utils.nest_showcase import NestShowcaseError, build_showcase_payload, render_showcase_png
 from utils.time_utils import get_time_until_reset, get_current_date
 from config.config import DEBUG
 from constants import BASE_DAILY_ACTIONS
@@ -73,6 +74,51 @@ class InfoCommands(commands.Cog):
         help_text += "https://bird-rpg.onrender.com/help\n\n"
 
         await interaction.followup.send(help_text)
+
+    @app_commands.command(name='showcase_nest', description='Generate a visual showcase of a nest')
+    @app_commands.describe(target_user='The user whose nest to showcase (optional)')
+    async def showcase_nest(self, interaction: discord.Interaction, target_user: discord.User | None = None):
+        await interaction.response.defer()
+
+        target = target_user if target_user is not None else interaction.user
+        if target.bot:
+            await interaction.followup.send("Bots do not have showcaseable nests.")
+            return
+
+        allow_fallback_image = target.id == interaction.user.id
+
+        try:
+            payload = await build_showcase_payload(
+                str(target.id),
+                allow_fallback_image=allow_fallback_image,
+            )
+            png_bytes = await render_showcase_png(payload)
+        except NestShowcaseError as exc:
+            await interaction.followup.send(str(exc))
+            return
+        except Exception as exc:
+            log_debug(f"showcase_nest failed for {target.id}: {exc}")
+            await interaction.followup.send(
+                "Couldn't generate this nest showcase right now. Please try again later."
+            )
+            return
+
+        filename = f"nest_showcase_{target.id}.png"
+        file = discord.File(io.BytesIO(png_bytes), filename=filename)
+
+        embed = discord.Embed(
+            title=f"🪺 {payload['nest_name']}",
+            description=f"Showcasing {target.mention}'s nest",
+            color=discord.Color.gold(),
+        )
+        embed.add_field(name="🪹 Twigs", value=str(payload["twigs"]), inline=True)
+        embed.add_field(name="🌰 Seeds", value=str(payload["seeds"]), inline=True)
+        embed.add_field(name="🐦 Chicks", value=str(payload["chicks"]), inline=True)
+        egg_value = f"{payload['egg_progress']}/10" if payload["egg_progress"] is not None else "None"
+        embed.add_field(name="🥚 Egg", value=egg_value, inline=True)
+        embed.set_image(url=f"attachment://{filename}")
+
+        await interaction.followup.send(embed=embed, file=file)
 
 async def setup(bot):
     await bot.add_cog(InfoCommands(bot))
