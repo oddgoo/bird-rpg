@@ -1,5 +1,5 @@
 from flask import render_template
-from datetime import datetime
+from datetime import datetime, timedelta
 import data.storage as db
 from data.models import (
     load_bird_species_sync,
@@ -9,7 +9,7 @@ from data.models import (
     get_extra_bird_space_sync,
 )
 from config.config import MAX_BIRDS_PER_NEST
-from utils.time_utils import get_time_until_reset
+from utils.time_utils import get_time_until_reset, get_australian_time
 from utils.human_spawner import HumanSpawner
 
 def get_home_page():
@@ -33,13 +33,15 @@ def get_home_page():
 
     # ---- BULK FETCH (one query each) ----
     all_players = db.load_all_players_sync()
-    all_songs = db.get_all_songs_sync()
+    now = get_australian_time()
+    songs_cutoff = (now - timedelta(days=30)).strftime('%Y-%m-%d')
+    all_songs = db.get_all_songs_sync(since_date=songs_cutoff)
     all_eggs = db.get_all_eggs_sync()
     all_birds_by_user = db.get_all_player_birds_sync()
     all_plants_by_user = db.get_all_player_plants_sync()
     all_nest_treasures = db.get_all_nest_treasures_sync()
 
-    # Pre-compute songs_given per user
+    # Pre-compute songs_given per user (last 30 days)
     songs_count = {}
     for s in all_songs:
         uid = s["singer_user_id"]

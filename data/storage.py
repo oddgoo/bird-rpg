@@ -183,13 +183,13 @@ def increment_player_field_sync(user_id, field, amount):
 async def load_all_players():
     """Load all player rows."""
     sb = await _client()
-    res = await sb.table("players").select("*").execute()
+    res = await sb.table("players").select("*").limit(10000).execute()
     return res.data or []
 
 
 def load_all_players_sync():
     sb = _sync_client()
-    res = sb.table("players").select("*").execute()
+    res = sb.table("players").select("*").limit(10000).execute()
     return res.data or []
 
 
@@ -305,13 +305,13 @@ async def clear_group_birds(user_id, group_name):
 async def get_all_birds():
     """Get all birds across all players."""
     sb = await _client()
-    res = await sb.table("player_birds").select("*").execute()
+    res = await sb.table("player_birds").select("*").limit(10000).execute()
     return res.data or []
 
 
 def get_all_birds_sync():
     sb = _sync_client()
-    res = sb.table("player_birds").select("*").execute()
+    res = sb.table("player_birds").select("*").limit(10000).execute()
     return res.data or []
 
 
@@ -415,13 +415,13 @@ async def clear_group_plants(user_id, group_name):
 async def get_all_plants():
     """Get all plants across all players."""
     sb = await _client()
-    res = await sb.table("player_plants").select("*").execute()
+    res = await sb.table("player_plants").select("*").limit(10000).execute()
     return res.data or []
 
 
 def get_all_plants_sync():
     sb = _sync_client()
-    res = sb.table("player_plants").select("*").execute()
+    res = sb.table("player_plants").select("*").limit(10000).execute()
     return res.data or []
 
 
@@ -748,15 +748,19 @@ def delete_old_daily_actions_sync(cutoff_date):
     sb.table("daily_actions").delete().lt("action_date", cutoff_date).execute()
 
 
-def get_all_daily_actions_sync():
+def get_all_daily_actions_sync(since_date=None):
+    """Get all daily actions, optionally filtered to on or after since_date."""
     sb = _sync_client()
-    res = sb.table("daily_actions").select("*").execute()
+    query = sb.table("daily_actions").select("*")
+    if since_date:
+        query = query.gte("action_date", since_date)
+    res = query.order("action_date", desc=True).limit(10000).execute()
     return res.data or []
 
 
 def get_all_birdwatch_sightings_unpaginated_sync():
     sb = _sync_client()
-    res = sb.table("birdwatch_sightings").select("user_id, created_at").execute()
+    res = sb.table("birdwatch_sightings").select("user_id, created_at").limit(10000).execute()
     return res.data or []
 
 
@@ -818,10 +822,13 @@ async def get_all_songs_for_date(song_date):
     return res.data or []
 
 
-def get_all_songs_sync():
-    """Get all songs (for home page)."""
+def get_all_songs_sync(since_date=None):
+    """Get all songs, optionally filtered to on or after since_date."""
     sb = _sync_client()
-    res = sb.table("daily_songs").select("*").execute()
+    query = sb.table("daily_songs").select("*")
+    if since_date:
+        query = query.gte("song_date", since_date)
+    res = query.order("song_date", desc=True).limit(10000).execute()
     return res.data or []
 
 
@@ -910,13 +917,13 @@ async def set_last_song_targets(user_id, target_user_ids):
 
 async def get_released_birds():
     sb = await _client()
-    res = await sb.table("released_birds").select("*").execute()
+    res = await sb.table("released_birds").select("*").limit(10000).execute()
     return res.data or []
 
 
 def get_released_birds_sync():
     sb = _sync_client()
-    res = sb.table("released_birds").select("*").execute()
+    res = sb.table("released_birds").select("*").limit(10000).execute()
     return res.data or []
 
 
@@ -986,7 +993,7 @@ async def load_memoirs():
 
 def load_memoirs_sync():
     sb = _sync_client()
-    res = sb.table("memoirs").select("*").order("memoir_date", desc=True).execute()
+    res = sb.table("memoirs").select("*").order("memoir_date", desc=True).limit(10000).execute()
     return res.data or []
 
 
@@ -1144,14 +1151,14 @@ async def remove_weather_channel(guild_id):
 def get_all_eggs_sync():
     """Fetch all eggs in one query. Returns dict keyed by user_id."""
     sb = _sync_client()
-    res = sb.table("eggs").select("user_id, brooding_progress").execute()
+    res = sb.table("eggs").select("user_id, brooding_progress").limit(10000).execute()
     return {row["user_id"]: row["brooding_progress"] for row in (res.data or [])}
 
 
 def get_all_player_birds_sync():
     """Fetch all player birds. Returns dict of user_id -> list of birds."""
     sb = _sync_client()
-    res = sb.table("player_birds").select("*").execute()
+    res = sb.table("player_birds").select("*").limit(10000).execute()
     grouped = {}
     for row in (res.data or []):
         grouped.setdefault(str(row["user_id"]), []).append(row)
@@ -1161,7 +1168,7 @@ def get_all_player_birds_sync():
 def get_all_player_plants_sync():
     """Fetch all player plants. Returns dict of user_id -> list of plants."""
     sb = _sync_client()
-    res = sb.table("player_plants").select("*").execute()
+    res = sb.table("player_plants").select("*").limit(10000).execute()
     grouped = {}
     for row in (res.data or []):
         grouped.setdefault(str(row["user_id"]), []).append(row)
@@ -1171,7 +1178,7 @@ def get_all_player_plants_sync():
 def get_all_nest_treasures_sync():
     """Fetch all nest treasures. Returns dict of user_id -> list of decorations."""
     sb = _sync_client()
-    res = sb.table("nest_treasures").select("*").execute()
+    res = sb.table("nest_treasures").select("*").limit(10000).execute()
     grouped = {}
     for row in (res.data or []):
         grouped.setdefault(str(row["user_id"]), []).append(row)
