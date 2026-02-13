@@ -1,6 +1,7 @@
 from discord.ext import commands
 from discord import app_commands
 import discord
+import asyncio
 from datetime import datetime
 import aiohttp
 import random
@@ -21,6 +22,95 @@ from utils.time_utils import get_time_until_reset, get_current_date
 class IncubationCommands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    async def _resolve_members_for_user_ids(self, guild, user_ids):
+        """Resolve user IDs to guild members with cached lookup first."""
+        if guild is None:
+            return {}
+
+        members_by_id = {}
+        unresolved = []
+
+        for user_id in user_ids:
+            try:
+                int_user_id = int(user_id)
+            except ValueError:
+                continue
+
+            member = guild.get_member(int_user_id)
+            if member is not None:
+                members_by_id[user_id] = member
+            else:
+                unresolved.append((user_id, int_user_id))
+
+        if not unresolved:
+            return members_by_id
+
+        semaphore = asyncio.Semaphore(5)
+
+        async def fetch_member(user_id, int_user_id):
+            async with semaphore:
+                try:
+                    member = await guild.fetch_member(int_user_id)
+                    return user_id, member
+                except (discord.NotFound, discord.HTTPException):
+                    return user_id, None
+
+        resolved = await asyncio.gather(*(fetch_member(user_id, int_user_id) for user_id, int_user_id in unresolved))
+        for user_id, member in resolved:
+            if member is not None:
+                members_by_id[user_id] = member
+
+        return members_by_id
+
+    async def _get_broodable_targets(self, interaction, max_birds, today, allow_own_locked=False):
+        """Find broodable targets with batch DB queries."""
+        brooder_id = str(interaction.user.id)
+        all_players = await db.load_all_players()
+
+        candidate_players = []
+        candidate_user_ids = []
+        for player in all_players:
+            target_user_id = str(player["user_id"])
+            if player.get("locked", False) and not (allow_own_locked and target_user_id == brooder_id):
+                continue
+            candidate_players.append(player)
+            candidate_user_ids.append(target_user_id)
+
+        if not candidate_user_ids:
+            return []
+
+        eggs_by_user = await db.get_eggs_for_users(candidate_user_ids)
+        if not eggs_by_user:
+            return []
+
+        users_with_eggs = list(eggs_by_user.keys())
+        bird_counts_by_user = await db.get_bird_counts_for_users(users_with_eggs)
+        already_brooded = await db.get_brooded_targets_today(brooder_id, today, users_with_eggs)
+
+        ordered_target_ids = []
+        players_by_id = {str(player["user_id"]): player for player in candidate_players}
+        for player in candidate_players:
+            target_user_id = str(player["user_id"])
+            if target_user_id not in eggs_by_user:
+                continue
+            if bird_counts_by_user.get(target_user_id, 0) >= max_birds:
+                continue
+            if target_user_id in already_brooded:
+                continue
+            ordered_target_ids.append(target_user_id)
+
+        if not ordered_target_ids:
+            return []
+
+        members_by_id = await self._resolve_members_for_user_ids(interaction.guild, ordered_target_ids)
+
+        valid_targets = []
+        for target_user_id in ordered_target_ids:
+            member = members_by_id.get(target_user_id)
+            if member and not member.bot:
+                valid_targets.append((member, players_by_id[target_user_id], eggs_by_user[target_user_id]))
+        return valid_targets
 
     @app_commands.command(name='lay_egg', description='Convert seeds into an egg in your nest')
     async def lay_egg(self, interaction: discord.Interaction):
@@ -181,31 +271,7 @@ class IncubationCommands(commands.Cog):
         max_birds = MAX_BIRDS_PER_NEST + extra_bird_space
         today = get_current_date()
 
-        # Find all players with eggs that haven't been brooded by the user today
-        all_players = await db.load_all_players()
-        valid_targets = []
-        for p in all_players:
-            p_user_id = str(p["user_id"])
-            # Skip locked nests
-            if p.get("locked", False):
-                continue
-            # Check if they have an egg
-            egg = await db.get_egg(p_user_id)
-            if egg is None:
-                continue
-            # Skip users who are at their bird limit
-            birds = await db.get_player_birds(p_user_id)
-            if len(birds) >= max_birds:
-                continue
-            # Check if already brooded today
-            if await db.has_brooded_today(str(interaction.user.id), p_user_id, today):
-                continue
-            try:
-                member = await interaction.guild.fetch_member(int(p_user_id))
-                if member and not member.bot:
-                    valid_targets.append(member)
-            except (ValueError, discord.NotFound, discord.HTTPException):
-                continue
+        valid_targets = await self._get_broodable_targets(interaction, max_birds, today, allow_own_locked=False)
 
         if not valid_targets:
             await interaction.followup.send("There are no nests available to brood! All nests either have no eggs, you've already brooded them today, or they are at capacity. \U0001f95a")
@@ -215,13 +281,21 @@ class IncubationCommands(commands.Cog):
         successful_targets = []
         hatched_targets = []
         skipped_targets = []
+        successful_count = 0
 
         # Process each target until out of actions or targets
-        for target_user in valid_targets:
+        for target_user, target_player, target_egg in valid_targets:
             if remaining_actions <= 0:
                 break
 
-            result_tuple, error = await self.process_brooding(interaction, target_user, remaining_actions)
+            result_tuple, error = await self.process_brooding(
+                interaction,
+                target_user,
+                remaining_actions,
+                prefetched_player=target_player,
+                prefetched_egg=target_egg,
+                max_birds=max_birds,
+            )
             if error:
                 skipped_targets.append((target_user, error))
                 continue
@@ -231,8 +305,11 @@ class IncubationCommands(commands.Cog):
             else:
                 successful_targets.append(result_tuple)
 
-            await record_actions(interaction.user.id, 1, "brood")
+            successful_count += 1
             remaining_actions -= 1
+
+        if successful_count > 0:
+            await record_actions(interaction.user.id, successful_count, "brood")
 
         # Send batched response for successful broods
         if successful_targets:
@@ -272,39 +349,22 @@ class IncubationCommands(commands.Cog):
         max_birds = MAX_BIRDS_PER_NEST + extra_bird_space
         today = get_current_date()
 
-        # Find all players with eggs that haven't been brooded by the user today
-        all_players = await db.load_all_players()
-        valid_targets = []
-        for p in all_players:
-            p_user_id = str(p["user_id"])
-            # Skip locked nests (unless it's your own)
-            if p.get("locked", False) and str(interaction.user.id) != p_user_id:
-                continue
-            # Check if they have an egg
-            egg = await db.get_egg(p_user_id)
-            if egg is None:
-                continue
-            # Skip users who are at their bird limit
-            birds = await db.get_player_birds(p_user_id)
-            if len(birds) >= max_birds:
-                continue
-            # Check if already brooded today
-            if await db.has_brooded_today(str(interaction.user.id), p_user_id, today):
-                continue
-            try:
-                member = await interaction.guild.fetch_member(int(p_user_id))
-                if member and not member.bot:
-                    valid_targets.append(member)
-            except (ValueError, discord.NotFound, discord.HTTPException):
-                continue
+        valid_targets = await self._get_broodable_targets(interaction, max_birds, today, allow_own_locked=True)
 
         if not valid_targets:
             await interaction.followup.send("There are no nests available to brood! All nests either have no eggs,  you've already brooded them today, or they are at capacity! \U0001f95a")
             return
 
         # Select a random target and brood their egg
-        target_user = random.choice(valid_targets)
-        result_tuple, error = await self.process_brooding(interaction, target_user, remaining_actions)
+        target_user, target_player, target_egg = random.choice(valid_targets)
+        result_tuple, error = await self.process_brooding(
+            interaction,
+            target_user,
+            remaining_actions,
+            prefetched_player=target_player,
+            prefetched_egg=target_egg,
+            max_birds=max_birds,
+        )
 
         if error:
             await interaction.followup.send(f"Couldn't brood at {target_user.display_name}'s nest: {error}")
@@ -363,10 +423,10 @@ class IncubationCommands(commands.Cog):
         success, message = await bless_egg(user_id)
         await interaction.followup.send(message)
 
-    async def process_brooding(self, interaction_or_ctx, target_user, remaining_actions):
+    async def process_brooding(self, interaction_or_ctx, target_user, remaining_actions, prefetched_player=None, prefetched_egg=None, max_birds=None):
         """Helper function to process brooding for a single user"""
         target_user_id = str(target_user.id)
-        target_player = await db.load_player(target_user_id)
+        target_player = prefetched_player if prefetched_player is not None else await db.load_player(target_user_id)
 
         # Check if target's nest is locked and brooder is not the owner
         user_id = getattr(interaction_or_ctx, 'user', getattr(interaction_or_ctx, 'author', None)).id
@@ -374,7 +434,7 @@ class IncubationCommands(commands.Cog):
             return None, "Nest is locked!"
 
         # Check if target has an egg
-        egg = await db.get_egg(target_user_id)
+        egg = prefetched_egg if prefetched_egg is not None else await db.get_egg(target_user_id)
         if egg is None:
             return None, "doesn't have an egg to brood"
 
@@ -387,8 +447,9 @@ class IncubationCommands(commands.Cog):
         # Check nest capacity before hatching would occur
         would_hatch = egg["brooding_progress"] >= 10 or egg["brooding_progress"] + 1 >= 10
         if would_hatch:
-            extra_bird_space = await get_extra_bird_space()
-            max_birds = MAX_BIRDS_PER_NEST + extra_bird_space
+            if max_birds is None:
+                extra_bird_space = await get_extra_bird_space()
+                max_birds = MAX_BIRDS_PER_NEST + extra_bird_space
             current_birds = await db.get_player_birds(target_user_id)
             if len(current_birds) >= max_birds:
                 return None, f"nest already has the maximum of {max_birds} birds — free a spot before hatching"
@@ -406,6 +467,10 @@ class IncubationCommands(commands.Cog):
         target_nest_name = target_player.get("nest_name", "Some Bird's Nest")
 
         if new_progress >= 10:
+            if "multipliers" not in egg:
+                full_egg = await db.get_egg(target_user_id)
+                if full_egg is not None:
+                    egg = full_egg
 
             # Get multipliers if they exist
             multipliers = egg.get("multipliers", {})

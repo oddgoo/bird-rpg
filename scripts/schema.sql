@@ -36,6 +36,7 @@ CREATE TABLE player_birds (
     scientific_name TEXT NOT NULL,
     group_name TEXT
 );
+CREATE INDEX IF NOT EXISTS idx_player_birds_user_id ON player_birds(user_id);
 
 -- Treasures/decorations on birds
 CREATE TABLE bird_treasures (

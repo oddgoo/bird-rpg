@@ -30,12 +30,15 @@ def mock_interaction():
     interaction.response = AsyncMock()
     interaction.followup = AsyncMock()
     interaction.channel = AsyncMock()
+    interaction.guild.get_member = MagicMock(return_value=None)
+    interaction.guild.fetch_member = AsyncMock(return_value=None)
 
     def add_member(user_id, display_name=""):
         member = AsyncMock()
         member.id = user_id
         member.display_name = display_name or f"User-{user_id}"
         member.mention = f"<@{user_id}>"
+        member.bot = False
         interaction.guild.members.append(member)
         return member
 
@@ -170,6 +173,55 @@ class TestIncubationCommands:
         mock_interaction.followup.send.assert_called_once()
         msg = mock_interaction.followup.send.call_args[0][0]
         assert "You've used all your actions for today" in msg
+
+    @pytest.mark.asyncio
+    async def test_brood_all_batches_prefetch_and_records_actions_once(self, mock_interaction):
+        """brood_all should batch prefiltering and record actions once for all successes."""
+        bot = AsyncMock()
+        cog = IncubationCommands(bot)
+
+        target_a = mock_interaction.add_member(456, "Target A")
+        target_b = mock_interaction.add_member(789, "Target B")
+
+        member_by_id = {
+            456: target_a,
+            789: target_b,
+        }
+        mock_interaction.guild.get_member = MagicMock(side_effect=lambda uid: member_by_id.get(uid))
+
+        players = [
+            {"user_id": "456", "nest_name": "A Nest", "locked": False},
+            {"user_id": "789", "nest_name": "B Nest", "locked": False},
+        ]
+        eggs = {
+            "456": {"user_id": "456", "brooding_progress": 3, "protected_prayers": False},
+            "789": {"user_id": "789", "brooding_progress": 4, "protected_prayers": False},
+        }
+
+        mock_process = AsyncMock(side_effect=[
+            (("progress", 6, "A Nest", target_a), None),
+            (("progress", 5, "B Nest", target_b), None),
+        ])
+        mock_record_actions = AsyncMock()
+
+        with patch("commands.incubation.get_remaining_actions", new=AsyncMock(return_value=5)), \
+             patch("commands.incubation.get_extra_bird_space", new=AsyncMock(return_value=0)), \
+             patch("commands.incubation.db.load_all_players", new=AsyncMock(return_value=players)), \
+             patch("commands.incubation.db.get_eggs_for_users", new=AsyncMock(return_value=eggs)), \
+             patch("commands.incubation.db.get_bird_counts_for_users", new=AsyncMock(return_value={"456": 2, "789": 3})), \
+             patch("commands.incubation.db.get_brooded_targets_today", new=AsyncMock(return_value=set())), \
+             patch.object(cog, "process_brooding", new=mock_process), \
+             patch("commands.incubation.record_actions", new=mock_record_actions):
+
+            await cog.brood_all.callback(cog, mock_interaction)
+
+        mock_record_actions.assert_called_once_with(mock_interaction.user.id, 2, "brood")
+        assert mock_process.call_count == 2
+
+        first_kwargs = mock_process.call_args_list[0].kwargs
+        assert first_kwargs["prefetched_player"]["user_id"] == "456"
+        assert first_kwargs["prefetched_egg"]["user_id"] == "456"
+        assert first_kwargs["max_birds"] > 0
 
     @pytest.mark.asyncio
     async def test_brood_stuck_egg_recovery(self, mock_interaction):

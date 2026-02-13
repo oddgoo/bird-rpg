@@ -76,7 +76,7 @@ Reference data files (read-only, bundled with code):
 
 ## Database Schema
 
-Schema SQL is at `scripts/schema.sql`. Key tables:
+Schema SQL is at `scripts/schema.sql`. Incremental SQL migrations for existing DBs live in `scripts/migrations/`. Key tables:
 - `players` - Player data (twigs, seeds, inspiration, etc.)
 - `player_birds` / `player_plants` - Birds and plants owned by players (nullable `group_name` column for user-defined grouping)
 - `common_nest` - Shared community nest (singleton)
@@ -105,6 +105,7 @@ RPC functions provide atomic operations:
 - **Cached reference data**: Read-only JSON files (`treasures.json`, `research_entities.json`) are cached at module level. Use `data.models.load_treasures()` and `data.storage.load_research_entities(event)` instead of reading files directly. `commands/foraging.py:load_treasures()` delegates to the cached version. `load_bird_species()` / `load_bird_species_sync()` are also cached; call `clear_bird_species_cache()` after manifesting a new bird.
 - **Group/ungroup commands**: `/group` and `/ungroup` in `commands/customisation.py` let players organize birds and plants into named groups. Groups display as subheadings on the user profile page (`templates/user.html`). The template uses Jinja2 macros (`bird_card`, `plant_card`) and data-attribute-based JS for image loading.
 - **Batch singing operations**: `_process_singing()` in `commands/singing.py` uses batch DB operations (`db.get_sung_to_targets_today()`, `db.record_songs_batch()`) and `asyncio.gather()` for concurrent bonus actions to minimize DB round-trips. Bird bonuses and inspiration are pre-computed once before the loop.
+- **Batch brooding target discovery**: `/brood_all` and `/brood_random` in `commands/incubation.py` now prefilter with batch DB helpers (`db.get_eggs_for_users()`, `db.get_bird_counts_for_users()`, `db.get_brooded_targets_today()`) to avoid per-player query loops. The command resolves guild members from cache first (`guild.get_member`) and only falls back to bounded concurrent `fetch_member` calls.
 - **Event system**: The `game_settings` table stores `active_event` (default: `"default"`). Toggle events directly in Supabase. `load_research_entities(event)` loads event-specific JSON files (`research_entities_{event}.json`). `load_all_research_entities()` combines entities from all events for milestone bonus calculations. The `/study` dropdown shows 8 shuffled authors from the active event.
 - **Weather location**: The `game_settings` table stores `weather_location` as a JSON string with `latitude`, `longitude`, `timezone`, and `name` fields. Defaults to Melbourne/Naarm if not set. Change it in Supabase when switching events to update `/weather` and daily weather updates.
 - **Research entity format**: All research entity JSON files use `{"milestone": "+1 Bird Limit"}` (single string). The milestone repeats for every threshold. Use `_get_milestone_type(entity)` helper in `data/models.py` to read the milestone type.

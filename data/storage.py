@@ -236,6 +236,22 @@ async def get_player_birds(user_id):
     return res.data or []
 
 
+async def get_bird_counts_for_users(user_ids):
+    """Return a dict of user_id -> bird count for the given users."""
+    normalized_ids = [str(uid) for uid in user_ids]
+    if not normalized_ids:
+        return {}
+
+    sb = await _client()
+    res = await sb.table("player_birds").select("user_id").in_("user_id", normalized_ids).execute()
+
+    counts = {}
+    for row in (res.data or []):
+        user_id = row["user_id"]
+        counts[user_id] = counts.get(user_id, 0) + 1
+    return counts
+
+
 def get_player_birds_sync(user_id):
     sb = _sync_client()
     res = sb.table("player_birds").select("*").eq("user_id", str(user_id)).execute()
@@ -610,6 +626,49 @@ async def get_egg(user_id):
     return egg
 
 
+async def get_eggs_for_users(user_ids, include_details=False):
+    """Batch fetch eggs for a list of users.
+
+    Returns a dict keyed by user_id. If include_details=True, includes the same
+    multipliers/brooders fields as get_egg().
+    """
+    normalized_ids = [str(uid) for uid in user_ids]
+    if not normalized_ids:
+        return {}
+
+    sb = await _client()
+    egg_select = "*" if include_details else "user_id,brooding_progress,protected_prayers"
+    eggs_res = await sb.table("eggs").select(egg_select).in_("user_id", normalized_ids).execute()
+    eggs = eggs_res.data or []
+    eggs_by_user = {row["user_id"]: row for row in eggs}
+
+    if not include_details or not eggs_by_user:
+        return eggs_by_user
+
+    mults_res = await sb.table("egg_multipliers").select("*").in_("egg_user_id", list(eggs_by_user.keys())).execute()
+    brooders_res = await sb.table("egg_brooders").select("egg_user_id,brooder_user_id").in_("egg_user_id", list(eggs_by_user.keys())).execute()
+
+    multipliers_by_user = {}
+    for mult in (mults_res.data or []):
+        egg_user_id = mult["egg_user_id"]
+        if egg_user_id not in multipliers_by_user:
+            multipliers_by_user[egg_user_id] = {}
+        multipliers_by_user[egg_user_id][mult["scientific_name"]] = mult["multiplier"]
+
+    brooders_by_user = {}
+    for brooder in (brooders_res.data or []):
+        egg_user_id = brooder["egg_user_id"]
+        if egg_user_id not in brooders_by_user:
+            brooders_by_user[egg_user_id] = []
+        brooders_by_user[egg_user_id].append(brooder["brooder_user_id"])
+
+    for egg_user_id, egg in eggs_by_user.items():
+        egg["multipliers"] = multipliers_by_user.get(egg_user_id, {})
+        egg["brooded_by"] = brooders_by_user.get(egg_user_id, [])
+
+    return eggs_by_user
+
+
 async def create_egg(user_id, brooding_progress=0, protected_prayers=False):
     sb = await _client()
     await sb.table("eggs").upsert({
@@ -787,6 +846,23 @@ async def record_brooding(brooder_user_id, target_user_id, brooding_date):
         "brooder_user_id": str(brooder_user_id),
         "target_user_id": str(target_user_id),
     }, on_conflict="brooding_date,brooder_user_id,target_user_id").execute()
+
+
+async def get_brooded_targets_today(brooder_user_id, brooding_date, target_user_ids=None):
+    """Return a set of target_user_id values brooded by this user on this date."""
+    sb = await _client()
+    query = sb.table("daily_brooding").select("target_user_id") \
+        .eq("brooding_date", brooding_date) \
+        .eq("brooder_user_id", str(brooder_user_id))
+
+    if target_user_ids is not None:
+        normalized_ids = [str(uid) for uid in target_user_ids]
+        if not normalized_ids:
+            return set()
+        query = query.in_("target_user_id", normalized_ids)
+
+    res = await query.execute()
+    return {r["target_user_id"] for r in (res.data or [])}
 
 
 async def has_brooded_today(brooder_user_id, target_user_id, brooding_date):
