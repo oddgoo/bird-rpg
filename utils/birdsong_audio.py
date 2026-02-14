@@ -112,10 +112,11 @@ def get_fallback_audio() -> tuple[bytes, str] | None:
         return None
 
 
-async def get_birdsong_for_bird(bird: dict) -> tuple[bytes | None, str]:
+async def get_birdsong_for_bird(bird: dict) -> tuple[bytes | None, str, bool]:
     """Main entry point: try xeno-canto, fall back to local files.
 
-    Returns (mp3_bytes_or_None, display_name).
+    Returns (mp3_bytes_or_None, display_name, is_default).
+    is_default is True when the song is a fallback rather than the actual bird's song.
     """
     common_name = bird.get("common_name", "A bird")
     scientific_name = bird.get("scientific_name", "")
@@ -123,11 +124,11 @@ async def get_birdsong_for_bird(bird: dict) -> tuple[bytes | None, str]:
     # Try xeno-canto first
     mp3_data = await fetch_birdsong_audio(scientific_name)
     if mp3_data:
-        return mp3_data, common_name
+        return mp3_data, common_name, False
 
     # Fall back to local files
     fallback = get_fallback_audio()
     if fallback:
-        return fallback[0], common_name
+        return fallback[0], common_name, True
 
-    return None, common_name
+    return None, common_name, False

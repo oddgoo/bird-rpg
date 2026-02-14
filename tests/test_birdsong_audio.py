@@ -115,10 +115,11 @@ async def test_get_birdsong_for_bird_uses_api():
     bird = {"common_name": "Laughing Kookaburra", "scientific_name": "Dacelo novaeguineae"}
 
     with patch("utils.birdsong_audio.fetch_birdsong_audio", new_callable=AsyncMock, return_value=fake_mp3):
-        data, name = await get_birdsong_for_bird(bird)
+        data, name, is_default = await get_birdsong_for_bird(bird)
 
     assert data == fake_mp3
     assert name == "Laughing Kookaburra"
+    assert is_default is False
 
 
 @pytest.mark.asyncio
@@ -129,10 +130,11 @@ async def test_get_birdsong_for_bird_fallback():
 
     with patch("utils.birdsong_audio.fetch_birdsong_audio", new_callable=AsyncMock, return_value=None), \
          patch("utils.birdsong_audio.get_fallback_audio", return_value=(fallback_mp3, "Generic Bird")):
-        data, name = await get_birdsong_for_bird(bird)
+        data, name, is_default = await get_birdsong_for_bird(bird)
 
     assert data == fallback_mp3
     assert name == "Laughing Kookaburra"
+    assert is_default is True
 
 
 @pytest.mark.asyncio
@@ -142,7 +144,8 @@ async def test_get_birdsong_for_bird_no_audio():
 
     with patch("utils.birdsong_audio.fetch_birdsong_audio", new_callable=AsyncMock, return_value=None), \
          patch("utils.birdsong_audio.get_fallback_audio", return_value=None):
-        data, name = await get_birdsong_for_bird(bird)
+        data, name, is_default = await get_birdsong_for_bird(bird)
 
     assert data is None
     assert name == "Laughing Kookaburra"
+    assert is_default is False

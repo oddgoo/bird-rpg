@@ -143,10 +143,13 @@ class SingingCommands(commands.Cog):
         if successful_targets and birds:
             try:
                 chosen_bird = random.choice(birds)
-                mp3_data, singing_bird_name = await get_birdsong_for_bird(chosen_bird)
+                mp3_data, singing_bird_name, is_default = await get_birdsong_for_bird(chosen_bird)
                 if mp3_data:
                     audio_file = discord.File(io.BytesIO(mp3_data), filename="birdsong.mp3")
-                    message.insert(0, f"🐦 Your {singing_bird_name} sings!")
+                    if is_default:
+                        message.insert(0, f"🐦 Your {singing_bird_name} sings! (Though no xeno-canto song was found)")
+                    else:
+                        message.insert(0, f"🐦 Your {singing_bird_name} sings!")
             except Exception as e:
                 log_debug(f"Error attaching birdsong audio: {e}")
 
@@ -236,10 +239,13 @@ class SingingCommands(commands.Cog):
         if successful_targets and birds:
             try:
                 chosen_bird = random.choice(birds)
-                mp3_data, singing_bird_name = await get_birdsong_for_bird(chosen_bird)
+                mp3_data, singing_bird_name, is_default = await get_birdsong_for_bird(chosen_bird)
                 if mp3_data:
                     audio_file = discord.File(io.BytesIO(mp3_data), filename="birdsong.mp3")
-                    message.insert(0, f"🐦 Your {singing_bird_name} sings!")
+                    if is_default:
+                        message.insert(0, f"🐦 Your {singing_bird_name} sings! (Though no xeno-canto song was found)")
+                    else:
+                        message.insert(0, f"🐦 Your {singing_bird_name} sings!")
             except Exception as e:
                 log_debug(f"Error attaching birdsong audio: {e}")
 
