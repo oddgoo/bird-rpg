@@ -6,6 +6,9 @@ nests.json
 nests.json.backup*
 *.backup.*
 
+# Supabase backups (contain player data)
+backups/
+
 # Python
 __pycache__/
 *.py[cod]

@@ -112,6 +112,14 @@ If you have existing game data in JSON files:
 python scripts/migrate_to_supabase.py
 ```
 
+### Backup
+
+```bash
+python scripts/backup_supabase.py
+```
+
+Exports every table to JSON and downloads the `birdwatch-images` bucket into `backups/supabase-<timestamp>/` (with a `manifest.json` of row counts and any errors). Read-only; exits non-zero if anything failed. For a restorable Postgres dump, also run `pg_dump` against the database connection string.
+
 ### Run
 
 ```bash

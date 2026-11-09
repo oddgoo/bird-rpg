@@ -41,6 +41,9 @@ venv/bin/pytest ./tests/test_manifest.py::test_function_name
 
 # Migrate JSON data to Supabase (one-time)
 python scripts/migrate_to_supabase.py
+
+# Back up every Supabase table + the birdwatch-images bucket to backups/supabase-<timestamp>/
+python scripts/backup_supabase.py [--out DIR] [--skip-images]
 ```
 
 Set `DEBUG=true` in `.env` to enable debug commands and template auto-reload.
@@ -89,7 +92,7 @@ Reference data files (read-only, bundled with code):
 
 ## Database Schema
 
-Schema SQL is at `scripts/schema.sql`. Incremental SQL migrations for existing DBs live in `scripts/migrations/`. Key tables:
+Schema SQL is at `scripts/schema.sql`. `scripts/backup_supabase.py` exports all tables (paged, read-only) as JSON plus the storage bucket; its `TABLES` dict must list every table with its primary key, so add new tables there too. Backups go to `backups/` (gitignored). Incremental SQL migrations for existing DBs live in `scripts/migrations/`. Key tables:
 - `players` - Player data (twigs, seeds, inspiration, etc.)
 - `player_birds` / `player_plants` - Birds and plants owned by players (nullable `group_name` column for user-defined grouping)
 - `common_nest` - Shared community nest (singleton)
