@@ -4,13 +4,19 @@ birdwatch-images storage bucket.
 
 Usage:
     1. Set SUPABASE_URL and SUPABASE_KEY in .env (the same values the bot uses)
-    2. Stop the bot so nothing changes mid-backup
-    3. python scripts/backup_supabase.py [--out DIR] [--skip-images]
+    2. Optional but recommended: set SUPABASE_DB_URL in .env to the Postgres
+       connection string (Supabase -> Project Settings -> Database; use the
+       Session pooler string if the direct one fails) and install pg_dump
+       (PostgreSQL client tools, same or newer major version as the server)
+    3. Stop the bot so nothing changes mid-backup
+    4. python scripts/backup_supabase.py [--out DIR] [--skip-images] [--db-url URL] [--skip-pg-dump]
 
 Output (default: ./backups/supabase-YYYYMMDD-HHMMSS/):
     tables/<table>.json            all rows of each table, as a JSON list
     storage/birdwatch-images/...   every file in the bucket, same paths
     schema.sql                     copy of scripts/schema.sql for restoring
+    database.dump                  pg_dump custom format (restore with pg_restore)
+    database.sql                   pg_dump plain SQL (restore with psql)
     manifest.json                  row counts, file counts and any errors
 
 The script only reads from Supabase; it never writes or deletes anything there.
@@ -21,7 +27,9 @@ import argparse
 import json
 import os
 import shutil
+import subprocess
 import sys
+from urllib.parse import urlsplit
 from datetime import datetime, timezone
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -179,7 +187,58 @@ def backup_bucket(sb, out_dir, manifest, sighting_rows):
     print(f"  {BUCKET}: {downloaded}/{len(paths)} files")
 
 
-def run_backup(sb, out_dir, skip_images=False):
+PG_DUMP_OUTPUTS = [
+    ("database.dump", ["-F", "c"]),  # compact, restore with pg_restore
+    ("database.sql", ["-F", "p"]),   # plain SQL, restore with psql
+]
+
+
+def redact_db_url(text, db_url):
+    """Replace the connection string and its password in text with placeholders."""
+    if not db_url:
+        return text
+    text = text.replace(db_url, "<SUPABASE_DB_URL>")
+    password = urlsplit(db_url).password
+    if password:
+        text = text.replace(password, "****")
+    return text
+
+
+def run_pg_dump(db_url, out_dir, manifest, runner=subprocess.run, pg_dump_path=None):
+    """Dump the public schema (tables, data, RPC functions) with pg_dump."""
+    pg_dump = pg_dump_path or shutil.which("pg_dump")
+    if not pg_dump:
+        msg = "pg_dump not found - install the PostgreSQL client tools"
+        print(f"  ! {msg}")
+        manifest["errors"].append(f"pg_dump: {msg}")
+        manifest["pg_dump"] = "failed"
+        return
+
+    results = {}
+    for filename, fmt_args in PG_DUMP_OUTPUTS:
+        dest = os.path.join(out_dir, filename)
+        cmd = [pg_dump, "--dbname", db_url, "--schema=public", "--no-owner",
+               "--no-privileges", *fmt_args, "-f", dest]
+        try:
+            proc = runner(cmd, capture_output=True, text=True)
+        except Exception as e:
+            proc = None
+            err = str(e)
+        else:
+            err = (proc.stderr or "").strip() or f"exit code {proc.returncode}"
+        if proc is not None and proc.returncode == 0 and os.path.exists(dest):
+            size = os.path.getsize(dest)
+            results[filename] = size
+            print(f"  {filename}: {size:,} bytes")
+        else:
+            err = redact_db_url(err, db_url)
+            print(f"  ! {filename}: FAILED ({err})")
+            manifest["errors"].append(f"pg_dump {filename}: {err}")
+            results[filename] = "failed"
+    manifest["pg_dump"] = results
+
+
+def run_backup(sb, out_dir, skip_images=False, db_url=None):
     """Back up everything into out_dir. Returns the manifest dict."""
     os.makedirs(out_dir, exist_ok=True)
     manifest = {
@@ -203,6 +262,12 @@ def run_backup(sb, out_dir, skip_images=False):
                 sightings = json.load(f)
         backup_bucket(sb, out_dir, manifest, sightings)
 
+    if db_url:
+        print("Running pg_dump...")
+        run_pg_dump(db_url, out_dir, manifest)
+    else:
+        manifest["pg_dump"] = "skipped"
+
     schema_src = os.path.join(PROJECT_ROOT, "scripts", "schema.sql")
     if os.path.exists(schema_src):
         shutil.copy2(schema_src, os.path.join(out_dir, "schema.sql"))
@@ -215,7 +280,9 @@ def run_backup(sb, out_dir, skip_images=False):
 def main():
     parser = argparse.ArgumentParser(description="Back up the Bird RPG Supabase project.")
     parser.add_argument("--out", help="Output directory (default: backups/supabase-<timestamp>)")
-    parser.add_argument("--skip-images", action="store_true", help="Only back up tables")
+    parser.add_argument("--skip-images", action="store_true", help="Don't download the storage bucket")
+    parser.add_argument("--db-url", help="Postgres connection string for pg_dump (default: SUPABASE_DB_URL from .env)")
+    parser.add_argument("--skip-pg-dump", action="store_true", help="Don't run pg_dump")
     args = parser.parse_args()
 
     from dotenv import load_dotenv
@@ -226,6 +293,8 @@ def main():
         print("Error: SUPABASE_URL and SUPABASE_KEY must be set in .env")
         sys.exit(1)
 
+    db_url = None if args.skip_pg_dump else (args.db_url or os.getenv("SUPABASE_DB_URL"))
+
     from supabase import create_client
     sb = create_client(url, key)
 
@@ -233,13 +302,16 @@ def main():
     out_dir = args.out or os.path.join(PROJECT_ROOT, "backups", f"supabase-{stamp}")
     print(f"Writing backup to {out_dir}\n")
 
-    manifest = run_backup(sb, out_dir, skip_images=args.skip_images)
+    manifest = run_backup(sb, out_dir, skip_images=args.skip_images, db_url=db_url)
 
     total_rows = sum(manifest["tables"].values())
     print(f"\nDone: {len(manifest['tables'])}/{len(TABLES)} tables, {total_rows} rows.")
     if manifest["errors"]:
         print(f"{len(manifest['errors'])} error(s) - see manifest.json. Do NOT delete the project yet.")
         sys.exit(1)
+    if manifest["pg_dump"] == "skipped" and not args.skip_pg_dump:
+        print("WARNING: pg_dump was skipped because SUPABASE_DB_URL is not set. The JSON backup is complete,")
+        print("but set SUPABASE_DB_URL (or pass --db-url) to also get a restorable database.dump / database.sql.")
     print("No errors.")
 
 

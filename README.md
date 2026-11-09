@@ -118,7 +118,9 @@ python scripts/migrate_to_supabase.py
 python scripts/backup_supabase.py
 ```
 
-Exports every table to JSON and downloads the `birdwatch-images` bucket into `backups/supabase-<timestamp>/` (with a `manifest.json` of row counts and any errors). Read-only; exits non-zero if anything failed. For a restorable Postgres dump, also run `pg_dump` against the database connection string.
+Exports every table to JSON and downloads the `birdwatch-images` bucket into `backups/supabase-<timestamp>/` (with a `manifest.json` of row counts and any errors). Read-only; exits non-zero if anything failed.
+
+If `SUPABASE_DB_URL` is set in `.env` (Supabase → Project Settings → Database connection string; use the Session pooler one if the direct one fails) and `pg_dump` is installed, it also writes `database.dump` and `database.sql` with every table, its data and the RPC functions. Restore with `pg_restore -d <db> database.dump` or `psql -d <db> -f database.sql`; a single "schema public already exists" error during restore is harmless. Flags: `--db-url URL`, `--skip-pg-dump`, `--skip-images`, `--out DIR`.
 
 ### Run
 

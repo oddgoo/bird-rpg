@@ -111,3 +111,48 @@ def test_run_backup_writes_tables_images_and_manifest(tmp_path):
     assert any("memoirs" in e for e in manifest["errors"])
     assert os.path.exists(out / "manifest.json")
     assert os.path.exists(out / "schema.sql")
+
+
+class FakeProc:
+    def __init__(self, returncode, stderr=""):
+        self.returncode = returncode
+        self.stderr = stderr
+
+
+def test_run_pg_dump_writes_both_formats(tmp_path):
+    calls = []
+
+    def runner(cmd, **_):
+        calls.append(cmd)
+        dest = cmd[cmd.index("-f") + 1]
+        with open(dest, "w") as f:
+            f.write("dump")
+        return FakeProc(0)
+
+    manifest = {"errors": []}
+    url = "postgresql://postgres:s3cret@db.x.supabase.co:5432/postgres"
+    bk.run_pg_dump(url, str(tmp_path), manifest, runner=runner, pg_dump_path="pg_dump")
+
+    assert manifest["errors"] == []
+    assert manifest["pg_dump"] == {"database.dump": 4, "database.sql": 4}
+    assert all("--schema=public" in c and url in c for c in calls)
+
+
+def test_run_pg_dump_failure_redacts_password(tmp_path):
+    url = "postgresql://postgres:s3cret@db.x.supabase.co:5432/postgres"
+
+    def runner(cmd, **_):
+        return FakeProc(1, stderr="password authentication failed: s3cret")
+
+    manifest = {"errors": []}
+    bk.run_pg_dump(url, str(tmp_path), manifest, runner=runner, pg_dump_path="pg_dump")
+
+    assert manifest["pg_dump"]["database.dump"] == "failed"
+    assert len(manifest["errors"]) == 2
+    assert all("s3cret" not in e for e in manifest["errors"])
+
+
+def test_run_backup_marks_pg_dump_skipped_without_url(tmp_path):
+    sb = FakeClient({}, FakeBucket({}, {}))
+    manifest = bk.run_backup(sb, str(tmp_path / "bk"), skip_images=True)
+    assert manifest["pg_dump"] == "skipped"
