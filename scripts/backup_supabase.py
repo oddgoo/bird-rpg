@@ -288,10 +288,13 @@ def main():
     from dotenv import load_dotenv
     load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
     url = os.getenv("SUPABASE_URL")
-    key = os.getenv("SUPABASE_KEY")
+    # Prefer the secret key so storage/RLS policies can't hide rows or files.
+    key = os.getenv("SUPABASE_SECRET") or os.getenv("SUPABASE_KEY")
     if not url or not key:
-        print("Error: SUPABASE_URL and SUPABASE_KEY must be set in .env")
+        print("Error: SUPABASE_URL and SUPABASE_SECRET (or SUPABASE_KEY) must be set in .env")
         sys.exit(1)
+    if not key.startswith("sb_secret_"):
+        print("WARNING: not using an sb_secret_ key; access rules may hide some rows or files.")
 
     db_url = None if args.skip_pg_dump else (args.db_url or os.getenv("SUPABASE_DB_URL"))
 

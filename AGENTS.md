@@ -44,6 +44,10 @@ python scripts/migrate_to_supabase.py
 
 # Back up every Supabase table + the birdwatch-images bucket to backups/supabase-<timestamp>/
 python scripts/backup_supabase.py [--out DIR] [--skip-images] [--db-url URL] [--skip-pg-dump]
+
+# Archive exports (needs: pip install playwright pymupdf && python -m playwright install chromium)
+python scripts/download_species_images.py [--base-url URL]   # species photos from the site's /species_images/ route
+python scripts/export_pdfs.py [--base-url URL] [--only birdwatch,lore,nests] [--users ID,ID]   # PDFs to exports/ (gitignored)
 ```
 
 Set `DEBUG=true` in `.env` to enable debug commands and template auto-reload.
@@ -58,6 +62,7 @@ Required in `.env`:
 - `DEBUG` - Set to `true` for debug mode (optional)
 - `XENO_CANTO_API_KEY` - Xeno-canto API key for bird song audio in `/sing` commands (optional, falls back to bundled MP3s)
 - `WEB_BASE_URL` - Base URL for the web server (optional, defaults to `http://localhost:10000`). Used for generating decorator links.
+- `SUPABASE_SECRET` - `sb_secret_…` key (optional). `scripts/backup_supabase.py` prefers it over `SUPABASE_KEY` so access rules can't hide rows or files.
 - `SUPABASE_DB_URL` - Postgres connection string (optional). Only used by `scripts/backup_supabase.py` to run `pg_dump`.
 
 ## Architecture
@@ -93,7 +98,7 @@ Reference data files (read-only, bundled with code):
 
 ## Database Schema
 
-Schema SQL is at `scripts/schema.sql`. `scripts/backup_supabase.py` exports all tables (paged, read-only) as JSON plus the storage bucket, and runs `pg_dump` (`database.dump` + `database.sql`) when `SUPABASE_DB_URL` is set; its `TABLES` dict must list every table with its primary key, so add new tables there too. Backups go to `backups/` (gitignored). Incremental SQL migrations for existing DBs live in `scripts/migrations/`. Key tables:
+Schema SQL is at `scripts/schema.sql`. `scripts/backup_supabase.py` exports all tables (paged, read-only) as JSON plus the storage bucket, and runs `pg_dump` (`database.dump` + `database.sql`) when `SUPABASE_DB_URL` is set; its `TABLES` dict must list every table with its primary key, so add new tables there too. Backups go to `backups/` (gitignored). Species photos (`species_images/` under `DATA_PATH`, i.e. the Render disk) are not in Supabase; `scripts/download_species_images.py` mirrors them from a running site. `scripts/export_pdfs.py` prints pages with headless Chromium (Playwright), injecting print CSS that hides the navbar/magpies/today's sections and strips box-shadow/backdrop-blur (each becomes a full-page image mask and bloats the PDF), then de-duplicates images with PyMuPDF. Incremental SQL migrations for existing DBs live in `scripts/migrations/`. Key tables:
 - `players` - Player data (twigs, seeds, inspiration, etc.)
 - `player_birds` / `player_plants` - Birds and plants owned by players (nullable `group_name` column for user-defined grouping)
 - `common_nest` - Shared community nest (singleton)

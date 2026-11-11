@@ -122,6 +122,16 @@ Exports every table to JSON and downloads the `birdwatch-images` bucket into `ba
 
 If `SUPABASE_DB_URL` is set in `.env` (Supabase → Project Settings → Database connection string; use the Session pooler one if the direct one fails) and `pg_dump` is installed, it also writes `database.dump` and `database.sql` with every table, its data and the RPC functions. Restore with `pg_restore -d <db> database.dump` or `psql -d <db> -f database.sql`; a single "schema public already exists" error during restore is harmless. Flags: `--db-url URL`, `--skip-pg-dump`, `--skip-images`, `--out DIR`.
 
+### Archive exports (PDF + species images)
+
+```bash
+pip install playwright pymupdf && python -m playwright install chromium
+python scripts/download_species_images.py   # mirror species photos from the live site into bird-rpg/species_images/
+python scripts/export_pdfs.py               # print birdwatch, Wings of Time and every nest to exports/pdf-<timestamp>/
+```
+
+Both default to `https://bird-rpg.onrender.com` (`--base-url` to change, e.g. `http://localhost:10000`) and read player/species lists from the newest `backups/supabase-*` folder. `export_pdfs.py` writes `birdwatch.pdf`, `wings-of-time.pdf`, `nests/<name>-<id>.pdf`, `all-nests.pdf` and `export_report.json` (missing images, errors). Flags: `--only birdwatch,lore,nests`, `--users ID,ID`, `--include-empty`, `--out DIR`.
+
 ### Run
 
 ```bash
